@@ -78,12 +78,14 @@
       z-index: -1;
     }
 
-    .die-btn:hover {
-      color: var(--parchment);
-    }
+    @media (hover: hover) {
+      .die-btn:hover {
+        color: var(--parchment);
+      }
 
-    .die-btn:hover::before {
-      transform: scaleX(1);
+      .die-btn:hover::before {
+        transform: scaleX(1);
+      }
     }
 
     .die-btn.active {
