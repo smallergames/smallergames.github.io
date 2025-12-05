@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dice Roller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Spectral:ital@1&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ink: #f4f1eb;
+      --parchment: #1b1b1b;
+    }
+
+    body {
+      font-family: 'Cinzel', Georgia, serif;
+      background: var(--parchment);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      padding: 2rem;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
+    .dice-selection {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .die-btn {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.6rem 1.25rem;
+      background: transparent;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .die-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--ink);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+      z-index: -1;
+    }
+
+    .die-btn:hover {
+      color: var(--parchment);
+    }
+
+    .die-btn:hover::before {
+      transform: scaleX(1);
+    }
+
+    .die-btn.active {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+
+    .die-container {
+      width: clamp(140px, 35vw, 200px);
+      height: clamp(140px, 35vw, 200px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .die-shape {
+      position: absolute;
+      inset: 0;
+    }
+
+    .die-shape svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: var(--ink);
+      stroke-width: 2;
+      transition: transform 0.3s ease;
+    }
+
+    .die-result {
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 700;
+      color: var(--ink);
+      z-index: 1;
+      opacity: 0;
+      transform: scale(0.5);
+      user-select: none;
+      transition: margin 0.3s ease;
+    }
+    
+    .die-container.d4 .die-result {
+      margin-top: 25%;
+    }
+
+    .die-result.show {
+      animation: resultReveal 0.5s ease-out forwards;
+    }
+    
+    .die-container.d4 .die-result.show {
+      animation: resultRevealD4 0.5s ease-out forwards;
+    }
+
+    .rolling .die-shape svg {
+      animation: dieRoll 0.5s ease-in-out;
+    }
+    
+    .rolling.d4 .die-shape svg {
+      animation: dieRollD4 0.5s ease-in-out;
+    }
+
+    .rolling .die-result {
+      animation: resultSpin 0.5s ease-in-out;
+    }
+
+    @keyframes dieRoll {
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(90deg) scale(0.85); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      75% { transform: rotate(270deg) scale(0.9); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    
+    @keyframes dieRollD4 {
+      0% { transform: translateY(0) rotate(0deg) scale(1); }
+      25% { transform: translateY(12%) rotate(90deg) scale(0.85); }
+      50% { transform: translateY(25%) rotate(180deg) scale(1.1); }
+      75% { transform: translateY(12%) rotate(270deg) scale(0.9); }
+      100% { transform: translateY(0) rotate(360deg) scale(1); }
+    }
+
+    @keyframes resultSpin {
+      0% { opacity: 1; transform: scale(1) rotate(0deg); }
+      50% { opacity: 0; transform: scale(0.5) rotate(180deg); }
+      100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
+    }
+
+    @keyframes resultReveal {
+      0% { opacity: 0; transform: scale(0.5); }
+      50% { transform: scale(1.15); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes resultRevealD4 {
+      0% { opacity: 0; transform: translateY(0) scale(0.5); }
+      50% { transform: translateY(0) scale(1.15); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .die-container:hover .die-shape svg {
+      transform: scale(1.02);
+    }
+
+    .die-container:active .die-shape svg {
+      transform: scale(0.98);
+    }
+
+    .quote {
+      font-family: 'Spectral', Georgia, serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--ink);
+      opacity: 0.6;
+      letter-spacing: 0.02em;
+    }
+
+    @media (max-width: 480px) {
+      .dice-selection {
+        gap: 0.5rem;
+      }
+
+      .die-btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.875rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="dice-selection">
+    <button class="die-btn" data-die="4">d4</button>
+    <button class="die-btn" data-die="6">d6</button>
+    <button class="die-btn" data-die="8">d8</button>
+    <button class="die-btn" data-die="10">d10</button>
+    <button class="die-btn active" data-die="20">d20</button>
+    <button class="die-btn" data-die="12">d12</button>
+    <button class="die-btn" data-die="100">d100</button>
+  </nav>
+
+  <div class="die-container" id="dieContainer">
+    <div class="die-shape" id="dieShape">
+      <svg viewBox="0 0 100 100" id="dieSvg">
+        <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" />
+      </svg>
+    </div>
+    <span class="die-result" id="result"></span>
+  </div>
+
+  <p class="quote">...quietly working on smaller video and tabletop games.</p>
+
+  <script>
+    const dieButtons = document.querySelectorAll('.die-btn');
+    const dieContainer = document.getElementById('dieContainer');
+    const dieSvg = document.getElementById('dieSvg');
+    const result = document.getElementById('result');
+
+    const dieShapes = {
+      4: { svg: '<polygon points="50,15 10,85 90,85" />', class: 'd4' },
+      6: { svg: '<rect x="5" y="5" width="90" height="90" rx="4" />', class: '' },
+      8: { svg: '<polygon points="50,5 95,50 50,95 5,50" />', class: '' },
+      10: { svg: '<polygon points="50,5 85,25 95,60 50,95 5,60 15,25" />', class: '' },
+      12: { svg: '<polygon points="50,5 80,15 95,45 85,80 50,95 15,80 5,45 20,15" />', class: '' },
+      20: { svg: '<polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" />', class: '' },
+      100: { svg: '<circle cx="50" cy="50" r="45" />', class: '' }
+    };
+
+    let currentDie = 20;
+    let isRolling = false;
+
+    dieButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (isRolling) return;
+        
+        dieButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentDie = parseInt(btn.dataset.die);
+        
+        dieSvg.innerHTML = dieShapes[currentDie].svg;
+        dieContainer.classList.toggle('d4', currentDie === 4);
+        result.classList.remove('show');
+        result.textContent = '';
+        
+        rollDie();
+      });
+    });
+
+    function rollDie() {
+      if (isRolling) return;
+      isRolling = true;
+
+      dieContainer.classList.add('rolling');
+      result.classList.remove('show');
+
+      setTimeout(() => {
+        const roll = Math.floor(Math.random() * currentDie) + 1;
+        result.textContent = roll;
+        dieContainer.classList.remove('rolling');
+        result.classList.add('show');
+        isRolling = false;
+      }, 500);
+    }
+
+    dieContainer.addEventListener('click', rollDie);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        rollDie();
+      }
+    });
+
+    // Roll on page load
+    rollDie();
+  </script>
+</body>
+</html>
