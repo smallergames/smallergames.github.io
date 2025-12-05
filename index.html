@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>smallergames.com</title>
+  <title>Dice Roller</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Spectral:ital@1&display=swap" rel="stylesheet">
@@ -60,6 +60,11 @@
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
     }
 
     .die-btn::before {
@@ -299,11 +304,42 @@
       }, 500);
     }
 
-    dieContainer.addEventListener('click', rollDie);
+    dieContainer.addEventListener('click', () => {
+      // Cancel any in-progress roll
+      if (rollTimeout) {
+        clearTimeout(rollTimeout);
+        dieContainer.classList.remove('rolling');
+        isRolling = false;
+        rollTimeout = null;
+      }
+      
+      result.classList.remove('show');
+      result.textContent = '';
+      
+      // Force reflow to restart animation
+      void dieContainer.offsetWidth;
+      
+      rollDie();
+    });
 
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
+        
+        // Cancel any in-progress roll
+        if (rollTimeout) {
+          clearTimeout(rollTimeout);
+          dieContainer.classList.remove('rolling');
+          isRolling = false;
+          rollTimeout = null;
+        }
+        
+        result.classList.remove('show');
+        result.textContent = '';
+        
+        // Force reflow to restart animation
+        void dieContainer.offsetWidth;
+        
         rollDie();
       }
     });
