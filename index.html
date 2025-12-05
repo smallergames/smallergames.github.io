@@ -94,11 +94,17 @@
       justify-content: center;
       position: relative;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+      outline: none;
     }
 
     .die-shape {
       position: absolute;
       inset: 0;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: none;
     }
 
     .die-shape svg {
@@ -108,6 +114,10 @@
       stroke: var(--ink);
       stroke-width: 2;
       transition: transform 0.3s ease;
+    }
+    
+    .die-container.d4 .die-shape svg {
+      transform-origin: 50% 62%;
     }
 
     .die-result {
@@ -138,7 +148,7 @@
     }
     
     .rolling.d4 .die-shape svg {
-      animation: dieRollD4 0.5s ease-in-out;
+      animation: dieRoll 0.5s ease-in-out;
     }
 
     .rolling .die-result {
@@ -153,14 +163,6 @@
       100% { transform: rotate(360deg) scale(1); }
     }
     
-    @keyframes dieRollD4 {
-      0% { transform: translateY(0) rotate(0deg) scale(1); }
-      25% { transform: translateY(12%) rotate(90deg) scale(0.85); }
-      50% { transform: translateY(25%) rotate(180deg) scale(1.1); }
-      75% { transform: translateY(12%) rotate(270deg) scale(0.9); }
-      100% { transform: translateY(0) rotate(360deg) scale(1); }
-    }
-
     @keyframes resultSpin {
       0% { opacity: 1; transform: scale(1) rotate(0deg); }
       50% { opacity: 0; transform: scale(0.5) rotate(180deg); }
@@ -249,19 +251,30 @@
 
     let currentDie = 20;
     let isRolling = false;
+    let rollTimeout = null;
 
     dieButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        if (isRolling) return;
-        
         dieButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        
+        // Cancel any in-progress roll
+        if (rollTimeout) {
+          clearTimeout(rollTimeout);
+          dieContainer.classList.remove('rolling');
+          isRolling = false;
+          rollTimeout = null;
+        }
+        
         currentDie = parseInt(btn.dataset.die);
         
         dieSvg.innerHTML = dieShapes[currentDie].svg;
         dieContainer.classList.toggle('d4', currentDie === 4);
         result.classList.remove('show');
         result.textContent = '';
+        
+        // Force reflow to restart animation
+        void dieContainer.offsetWidth;
         
         rollDie();
       });
@@ -274,12 +287,13 @@
       dieContainer.classList.add('rolling');
       result.classList.remove('show');
 
-      setTimeout(() => {
+      rollTimeout = setTimeout(() => {
         const roll = Math.floor(Math.random() * currentDie) + 1;
         result.textContent = roll;
         dieContainer.classList.remove('rolling');
         result.classList.add('show');
         isRolling = false;
+        rollTimeout = null;
       }, 500);
     }
 
