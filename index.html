@@ -57,9 +57,7 @@
       border: 1px solid var(--ink);
       color: var(--ink);
       cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -67,24 +65,10 @@
       touch-action: manipulation;
     }
 
-    .die-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--ink);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-      z-index: -1;
-    }
-
     @media (hover: hover) {
       .die-btn:hover {
+        background: var(--ink);
         color: var(--parchment);
-      }
-
-      .die-btn:hover::before {
-        transform: scaleX(1);
       }
     }
 
