@@ -180,16 +180,16 @@
 
     @keyframes dieRoll {
       0% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(90deg) scale(0.85); }
-      50% { transform: rotate(180deg) scale(1.1); }
-      75% { transform: rotate(270deg) scale(0.9); }
-      100% { transform: rotate(360deg) scale(1); }
+      25% { transform: rotate(-90deg) scale(0.85); }
+      50% { transform: rotate(-180deg) scale(1.1); }
+      75% { transform: rotate(-270deg) scale(0.9); }
+      100% { transform: rotate(-360deg) scale(1); }
     }
     
     @keyframes resultSpin {
       0% { opacity: 1; transform: scale(1) rotate(0deg); }
-      50% { opacity: 0; transform: scale(0.5) rotate(180deg); }
-      100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
+      50% { opacity: 0; transform: scale(0.5) rotate(-180deg); }
+      100% { opacity: 0; transform: scale(0.5) rotate(-360deg); }
     }
 
     @keyframes resultReveal {
