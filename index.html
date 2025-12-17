@@ -240,11 +240,16 @@
 
     /* Reduced motion support */
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
+      .rolling .die-shape svg,
+      .rolling .die-result,
+      .die-result.show,
+      .die-container.d4 .die-result.show {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+      }
+      
+      .die-shape svg,
+      .die-btn {
         transition-duration: 0.01ms !important;
       }
     }
