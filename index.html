@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An interactive dice roller for tabletop gaming. Roll d4, d6, d8, d10, d12, d20, and d100 dice.">
   <title>smallergames.com</title>
   <style>
     @font-face {
@@ -21,7 +22,6 @@
       font-display: swap;
     }
 
-
     * {
       margin: 0;
       padding: 0;
@@ -31,6 +31,8 @@
     :root {
       --ink: #f4f1eb;
       --parchment: #1b1b1b;
+      --focus-outline: #a5d8ff;
+      --transition-speed: 0.3s;
     }
 
     body {
@@ -47,6 +49,7 @@
       position: relative;
     }
 
+    /* Texture overlay */
     body::before {
       content: '';
       position: fixed;
@@ -56,6 +59,7 @@
       pointer-events: none;
     }
 
+    /* Dice selection nav */
     .dice-selection {
       display: flex;
       flex-wrap: wrap;
@@ -71,12 +75,19 @@
       border: 1px solid var(--ink);
       color: var(--ink);
       cursor: pointer;
-      transition: background 0.3s ease, color 0.3s ease;
+      transition: background var(--transition-speed) ease, 
+                  color var(--transition-speed) ease,
+                  transform 0.1s ease;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
-      -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
+    }
+
+    /* Focus styles for keyboard navigation */
+    .die-btn:focus-visible {
+      outline: 2px solid var(--focus-outline);
+      outline-offset: 2px;
     }
 
     @media (hover: hover) {
@@ -86,11 +97,16 @@
       }
     }
 
-    .die-btn.active {
+    .die-btn:active {
+      transform: scale(0.98);
+    }
+
+    .die-btn[aria-pressed="true"] {
       background: var(--ink);
       color: var(--parchment);
     }
 
+    /* Die container */
     .die-container {
       width: clamp(140px, 35vw, 200px);
       height: clamp(140px, 35vw, 200px);
@@ -100,9 +116,14 @@
       position: relative;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none;
       user-select: none;
       outline: none;
+    }
+
+    .die-container:focus-visible {
+      outline: 2px solid var(--focus-outline);
+      outline-offset: 4px;
+      border-radius: 4px;
     }
 
     .die-shape {
@@ -119,7 +140,7 @@
       fill: none;
       stroke: var(--ink);
       stroke-width: 2;
-      transition: transform 0.3s ease;
+      transition: transform var(--transition-speed) ease;
       -webkit-tap-highlight-color: transparent;
       transform-origin: 50% 50%;
       overflow: visible;
@@ -148,6 +169,7 @@
       animation: resultRevealD4 0.5s ease-out forwards;
     }
 
+    /* Animations */
     .rolling .die-shape svg {
       animation: dieRoll 0.5s ease-in-out;
     }
@@ -182,14 +204,17 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    .die-container:hover .die-shape svg {
-      transform: scale(1.02);
+    @media (hover: hover) {
+      .die-container:hover .die-shape svg {
+        transform: scale(1.02);
+      }
     }
 
     .die-container:active .die-shape svg {
       transform: scale(0.98);
     }
 
+    /* Quote/tagline */
     .quote {
       font-family: 'Spectral', Georgia, serif;
       font-style: italic;
@@ -199,18 +224,32 @@
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
-    
-    .quote-link {
-      color: var(--ink);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      transition: opacity 0.2s ease;
-    }
-    
-    .quote-link:hover {
-      opacity: 0.7;
+
+    /* Screen reader only content */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
     }
 
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Mobile adjustments */
     @media (max-width: 480px) {
       .dice-selection {
         gap: 0.5rem;
@@ -224,78 +263,144 @@
   </style>
 </head>
 <body>
-  <nav class="dice-selection">
-    <button class="die-btn" data-die="4">d4</button>
-    <button class="die-btn" data-die="6">d6</button>
-    <button class="die-btn" data-die="8">d8</button>
-    <button class="die-btn" data-die="10">d10</button>
-    <button class="die-btn" data-die="12">d12</button>
-    <button class="die-btn active" data-die="20">d20</button>
-    <button class="die-btn" data-die="100">d100</button>
+  <!-- Skip to main content link for screen readers -->
+  <a href="#main-content" class="sr-only">Skip to main content</a>
+
+  <nav aria-label="Dice selection">
+    <div class="dice-selection" role="group" aria-label="Choose die type">
+      <button class="die-btn" data-die="4" aria-pressed="false" aria-label="4-sided die">d4</button>
+      <button class="die-btn" data-die="6" aria-pressed="false" aria-label="6-sided die">d6</button>
+      <button class="die-btn" data-die="8" aria-pressed="false" aria-label="8-sided die">d8</button>
+      <button class="die-btn" data-die="10" aria-pressed="false" aria-label="10-sided die">d10</button>
+      <button class="die-btn" data-die="12" aria-pressed="false" aria-label="12-sided die">d12</button>
+      <button class="die-btn" data-die="20" aria-pressed="true" aria-label="20-sided die">d20</button>
+      <button class="die-btn" data-die="100" aria-pressed="false" aria-label="100-sided die">d100</button>
+    </div>
   </nav>
 
-  <div class="die-container" id="dieContainer">
-    <div class="die-shape" id="dieShape">
-      <svg viewBox="0 0 100 100" id="dieSvg">
-        <polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />
-      </svg>
+  <main id="main-content">
+    <div 
+      class="die-container" 
+      id="dieContainer"
+      role="button"
+      tabindex="0"
+      aria-label="Click or press Space/Enter to roll the die"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div class="die-shape" id="dieShape" aria-hidden="true">
+        <svg viewBox="0 0 100 100" id="dieSvg" focusable="false">
+          <polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />
+        </svg>
+      </div>
+      <span class="die-result" id="result" aria-live="assertive"></span>
     </div>
-    <span class="die-result" id="result"></span>
-  </div>
 
-  <p class="quote">...quietly working on smaller video and tabletop games.</p>
+    <!-- Screen reader announcement area -->
+    <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  </main>
+
+  <footer>
+    <p class="quote">...quietly working on smaller video and tabletop games.</p>
+  </footer>
 
   <script>
+    // Constants
+    const DIE_SHAPES = {
+      4: '<svg viewBox="-50 -50 100 100" x="0" y="0" width="100" height="100" style="overflow:visible" focusable="false"><polygon points="0,-50 -45,25 45,25" /></svg>',
+      6: '<rect x="10" y="10" width="80" height="80" rx="4" />',
+      8: '<polygon points="50,10 90,50 50,90 10,50" />',
+      10: '<polygon points="50,10 82,28 90,58 50,90 10,58 18,28" />',
+      12: '<polygon points="50,10 78,18 92,42 82,75 50,90 18,75 8,42 22,18" />',
+      20: '<polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />',
+      100: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />'
+    };
+
+    const ROLL_DURATION = 500; // ms
+
+    // DOM elements
     const dieButtons = document.querySelectorAll('.die-btn');
     const dieContainer = document.getElementById('dieContainer');
     const dieSvg = document.getElementById('dieSvg');
     const result = document.getElementById('result');
+    const announcements = document.getElementById('announcements');
 
-    const dieShapes = {
-      4: { svg: '<svg viewBox="-50 -50 100 100" x="0" y="0" width="100" height="100" style="overflow:visible"><polygon points="0,-50 -45,25 45,25" /></svg>', class: 'd4' },
-      6: { svg: '<rect x="10" y="10" width="80" height="80" rx="4" />', class: '' },
-      8: { svg: '<polygon points="50,10 90,50 50,90 10,50" />', class: '' },
-      10: { svg: '<polygon points="50,10 82,28 90,58 50,90 10,58 18,28" />', class: '' },
-      12: { svg: '<polygon points="50,10 78,18 92,42 82,75 50,90 18,75 8,42 22,18" />', class: '' },
-      20: { svg: '<polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />', class: '' },
-      100: { svg: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />', class: '' }
-    };
-
+    // State
     let currentDie = 20;
     let isRolling = false;
     let rollTimeout = null;
 
-    dieButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        dieButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Cancel any in-progress roll
-        if (rollTimeout) {
-          clearTimeout(rollTimeout);
-          dieContainer.classList.remove('rolling');
-          isRolling = false;
-          rollTimeout = null;
-        }
-        
-        currentDie = parseInt(btn.dataset.die);
-        
-        dieSvg.innerHTML = dieShapes[currentDie].svg;
-        dieContainer.classList.toggle('d4', currentDie === 4);
-        result.classList.remove('show');
-        result.textContent = '';
-        
-        // Force reflow to restart animation
-        void dieContainer.offsetWidth;
-        
-        rollDie();
+    /**
+     * Initialize die buttons with event listeners
+     */
+    function initializeDieButtons() {
+      dieButtons.forEach(btn => {
+        btn.addEventListener('click', () => handleDieSelection(btn));
       });
-    });
+    }
 
+    /**
+     * Handle die selection
+     * @param {HTMLElement} selectedButton - The button that was clicked
+     */
+    function handleDieSelection(selectedButton) {
+      // Update ARIA states
+      dieButtons.forEach(btn => btn.setAttribute('aria-pressed', 'false'));
+      selectedButton.setAttribute('aria-pressed', 'true');
+      
+      cancelRoll();
+      
+      const dieValue = parseInt(selectedButton.dataset.die);
+      currentDie = dieValue;
+      
+      updateDieShape(dieValue);
+      clearResult();
+      
+      // Announce die selection to screen readers
+      announceToScreenReader(`Selected ${dieValue}-sided die`);
+      
+      // Force reflow to restart animation
+      void dieContainer.offsetWidth;
+      
+      rollDie();
+    }
+
+    /**
+     * Update the die shape SVG
+     * @param {number} dieValue - The die type (4, 6, 8, etc.)
+     */
+    function updateDieShape(dieValue) {
+      dieSvg.innerHTML = DIE_SHAPES[dieValue];
+      dieContainer.classList.toggle('d4', dieValue === 4);
+    }
+
+    /**
+     * Clear the result display
+     */
+    function clearResult() {
+      result.classList.remove('show');
+      result.textContent = '';
+    }
+
+    /**
+     * Cancel an in-progress roll
+     */
+    function cancelRoll() {
+      if (rollTimeout) {
+        clearTimeout(rollTimeout);
+        dieContainer.classList.remove('rolling');
+        isRolling = false;
+        rollTimeout = null;
+      }
+    }
+
+    /**
+     * Roll the current die
+     */
     function rollDie() {
       if (isRolling) return;
+      
       isRolling = true;
-
       dieContainer.classList.add('rolling');
       result.classList.remove('show');
 
@@ -305,50 +410,61 @@
         dieContainer.classList.remove('rolling');
         result.classList.add('show');
         
+        // Update aria-label with result
+        dieContainer.setAttribute('aria-label', `Rolled ${roll} on d${currentDie}. Click or press Space/Enter to roll again`);
+        
+        // Announce result to screen readers
+        announceToScreenReader(`Rolled ${roll} on d${currentDie}`);
+        
         isRolling = false;
         rollTimeout = null;
-      }, 500);
+      }, ROLL_DURATION);
     }
 
-    dieContainer.addEventListener('click', () => {
-      // Cancel any in-progress roll
-      if (rollTimeout) {
-        clearTimeout(rollTimeout);
-        dieContainer.classList.remove('rolling');
-        isRolling = false;
-        rollTimeout = null;
-      }
-      
-      result.classList.remove('show');
-      result.textContent = '';
-      
-      // Force reflow to restart animation
-      void dieContainer.offsetWidth;
-      
-      rollDie();
-    });
+    /**
+     * Announce message to screen readers
+     * @param {string} message - The message to announce
+     */
+    function announceToScreenReader(message) {
+      announcements.textContent = message;
+      // Clear after announcement
+      setTimeout(() => {
+        announcements.textContent = '';
+      }, 1000);
+    }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'Enter') {
-        e.preventDefault();
-        
-        // Cancel any in-progress roll
-        if (rollTimeout) {
-          clearTimeout(rollTimeout);
-          dieContainer.classList.remove('rolling');
-          isRolling = false;
-          rollTimeout = null;
+    /**
+     * Handle die container click
+     */
+    function handleDieContainerClick() {
+      cancelRoll();
+      clearResult();
+      void dieContainer.offsetWidth;
+      rollDie();
+    }
+
+    /**
+     * Handle keyboard events
+     * @param {KeyboardEvent} event - The keyboard event
+     */
+    function handleKeydown(event) {
+      // Space or Enter to roll die
+      if (event.code === 'Space' || event.code === 'Enter') {
+        // Check if focus is on die container or body
+        if (document.activeElement === dieContainer || document.activeElement === document.body) {
+          event.preventDefault();
+          cancelRoll();
+          clearResult();
+          void dieContainer.offsetWidth;
+          rollDie();
         }
-        
-        result.classList.remove('show');
-        result.textContent = '';
-        
-        // Force reflow to restart animation
-        void dieContainer.offsetWidth;
-        
-        rollDie();
       }
-    });
+    }
+
+    // Initialize event listeners
+    initializeDieButtons();
+    dieContainer.addEventListener('click', handleDieContainerClick);
+    document.addEventListener('keydown', handleKeydown);
 
     // Roll on page load
     rollDie();
