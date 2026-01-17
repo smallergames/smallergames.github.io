@@ -9,37 +9,34 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <a href="#main-content" class="sr-only">Skip to main content</a>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <nav aria-label="Dice selection">
-    <div class="dice-selection" role="group" aria-label="Choose die type">
-      <button class="die-btn" data-die="4" aria-pressed="false" aria-label="4-sided die">d4</button>
-      <button class="die-btn" data-die="6" aria-pressed="false" aria-label="6-sided die">d6</button>
-      <button class="die-btn" data-die="8" aria-pressed="false" aria-label="8-sided die">d8</button>
-      <button class="die-btn" data-die="10" aria-pressed="false" aria-label="10-sided die">d10</button>
-      <button class="die-btn" data-die="12" aria-pressed="false" aria-label="12-sided die">d12</button>
-      <button class="die-btn" data-die="20" aria-pressed="true" aria-label="20-sided die">d20</button>
-      <button class="die-btn" data-die="100" aria-pressed="false" aria-label="100-sided die">d100</button>
+    <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
+      <button class="die-btn" role="radio" data-die="4" aria-checked="false" aria-label="4-sided die">d4</button>
+      <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
+      <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
+      <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
+      <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
+      <button class="die-btn" role="radio" data-die="20" aria-checked="true" aria-label="20-sided die">d20</button>
+      <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
     </div>
   </nav>
 
   <main id="main-content">
-    <div 
+    <button 
+      type="button"
       class="die-container" 
       id="dieContainer"
-      role="button"
-      tabindex="0"
       aria-label="Click or press Space/Enter to roll the die"
-      aria-live="polite"
-      aria-atomic="true"
     >
       <div class="die-shape" id="dieShape" aria-hidden="true">
         <svg viewBox="0 0 100 100" id="dieSvg" focusable="false">
           <polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />
         </svg>
       </div>
-      <span class="die-result" id="result" aria-live="polite"></span>
-    </div>
+      <span class="die-result" id="result"></span>
+    </button>
 
     <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
