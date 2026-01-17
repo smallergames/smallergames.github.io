@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Fonts (base64 embedded to prevent FOUT)
+   Fonts (TODO: base64 embed JetBrains Mono to prevent FOUT)
    ========================================================================== */
 
 @font-face {
@@ -66,6 +66,7 @@ body::before {
     linear-gradient(var(--accent-dim) 1px, transparent 1px),
     linear-gradient(90deg, var(--accent-dim) 1px, transparent 1px);
   background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
   pointer-events: none;
   animation: gridPulse 24s ease-in-out infinite;
@@ -121,10 +122,11 @@ nav {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+  transform: translateX(-100%);
 }
 
 .die-btn:focus-visible {
@@ -136,18 +138,18 @@ nav {
   transform: scale(0.96);
 }
 
-.die-btn[aria-pressed="true"] {
+.die-btn[aria-checked="true"] {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.die-btn[aria-pressed="true"]::before {
+.die-btn[aria-checked="true"]::before {
   animation: btnSweep 0.4s var(--transition-smooth);
 }
 
 @keyframes btnSweep {
-  from { left: -100%; }
-  to { left: 100%; }
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
 /* ==========================================================================
@@ -169,7 +171,10 @@ main {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  outline: none;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
 }
 
 /* Orbital rings - static by default, animate on interaction */
@@ -212,9 +217,13 @@ main {
   to { transform: rotate(360deg); }
 }
 
-.die-container:focus-visible {
+.die-container:focus {
   outline: 1px solid var(--accent);
   outline-offset: 8px;
+}
+
+.die-container:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .die-shape {
@@ -295,10 +304,6 @@ main {
   animation: resultReveal 0.6s var(--transition-smooth) forwards;
 }
 
-.die-container.d4 .die-result.show {
-  animation: resultRevealD4 0.6s var(--transition-smooth) forwards;
-}
-
 /* ==========================================================================
    Animations
    ========================================================================== */
@@ -373,30 +378,6 @@ main {
   }
 }
 
-@keyframes resultRevealD4 {
-  0% { 
-    opacity: 0; 
-    transform: scale(0.5); 
-    text-shadow: 0 0 60px var(--accent);
-  }
-  30% { 
-    opacity: 1; 
-    transform: scale(1.2); 
-    text-shadow: 0 0 80px var(--accent), 0 0 120px var(--accent);
-  }
-  50% { 
-    transform: scale(0.95); 
-  }
-  70% { 
-    transform: scale(1.05); 
-  }
-  100% { 
-    opacity: 1; 
-    transform: scale(1); 
-    text-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow);
-  }
-}
-
 .die-container:active .die-shape svg {
   transform: scale(0.95);
 }
@@ -446,6 +427,26 @@ footer {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.8rem;
+  text-decoration: none;
+  z-index: 100;
+  transition: top var(--transition-speed) var(--transition-smooth);
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: none;
 }
 
 /* ==========================================================================
