@@ -18,11 +18,12 @@
   --void: #030305;
   --surface: #0a0a0f;
   --text: #e0e0e8;
-  --text-dim: rgba(224, 224, 232, 0.4);
+  --text-dim: rgba(224, 224, 232, 0.55);
+  --text-muted: rgba(224, 224, 232, 0.4);
   --accent: #00f0ff;
   --accent-glow: rgba(0, 240, 255, 0.3);
   --accent-dim: rgba(0, 240, 255, 0.08);
-  --danger: #ff2d6a;
+  --danger: rgba(255, 45, 106, 0.7);
   --transition-speed: 0.2s;
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -56,7 +57,7 @@ body {
   overflow: hidden;
 }
 
-/* Subtle grid background */
+/* Subtle grid background - slow pulse for calm idle state */
 body::before {
   content: '';
   position: fixed;
@@ -67,11 +68,11 @@ body::before {
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
   pointer-events: none;
-  animation: gridPulse 8s ease-in-out infinite;
+  animation: gridPulse 24s ease-in-out infinite;
 }
 
 @keyframes gridPulse {
-  0%, 100% { opacity: 1; }
+  0%, 100% { opacity: 0.8; }
   50% { opacity: 0.5; }
 }
 
@@ -93,13 +94,13 @@ nav {
 
 .die-btn {
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.75rem 1.25rem;
   background: transparent;
-  border: 1px solid var(--text-dim);
+  border: 1px solid var(--text-muted);
   color: var(--text-dim);
   cursor: pointer;
   transition: 
@@ -124,7 +125,6 @@ nav {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-  transition: left 0.4s var(--transition-smooth);
 }
 
 .die-btn:focus-visible {
@@ -132,29 +132,22 @@ nav {
   outline-offset: 2px;
 }
 
-@media (hover: hover) {
-  .die-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  
-  .die-btn:hover::before {
-    left: 100%;
-  }
-}
-
 .die-btn:active {
   transform: scale(0.96);
 }
 
 .die-btn[aria-pressed="true"] {
-  background: var(--accent);
   border-color: var(--accent);
-  color: var(--void);
-  box-shadow: 
-    0 0 20px var(--accent-glow),
-    0 0 40px var(--accent-glow),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  color: var(--accent);
+}
+
+.die-btn[aria-pressed="true"]::before {
+  animation: btnSweep 0.4s var(--transition-smooth);
+}
+
+@keyframes btnSweep {
+  from { left: -100%; }
+  to { left: 100%; }
 }
 
 /* ==========================================================================
@@ -179,27 +172,39 @@ main {
   outline: none;
 }
 
-/* Orbital rings */
+/* Orbital rings - static by default, animate on interaction */
 .die-container::before,
 .die-container::after {
   content: '';
   position: absolute;
   border-radius: 50%;
   border: 1px solid var(--accent);
-  opacity: 0.15;
+  opacity: 0.1;
   pointer-events: none;
+  transition: opacity 0.3s var(--transition-smooth);
 }
 
 .die-container::before {
   width: 140%;
   height: 50%;
-  animation: orbitSpin 12s linear infinite;
+  transform: rotate(-15deg);
 }
 
 .die-container::after {
   width: 50%;
   height: 140%;
-  animation: orbitSpin 18s linear infinite reverse;
+  transform: rotate(15deg);
+}
+
+/* Activate orbits when rolling */
+.die-container.rolling::before {
+  animation: orbitSpin 4s linear infinite;
+  opacity: 0.25;
+}
+
+.die-container.rolling::after {
+  animation: orbitSpin 6s linear infinite reverse;
+  opacity: 0.2;
 }
 
 @keyframes orbitSpin {
@@ -235,7 +240,7 @@ main {
   filter: drop-shadow(0 0 8px var(--accent-glow));
 }
 
-/* Scanline effect on shape */
+/* Scanline effect on shape - visible only during roll */
 .die-shape::after {
   content: '';
   position: absolute;
@@ -244,11 +249,17 @@ main {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 240, 255, 0.02) 2px,
-    rgba(0, 240, 255, 0.02) 4px
+    rgba(0, 240, 255, 0.03) 2px,
+    rgba(0, 240, 255, 0.03) 4px
   );
   pointer-events: none;
-  animation: scanlines 0.1s linear infinite;
+  opacity: 0;
+  transition: opacity 0.2s var(--transition-smooth);
+}
+
+.die-container.rolling .die-shape::after {
+  opacity: 1;
+  animation: scanlines 0.15s linear infinite;
 }
 
 @keyframes scanlines {
@@ -297,52 +308,44 @@ main {
 }
 
 .rolling .die-result {
-  animation: resultGlitch 0.5s steps(3) infinite;
+  animation: resultGlitch 0.5s steps(2);
 }
 
+/* Roll animation - transform only for performance */
 @keyframes dieRoll {
   0% { 
     transform: rotate(0deg) scale(1); 
-    filter: drop-shadow(0 0 8px var(--accent-glow));
   }
   25% { 
     transform: rotate(-90deg) scale(0.8); 
-    filter: drop-shadow(0 0 20px var(--accent-glow));
   }
   50% { 
     transform: rotate(-180deg) scale(1.15); 
-    filter: drop-shadow(0 0 40px var(--accent-glow)) brightness(1.5);
   }
   75% { 
     transform: rotate(-270deg) scale(0.85); 
-    filter: drop-shadow(0 0 25px var(--accent-glow));
   }
   100% { 
     transform: rotate(-360deg) scale(1); 
-    filter: drop-shadow(0 0 8px var(--accent-glow));
   }
 }
 
+/* Glitch effect - reduced intensity for polish */
 @keyframes resultGlitch {
   0% { 
-    opacity: 0.4; 
+    opacity: 0.35; 
     transform: scale(0.8) translateX(-2px); 
-    text-shadow: 2px 0 var(--danger), -2px 0 var(--accent);
-  }
-  33% { 
-    opacity: 0.6; 
-    transform: scale(0.9) translateX(2px); 
-    text-shadow: -2px 0 var(--danger), 2px 0 var(--accent);
-  }
-  66% { 
-    opacity: 0.3; 
-    transform: scale(0.85) translateX(-1px); 
     text-shadow: 1px 0 var(--danger), -1px 0 var(--accent);
   }
-  100% { 
+  50% { 
     opacity: 0.5; 
-    transform: scale(0.95) translateX(1px); 
+    transform: scale(0.9) translateX(2px); 
     text-shadow: -1px 0 var(--danger), 1px 0 var(--accent);
+  }
+  100% { 
+    opacity: 0.4; 
+    transform: scale(0.85) translateX(-1px); 
+    text-shadow: 1px 0 var(--danger), -1px 0 var(--accent);
   }
 }
 
@@ -394,13 +397,6 @@ main {
   }
 }
 
-@media (hover: hover) {
-  .die-container:hover .die-shape svg {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 15px var(--accent-glow)) brightness(1.1);
-  }
-}
-
 .die-container:active .die-shape svg {
   transform: scale(0.95);
 }
@@ -417,10 +413,9 @@ footer {
 .quote {
   font-family: inherit;
   font-style: normal;
-  font-size: clamp(0.6rem, 2vw, 0.75rem);
-  color: var(--text-dim);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-size: clamp(0.65rem, 2vw, 0.75rem);
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
   white-space: nowrap;
   position: relative;
 }
@@ -480,7 +475,8 @@ footer {
   :root {
     --accent: #00ffff;
     --text: #ffffff;
-    --text-dim: rgba(255, 255, 255, 0.6);
+    --text-dim: rgba(255, 255, 255, 0.85);
+    --text-muted: rgba(255, 255, 255, 0.7);
   }
   
   .die-btn {
