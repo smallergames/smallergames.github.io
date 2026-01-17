@@ -32,6 +32,9 @@ let currentDie = 20;
 let isRolling = false;
 let rollTimeout = null;
 let announceTimeout = null;
+let rollStartTime = null;
+let orbitBeforeRotation = -15;
+let orbitAfterRotation = 15;
 
 function initDieButtons() {
   dieButtons.forEach(btn => {
@@ -70,12 +73,37 @@ function clearResult() {
   resultDisplay.textContent = '';
 }
 
+function prepareOrbitalRings() {
+  const beforeNorm = ((orbitBeforeRotation % 360) + 360) % 360;
+  const afterNorm = ((orbitAfterRotation % 360) + 360) % 360;
+  
+  const beforeDelay = -(beforeNorm / 360) * 4;
+  const afterDelay = -((360 - afterNorm) / 360) * 6;
+  
+  dieContainer.style.setProperty('--orbit-before-delay', `${beforeDelay}s`);
+  dieContainer.style.setProperty('--orbit-after-delay', `${afterDelay}s`);
+}
+
+function freezeOrbitalRings() {
+  if (!rollStartTime) return;
+  
+  const elapsed = performance.now() - rollStartTime;
+  
+  orbitBeforeRotation += (elapsed / 4000) * 360;
+  orbitAfterRotation -= (elapsed / 6000) * 360;
+  
+  dieContainer.style.setProperty('--orbit-before-rotation', `${orbitBeforeRotation}deg`);
+  dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);
+}
+
 function cancelRoll() {
   if (rollTimeout) {
     clearTimeout(rollTimeout);
+    freezeOrbitalRings();
     dieContainer.classList.remove('rolling');
     isRolling = false;
     rollTimeout = null;
+    rollStartTime = null;
   }
 }
 
@@ -83,12 +111,15 @@ function roll() {
   if (isRolling) return;
   
   isRolling = true;
+  rollStartTime = performance.now();
+  prepareOrbitalRings();
   dieContainer.classList.add('rolling');
   resultDisplay.classList.remove('show');
 
   rollTimeout = setTimeout(() => {
     const result = randomInt(1, currentDie);
     resultDisplay.textContent = result;
+    freezeOrbitalRings();
     dieContainer.classList.remove('rolling');
     resultDisplay.classList.add('show');
     
@@ -101,6 +132,7 @@ function roll() {
     
     isRolling = false;
     rollTimeout = null;
+    rollStartTime = null;
   }, ROLL_DURATION_MS);
 }
 
