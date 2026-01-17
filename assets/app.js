@@ -98,11 +98,13 @@ function freezeOrbitalRings() {
   dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);
 }
 
-function cancelRoll() {
+function cancelRoll(keepRingsAnimating = false) {
   if (rollTimeout) {
     clearTimeout(rollTimeout);
-    freezeOrbitalRings();
-    dieContainer.classList.remove('rolling');
+    if (!keepRingsAnimating) {
+      freezeOrbitalRings();
+      dieContainer.classList.remove('rolling');
+    }
     isRolling = false;
     rollTimeout = null;
     rollStartTime = null;
@@ -110,7 +112,9 @@ function cancelRoll() {
 }
 
 function roll() {
-  if (isRolling) return;
+  if (isRolling) {
+    cancelRoll(true);
+  }
   
   isRolling = true;
   rollStartTime = performance.now();
@@ -154,9 +158,8 @@ function announce(message) {
 }
 
 function handleDieContainerClick() {
-  cancelRoll();
   clearResult();
-  requestAnimationFrame(() => roll());
+  roll();
 }
 
 function handleKeydown(event) {
