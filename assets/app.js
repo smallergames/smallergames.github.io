@@ -33,8 +33,8 @@ let isRolling = false;
 let rollTimeout = null;
 let announceTimeout = null;
 let rollStartTime = null;
-let orbitBeforeRotation = -15;
-let orbitAfterRotation = 15;
+let orbitBeforeRotation = Math.random() * 360;
+let orbitAfterRotation = Math.random() * 360;
 
 function initDieButtons() {
   dieButtons.forEach(btn => {
@@ -77,9 +77,11 @@ function prepareOrbitalRings() {
   const beforeNorm = ((orbitBeforeRotation % 360) + 360) % 360;
   const afterNorm = ((orbitAfterRotation % 360) + 360) % 360;
   
-  const beforeDelay = -(beforeNorm / 360) * 4;
-  const afterDelay = -((360 - afterNorm) / 360) * 6;
+  const beforeDelay = -(beforeNorm / 360) * 2.5;
+  const afterDelay = -((360 - afterNorm) / 360) * 8;
   
+  dieContainer.style.setProperty('--orbit-before-rotation', `${orbitBeforeRotation}deg`);
+  dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);
   dieContainer.style.setProperty('--orbit-before-delay', `${beforeDelay}s`);
   dieContainer.style.setProperty('--orbit-after-delay', `${afterDelay}s`);
 }
@@ -89,8 +91,8 @@ function freezeOrbitalRings() {
   
   const elapsed = performance.now() - rollStartTime;
   
-  orbitBeforeRotation += (elapsed / 4000) * 360;
-  orbitAfterRotation -= (elapsed / 6000) * 360;
+  orbitBeforeRotation += (elapsed / 2500) * 360;
+  orbitAfterRotation -= (elapsed / 8000) * 360;
   
   dieContainer.style.setProperty('--orbit-before-rotation', `${orbitBeforeRotation}deg`);
   dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);

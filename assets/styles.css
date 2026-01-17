@@ -210,13 +210,13 @@ main {
 
 /* Activate orbits when rolling */
 .die-container.rolling::before {
-  animation: orbitSpin 4s linear infinite;
+  animation: orbitSpin 2.5s linear infinite;
   animation-delay: var(--orbit-before-delay);
   opacity: 0.25;
 }
 
 .die-container.rolling::after {
-  animation: orbitSpin 6s linear infinite reverse;
+  animation: orbitSpin 8s linear infinite reverse;
   animation-delay: var(--orbit-after-delay);
   opacity: 0.2;
 }
