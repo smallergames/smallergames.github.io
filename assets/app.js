@@ -112,14 +112,20 @@ function cancelRoll(keepRingsAnimating = false) {
 }
 
 function roll() {
-  if (isRolling) {
-    cancelRoll(true);
+  const alreadyRolling = isRolling;
+  
+  if (rollTimeout) {
+    clearTimeout(rollTimeout);
+    rollTimeout = null;
   }
   
-  isRolling = true;
-  rollStartTime = performance.now();
-  prepareOrbitalRings();
-  dieContainer.classList.add('rolling');
+  if (!alreadyRolling) {
+    isRolling = true;
+    rollStartTime = performance.now();
+    prepareOrbitalRings();
+    dieContainer.classList.add('rolling');
+  }
+  
   resultDisplay.classList.remove('show');
 
   rollTimeout = setTimeout(() => {
