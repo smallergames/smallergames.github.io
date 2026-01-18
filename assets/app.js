@@ -155,6 +155,11 @@ function selectDie(selectedButton) {
   }
   
   announce(`Selected ${currentDie}-sided die`);
+
+  // Kick off a new roll when switching dice via slider (if not already rolling)
+  if (!isRolling) {
+    addEnergy(ENERGY_PER_CLICK_MS);
+  }
 }
 
 function updateDieShape(sides) {
