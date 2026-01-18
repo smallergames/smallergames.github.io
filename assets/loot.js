@@ -4,6 +4,8 @@
  * Loot drops directly to footer inventory with pixel trails and glitch effects.
  */
 
+import { spawnParticles } from './particles.js';
+
 // Tier definitions - tier number determines rarity (1 = rarest, 7 = most common)
 const LOOT_TIERS = {
   7: { name: 'TRASH', color: '#888' },
@@ -38,6 +40,7 @@ const COLOR_FADE_MS = 5000; // How long color stays before fading to grey
 // State
 let collectedLoot = {}; // { tier: count }
 let dropsInFlight = 0; // Counter for animations in progress
+let lootQueue = []; // Queue for pending loot drops { dieSize, originX, originY }
 let hasCollectedOnce = false;
 let hasCollectedAll = false;
 let chargedRolls = 0;
@@ -72,7 +75,7 @@ function updateFooterQuote() {
     const allTiersCollected = [1, 2, 3, 4, 5, 6, 7].every(tier => collectedLoot[tier] > 0);
     if (allTiersCollected) {
       hasCollectedAll = true;
-      footerQuote.textContent = `…you found all the loot in ${chargedRolls} charged rolls. i mean, you can keep finding it, but you basically have it all. you win.`;
+      celebrateWin();
       return;
     }
   }
@@ -84,9 +87,23 @@ function updateFooterQuote() {
   }
 }
 
-export function hasLootOnGround() {
-  return dropsInFlight > 0;
+function celebrateWin() {
+  // Spawn particle bursts at footer location
+  const rect = footerQuote.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // Multiple bursts with slight delays for dramatic effect
+  spawnParticles(centerX, centerY, 100); // Large burst
+  setTimeout(() => spawnParticles(centerX - 50, centerY, 20), 100);
+  setTimeout(() => spawnParticles(centerX + 50, centerY, 20), 200);
+
+  // Animate quote reveal
+  footerQuote.classList.add('win-reveal');
+  footerQuote.textContent = `…you found all the loot in ${chargedRolls} charged rolls. i mean, you can keep finding it, but you basically have it all. you win.`;
 }
+
+// No longer exported - spawnLoot handles queuing internally
 
 function rollTier(dieSize) {
   const weights = RARITY_WEIGHTS[dieSize] || RARITY_WEIGHTS[20];
@@ -118,7 +135,16 @@ export function incrementChargedRolls() {
 }
 
 export function spawnLoot(dieSize, originX, originY) {
-  if (dropsInFlight > 0) return;
+  // Queue loot if drops are in flight
+  if (dropsInFlight > 0) {
+    lootQueue.push({ dieSize, originX, originY });
+    return;
+  }
+
+  processLootDrop(dieSize, originX, originY);
+}
+
+function processLootDrop(dieSize, originX, originY) {
   if (!lootCollected) initLoot();
 
   const dropCount = getDropCount();
@@ -168,6 +194,12 @@ export function spawnLoot(dieSize, originX, originY) {
 
         // Decrement counter when drop lands
         dropsInFlight--;
+
+        // Process next queued loot when all drops finish
+        if (dropsInFlight === 0 && lootQueue.length > 0) {
+          const next = lootQueue.shift();
+          processLootDrop(next.dieSize, next.originX, next.originY);
+        }
       }, PIXEL_TRAVEL_MS);
     }, index * DROP_INTERVAL_MS);
   });

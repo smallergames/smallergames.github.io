@@ -6,7 +6,7 @@
  */
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
-import { initLoot, spawnLoot, hasLootOnGround, incrementChargedRolls } from './loot.js';
+import { initLoot, spawnLoot, incrementChargedRolls } from './loot.js';
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', shape: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -29,9 +29,41 @@ const dieContainer = document.getElementById('dieContainer');
 const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
+const hintElement = document.getElementById('hint');
 
+// Onboarding hints
+const HINTS_KEY = 'dice-hints-seen';
+let seenHints = JSON.parse(localStorage.getItem(HINTS_KEY) || '{}');
+
+function showHint(key, text, autoFade = false) {
+  if (seenHints[key]) return;
+  seenHints[key] = true;
+  localStorage.setItem(HINTS_KEY, JSON.stringify(seenHints));
+
+  hintElement.textContent = text;
+  hintElement.classList.add('visible');
+
+  if (autoFade) {
+    hintElement.classList.add('fading');
+    hintElement.addEventListener('animationend', () => {
+      hintElement.classList.remove('visible', 'fading');
+    }, { once: true });
+  }
+}
+
+function hideHint() {
+  hintElement.classList.remove('visible');
+}
+
+// Game state machine
+const GameState = {
+  IDLE: 'idle',       // Waiting for input, can roll
+  ROLLING: 'rolling', // Die is spinning, draining energy
+  SETTLING: 'settling' // Overcharged effect playing, input blocked
+};
+
+let gameState = GameState.IDLE;
 let currentDie = 4;
-let isRolling = false;
 let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
 
@@ -44,14 +76,15 @@ let isHolding = false;
 let holdInterval = null;
 
 // Boost system - when power meter is full, dice max is increased by 1
+// This is separate from GameState - isBoosted affects the +1 max mechanic, not input blocking
 let isBoosted = false;
 let boostedMax = null; // The max+1 value when boosted
 let sparkleInterval = null; // Interval for boost sparkle effect
 let overchargedTimeout = null; // Timeout for overcharged effect duration
 let overchargedSettleFrame = null; // Animation frame for settling effect
 
-function isOvercharged() {
-  return isBoosted;
+function canAcceptInput() {
+  return gameState !== GameState.SETTLING;
 }
 
 function initDieButtons() {
@@ -68,7 +101,7 @@ const HOLD_INTERVAL_MS = 500;
 
 
 function handleDicePointerDown(event) {
-  if (isOvercharged()) return;
+  if (!canAcceptInput()) return;
   isDraggingDice = true;
   hasDraggedSinceDiceDown = false;
   diceSelection.setPointerCapture(event.pointerId);
@@ -116,7 +149,7 @@ function handleDicePointerUp(event) {
   isDraggingDice = false;
   diceSelection.releasePointerCapture(event.pointerId);
 
-  if (isOvercharged()) return;
+  if (!canAcceptInput()) return;
 
   if (!hasDraggedSinceDiceDown) {
     const closestBtn = findDieButtonAt(event.clientX);
@@ -143,7 +176,7 @@ function updateIndicator(button) {
 }
 
 function selectDie(selectedButton) {
-  if (isOvercharged()) return;
+  if (!canAcceptInput()) return;
   const sides = parseInt(selectedButton.dataset.die, 10);
   if (!DIE_SHAPES[sides]) return;
   if (sides === currentDie) return; // Already selected
@@ -172,7 +205,7 @@ function selectDie(selectedButton) {
   announce(`Selected ${currentDie}-sided die`);
 
   // Kick off a new roll when switching dice via slider (if not already rolling)
-  if (!isRolling) {
+  if (gameState !== GameState.ROLLING) {
     addEnergy(ENERGY_PER_CLICK_MS);
   }
 }
@@ -202,6 +235,7 @@ function clearOverchargedState() {
     overchargedSettleFrame = null;
   }
   dieContainer.classList.remove('overcharged');
+  diceSelection.classList.remove('settling');
   const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
   const whiteOutline = document.querySelector('.die-shape svg.white-outline');
   if (magentaOutline) {
@@ -211,7 +245,8 @@ function clearOverchargedState() {
     whiteOutline.remove();
   }
 
-  // Clear boost after overcharged effect has settled
+  // Clear boost and return to IDLE state after overcharged effect has settled
+  gameState = GameState.IDLE;
   deactivateBoost();
   boostedMax = null;
 }
@@ -253,10 +288,10 @@ function stopEnergySystem() {
 
   updateEnergyLevel();
 
-  if (isRolling) {
+  if (gameState === GameState.ROLLING) {
     dieContainer.classList.remove('rolling');
-    isRolling = false;
   }
+  gameState = GameState.IDLE;
 }
 
 function updateEnergyLevel() {
@@ -269,6 +304,11 @@ function activateBoost({ spawnInitialParticles = true } = {}) {
   if (sparkleInterval) {
     clearInterval(sparkleInterval);
     sparkleInterval = null;
+  }
+
+  // Show boost hint on first boost
+  if (spawnInitialParticles) {
+    showHint('boost', '+1 max on charged rolls', true);
   }
 
   isBoosted = true;
@@ -319,7 +359,11 @@ function deactivateBoost() {
 }
 
 function addEnergy(amount) {
-  if (isOvercharged()) return;
+  if (!canAcceptInput()) return;
+
+  // Hide initial hint on first user interaction
+  hideHint();
+
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
   updateEnergyLevel();
 
@@ -332,7 +376,7 @@ function addEnergy(amount) {
     startEnergyDrain();
   }
 
-  if (!isRolling) {
+  if (gameState !== GameState.ROLLING) {
     clearResult();
     startContinuousRoll();
   }
@@ -349,7 +393,7 @@ function startEnergyDrain() {
     const delta = now - lastTime;
     lastTime = now;
     
-    const drainAmount = delta * (isHolding && !isOvercharged() ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
+    const drainAmount = delta * (isHolding && canAcceptInput() ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
     energy = Math.max(0, energy - drainAmount);
     updateEnergyLevel();
     
@@ -366,7 +410,7 @@ function startEnergyDrain() {
 }
 
 function startContinuousRoll() {
-  isRolling = true;
+  gameState = GameState.ROLLING;
   pendingFinish = null; // Cancel any pending finish if user adds more energy
   dieContainer.classList.add('rolling');
   resultDisplay.classList.remove('show');
@@ -379,8 +423,8 @@ function finishRoll() {
   const rolledDie = effectiveMax;
 
   // Store pending finish - will complete when animation cycle ends
+  // State transitions to IDLE in completeRollFinish (or SETTLING if overcharged)
   pendingFinish = { result, rolledDie };
-  isRolling = false;
 }
 
 function completeRollFinish({ result, rolledDie }) {
@@ -395,18 +439,20 @@ function completeRollFinish({ result, rolledDie }) {
 
   // Spawn glitch particle explosion and add overcharged effect if result is in overload range
   if (result > currentDie) {
+    // Enter SETTLING state - input blocked until animation completes
+    gameState = GameState.SETTLING;
+
     const rect = dieContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     spawnParticles(centerX, centerY, currentDie);
 
-    // Spawn loot
-    if (!hasLootOnGround()) {
-      spawnLoot(currentDie, centerX, centerY);
-    }
+    // Spawn loot (queues if drops are in flight)
+    spawnLoot(currentDie, centerX, centerY);
 
     // Add triple wiggling outlines effect
     dieContainer.classList.add('overcharged');
+    diceSelection.classList.add('settling');
     const magentaOutline = dieSvg.cloneNode(true);
     magentaOutline.classList.add('magenta-outline');
     magentaOutline.removeAttribute('id');
@@ -453,6 +499,7 @@ function completeRollFinish({ result, rolledDie }) {
 
   // Clear boost for next roll (delay if overcharged to let effect settle)
   if (result <= currentDie) {
+    gameState = GameState.IDLE;
     deactivateBoost();
     boostedMax = null;
   }
@@ -469,7 +516,7 @@ dieSvg.addEventListener('animationiteration', () => {
 
 function handlePointerDown(event) {
   if (event.button && event.button !== 0) return;
-  if (isOvercharged()) return;
+  if (!canAcceptInput()) return;
 
   dieContainer.setPointerCapture(event.pointerId);
   isHolding = true;
@@ -497,7 +544,7 @@ function handleKeydown(event) {
   if (event.code === 'Space' || event.code === 'Enter') {
     if (document.activeElement === document.body || document.activeElement === dieContainer) {
       event.preventDefault();
-      if (isOvercharged()) return;
+      if (!canAcceptInput()) return;
 
       if (!event.repeat) {
         isHolding = true;
@@ -521,7 +568,7 @@ function handleKeydown(event) {
     }
 
     isHolding = true;
-    if (isOvercharged()) return;
+    if (!canAcceptInput()) return;
 
     const currentIndex = Array.from(dieButtons).findIndex(btn => btn.getAttribute('aria-checked') === 'true');
     if (currentIndex === -1) return;
@@ -579,5 +626,8 @@ document.addEventListener('keyup', handleKeyup);
 window.addEventListener('resize', initIndicator);
 
 initIndicator();
+
+// Show initial hint, then start the first roll
+showHint('initial', 'click or hold the die to roll', false);
 addEnergy(ENERGY_PER_CLICK_MS);
 

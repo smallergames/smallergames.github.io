@@ -80,6 +80,30 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 - Drag-to-select: Users can drag across dice buttons to change selection
 - Uses `requestAnimationFrame` for smooth energy drain animation
 
+### Game State Machine
+
+The app uses an explicit state machine instead of scattered booleans:
+
+```javascript
+const GameState = {
+  IDLE: 'idle',       // Waiting for input, can roll
+  ROLLING: 'rolling', // Die is spinning, draining energy
+  SETTLING: 'settling' // Overcharged effect playing, input blocked
+};
+```
+
+- `canAcceptInput()` returns `true` when `gameState !== GameState.SETTLING`
+- Use `canAcceptInput()` in input handlers to block interaction during settling
+- `isBoosted` is **separate** from GameState—it tracks the +1 max mechanic, not UI blocking
+- State transitions: IDLE → ROLLING (on addEnergy) → IDLE (normal roll) or SETTLING (overcharged) → IDLE
+
+### Onboarding Hints
+
+- Contextual hints stored in localStorage (`dice-hints-seen`)
+- `showHint(key, text, autoFade)` shows a hint if not previously seen
+- Initial hint: "click or hold the die to roll" (shown on load)
+- Boost hint: "+1 max on charged rolls" (shown on first boost, auto-fades)
+
 ### Game Mechanics
 
 **Boost:** Double-tap/click the roll area to activate boost mode. The selected die rolls one value higher than normal (d6 becomes d7, d20 becomes d21). Visual feedback includes sparkle particles and a `.boosted` class on the button. State tracked via `isBoosted` and `boostedMax`.
@@ -93,3 +117,10 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
 - `spawnParticles(x, y, dieSize)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
 - Spawned from the selected die button's position, not the die shape
+
+### Loot System
+
+- `loot.js` handles loot drops with pixel trails to the footer inventory
+- Loot is queued if drops are already in flight (no loot is lost on rapid overcharges)
+- Win celebration triggers particle bursts and glowing text when all 7 tiers collected
+- `spawnLoot(dieSize, originX, originY)` queues internally, safe to call anytime

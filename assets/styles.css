@@ -109,6 +109,18 @@ nav {
   z-index: 10;
 }
 
+.energy-label {
+  position: absolute;
+  bottom: -1.25rem;
+  left: 0;
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .dice-selection {
   display: flex;
   justify-content: center;
@@ -184,6 +196,31 @@ nav {
   50% { transform: translateX(4px); }
 }
 
+/* Settling state - input blocked during overcharge settle animation */
+.dice-selection.settling {
+  pointer-events: none;
+  border-color: var(--magenta);
+  animation: settlingPulse 0.8s ease-in-out infinite;
+}
+
+.dice-selection.settling::before {
+  border-color: var(--magenta);
+  box-shadow:
+    0 0 12px var(--magenta-glow),
+    inset 0 0 8px rgba(255, 0, 255, 0.1);
+}
+
+@keyframes settlingPulse {
+  0%, 100% {
+    border-color: var(--magenta);
+    box-shadow: 0 0 8px var(--magenta-glow);
+  }
+  50% {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+}
+
 .die-btn {
   font-family: var(--font-family);
   font-size: 0.8rem;
@@ -244,6 +281,32 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+}
+
+/* Onboarding hints */
+.hint {
+  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-align: center;
+  min-height: 1.5em;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
+}
+
+.hint.visible {
+  opacity: 1;
+}
+
+.hint.fading {
+  animation: hintFade 2s ease-out forwards;
+}
+
+@keyframes hintFade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .die-container {
@@ -498,6 +561,28 @@ footer {
 @keyframes cursorBlink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
+}
+
+/* Win celebration - glowing reveal effect (no transforms per AGENTS.md) */
+.quote.win-reveal {
+  color: var(--accent);
+  animation: winGlow 2s ease-out forwards;
+}
+
+@keyframes winGlow {
+  0% {
+    filter: brightness(2) saturate(1.5);
+    text-shadow:
+      0 0 20px var(--accent),
+      0 0 40px var(--accent),
+      0 0 60px var(--accent-glow);
+  }
+  100% {
+    filter: brightness(1) saturate(1);
+    text-shadow:
+      0 0 8px var(--accent-glow),
+      0 0 16px var(--accent-glow);
+  }
 }
 
 /* ==========================================================================
