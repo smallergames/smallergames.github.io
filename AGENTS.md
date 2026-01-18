@@ -35,7 +35,7 @@ When JavaScript needs to act at a specific point in a CSS animation cycle, use a
 
 ### Animations vs Transitions
 
-CSS animations and transitions can conflict. If an element has both a `transition` on `transform` and an `animation` that transforms it, removing the animation class will trigger the transition to animate back to the rest state. To prevent this, disable the transition before removing the animation class, force a reflow, then re-enable the transition.
+CSS animations and transitions can conflict. If an element has both a `transition` on `transform` and an `animation` that transforms it, removing the animation class will trigger the transition to animate back to the rest state. The fix is architectural: don't transition properties that are also animated. The die SVG only transitions `filter` (for glow effects), not `transform`.
 
 ### CSS Architecture
 
@@ -47,8 +47,16 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 ### JavaScript Patterns
 
+- Uses ES modules (`import`/`export`) with `type="module"` on the script tag
 - State variables are declared at module level with descriptive names
 - Core functions: `selectDie()`, `updateDieShape()`, `addEnergy()`, `startEnergyDrain()`, `finishRoll()`
 - Energy system: Click/hold adds energy, die rolls continuously while energy > 0, drains faster on release
 - Drag-to-select: Users can drag across dice buttons to change selection
 - Uses `requestAnimationFrame` for smooth energy drain animation
+
+### Particle System
+
+- `particles.js` handles the glitch burst effect on max rolls (rolling the highest possible value)
+- Effect magnitude scales by die size via `DIE_MAGNITUDE` config (d100 has 80 particles, d4 has 8)
+- Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
+- Spawned from the selected die button's position, not the die shape
