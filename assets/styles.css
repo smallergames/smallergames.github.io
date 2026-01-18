@@ -343,7 +343,7 @@ main {
    ========================================================================== */
 
 .die-container.rolling .die-shape svg {
-  animation: dieRoll 0.5s var(--transition-smooth) infinite;
+  animation: dieRoll 0.5s linear infinite;
 }
 
 .die-container.rolling .die-result {
