@@ -5,7 +5,7 @@
  * Features an energy bar system where clicks add energy and the die rolls until depleted.
  */
 
-import { initParticles, spawnParticles } from './particles.js';
+import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', markup: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -36,6 +36,12 @@ let energy = 0;
 let energyDrainFrame = null;
 let isHolding = false;
 let holdInterval = null;
+
+// Boost system - when power meter is full, dice max is 1.5x
+const BOOST_MULTIPLIER = 1.5;
+let isBoosted = false;
+let boostedMax = null; // The 1.5x max value when boosted
+let sparkleInterval = null; // Interval for boost sparkle effect
 
 function initDieButtons() {
   dieButtons.forEach(btn => {
@@ -165,6 +171,11 @@ function stopEnergySystem() {
   pendingFinish = null;
   isHolding = false;
   energy = 0;
+
+  // Clear boost state
+  deactivateBoost();
+  boostedMax = null;
+
   updateEnergyLevel();
 
   if (isRolling) {
@@ -178,14 +189,72 @@ function updateEnergyLevel() {
   diceSelection.style.setProperty('--energy-level', level);
 }
 
+function activateBoost() {
+  if (isBoosted) return; // Already boosted
+
+  isBoosted = true;
+  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+  if (!selectedBtn) return;
+
+  // Calculate boosted max (1.5x, floored to integer)
+  // Special case: d100 goes to 151 instead of 150
+  if (currentDie === 100) {
+    boostedMax = 151;
+  } else {
+    boostedMax = Math.floor(currentDie * BOOST_MULTIPLIER);
+  }
+
+  // Update button text to show boosted value
+  selectedBtn.textContent = `d${boostedMax}`;
+  selectedBtn.classList.add('boosted');
+
+  // Spawn glitch particles on overload
+  const rect = selectedBtn.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  spawnParticles(centerX, centerY, currentDie);
+
+  // Start sparkle effect
+  sparkleInterval = setInterval(() => {
+    const btn = document.querySelector('[data-die][aria-checked="true"]');
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
+    }
+  }, 150);
+}
+
+function deactivateBoost() {
+  if (!isBoosted) return;
+
+  isBoosted = false;
+
+  // Stop sparkle effect
+  if (sparkleInterval) {
+    clearInterval(sparkleInterval);
+    sparkleInterval = null;
+  }
+
+  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+  if (selectedBtn) {
+    selectedBtn.textContent = `d${currentDie}`;
+    selectedBtn.classList.remove('boosted');
+  }
+}
+
 function addEnergy(amount) {
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
   updateEnergyLevel();
-  
+
+  // Activate boost when energy hits max (boost stays until roll completes)
+  if (energy >= MAX_ENERGY_MS) {
+    activateBoost();
+  }
+
   if (!energyDrainFrame) {
     startEnergyDrain();
   }
-  
+
   if (!isRolling) {
     clearResult();
     startContinuousRoll();
@@ -227,8 +296,10 @@ function startContinuousRoll() {
 }
 
 function finishRoll() {
-  const result = randomInt(1, currentDie);
-  const rolledDie = currentDie;
+  // Use boosted max if power was full when roll started
+  const effectiveMax = boostedMax || currentDie;
+  const result = randomInt(1, effectiveMax);
+  const rolledDie = effectiveMax;
 
   // Store pending finish - will complete when animation cycle ends
   pendingFinish = { result, rolledDie };
@@ -240,23 +311,16 @@ function completeRollFinish({ result, rolledDie }) {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
-  // Spawn particles on max roll
-  if (result === rolledDie) {
-    const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
-    if (selectedBtn) {
-      const rect = selectedBtn.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      spawnParticles(centerX, centerY, rolledDie);
-    }
-  }
-
   dieContainer.setAttribute(
     'aria-label',
     `Rolled ${result} on d${rolledDie}. Click or press Space/Enter to roll again`
   );
 
   announce(`Rolled ${result} on d${rolledDie}`);
+
+  // Clear boost for next roll
+  deactivateBoost();
+  boostedMax = null;
 }
 
 // Handle animation cycle completion - fires exactly when animation reaches 100%

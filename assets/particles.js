@@ -47,6 +47,45 @@ function resize() {
 }
 
 /**
+ * Spawn tiny sparkle particles around a position (for boost effect)
+ * @param {number} x - Screen X coordinate
+ * @param {number} y - Screen Y coordinate
+ */
+export function spawnSparkles(x, y) {
+  if (!ctx) return;
+
+  const count = 2 + Math.floor(Math.random() * 2); // 2-3 particles
+
+  for (let i = 0; i < count; i++) {
+    const offsetX = (Math.random() - 0.5) * 60;
+    const offsetY = (Math.random() - 0.5) * 30;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 30 + Math.random() * 40;
+
+    particles.push({
+      x: x + offsetX,
+      y: y + offsetY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      width: 2 + Math.random() * 4,
+      height: 1 + Math.random() * 2,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      life: 0.3 + Math.random() * 0.2,
+      maxLife: 0.5,
+      nextGlitch: Math.random() * 0.05,
+      glitchIntensity: 0.3 + Math.random() * 0.3,
+      scaleX: 1,
+      scaleY: 1
+    });
+  }
+
+  if (!animationId) {
+    lastTime = performance.now();
+    animate();
+  }
+}
+
+/**
  * Spawn a glitch burst from a screen position
  * @param {number} x - Screen X coordinate
  * @param {number} y - Screen Y coordinate
