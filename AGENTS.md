@@ -24,3 +24,19 @@ The roll animation provides essential feedback that the action occurred. Many mo
 ### Fonts
 
 Fonts are base64-embedded in `styles.css` to prevent FOUT. Do not add external font references.
+
+### Animation Performance
+
+Use `transform` and `opacity` for animations—avoid animating layout properties. The existing roll animation is transform-only for 60fps performance.
+
+### CSS Architecture
+
+- Theme tokens are in `:root` at the top of `styles.css`
+- Use existing CSS custom properties (e.g., `--accent`, `--accent-glow`, `--transition-smooth`)
+- Mobile breakpoint is 480px
+
+### JavaScript Patterns
+
+- State variables are declared at module level with descriptive names
+- Functions are named clearly (`roll()`, `cancelRoll()`, `prepareOrbitalRings()`)
+- Orbital ring animations use CSS custom properties controlled by JS for seamless freezing/resuming

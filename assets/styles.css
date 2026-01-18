@@ -97,6 +97,7 @@ nav {
   padding: 4px;
   --indicator-left: 0px;
   --indicator-width: 0px;
+  --energy-level: 0;
 }
 
 /* Sliding indicator */
@@ -118,6 +119,21 @@ nav {
     width 0.25s var(--transition-smooth);
   pointer-events: none;
   z-index: 0;
+}
+
+/* Energy bar along bottom edge */
+.dice-selection::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: calc(100% * var(--energy-level));
+  background: var(--accent);
+  box-shadow: 0 0 calc(8px + var(--energy-level) * 12px) var(--accent-glow);
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .die-btn {
@@ -177,55 +193,6 @@ main {
   border: none;
   font: inherit;
   color: inherit;
-}
-
-/* Orbital rings - static by default, animate on interaction */
-.die-container {
-  --orbit-before-rotation: -15deg;
-  --orbit-after-rotation: 15deg;
-  --orbit-before-delay: 0s;
-  --orbit-after-delay: 0s;
-}
-
-.die-container::before,
-.die-container::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid var(--accent);
-  opacity: 0.1;
-  pointer-events: none;
-  transition: opacity 0.3s var(--transition-smooth);
-}
-
-.die-container::before {
-  width: 140%;
-  height: 50%;
-  transform: rotate(var(--orbit-before-rotation));
-}
-
-.die-container::after {
-  width: 50%;
-  height: 140%;
-  transform: rotate(var(--orbit-after-rotation));
-}
-
-/* Activate orbits when rolling */
-.die-container.rolling::before {
-  animation: orbitSpin 2.5s linear infinite;
-  animation-delay: var(--orbit-before-delay);
-  opacity: 0.25;
-}
-
-.die-container.rolling::after {
-  animation: orbitSpin 8s linear infinite reverse;
-  animation-delay: var(--orbit-after-delay);
-  opacity: 0.2;
-}
-
-@keyframes orbitSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .die-container:focus {
@@ -320,7 +287,7 @@ main {
    ========================================================================== */
 
 .die-container.rolling .die-shape svg {
-  animation: dieRoll 0.5s var(--transition-smooth);
+  animation: dieRoll 0.5s var(--transition-smooth) infinite;
 }
 
 .die-container.rolling .die-result {
