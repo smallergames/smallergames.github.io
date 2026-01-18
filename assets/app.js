@@ -37,10 +37,9 @@ let energyDrainFrame = null;
 let isHolding = false;
 let holdInterval = null;
 
-// Boost system - when power meter is full, dice max is 1.5x
-const BOOST_MULTIPLIER = 1.5;
+// Boost system - when power meter is full, dice max is increased by 1
 let isBoosted = false;
-let boostedMax = null; // The 1.5x max value when boosted
+let boostedMax = null; // The max+1 value when boosted
 let sparkleInterval = null; // Interval for boost sparkle effect
 
 function initDieButtons() {
@@ -227,13 +226,8 @@ function activateBoost() {
   const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
   if (!selectedBtn) return;
 
-  // Calculate boosted max (1.5x, floored to integer)
-  // Special case: d100 goes to 151 instead of 150
-  if (currentDie === 100) {
-    boostedMax = 151;
-  } else {
-    boostedMax = Math.floor(currentDie * BOOST_MULTIPLIER);
-  }
+  // Calculate boosted max (die value + 1)
+  boostedMax = currentDie + 1;
 
   // Update button text to show boosted value
   selectedBtn.textContent = `d${boostedMax}`;
