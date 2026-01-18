@@ -344,6 +344,7 @@ main {
 
 .die-container.rolling .die-shape svg {
   animation: dieRoll 0.5s linear infinite;
+  transition: none; /* Disable transition during animation to prevent bounce on stop */
 }
 
 .die-container.rolling .die-result {
