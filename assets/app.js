@@ -115,20 +115,46 @@ function updateIndicator(button) {
 function selectDie(selectedButton) {
   const sides = parseInt(selectedButton.dataset.die, 10);
   if (!DIE_SHAPES[sides]) return;
+  if (sides === currentDie) return; // Already selected
+
+  // Transfer boost state to new button if boosted
+  const wasBoosted = isBoosted;
+  if (wasBoosted) {
+    deactivateBoost(); // Remove from old button
+  }
 
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
   updateIndicator(selectedButton);
 
-  stopEnergySystem();
-  
   currentDie = sides;
   updateDieShape(currentDie);
   clearResult();
+  pendingFinish = null; // Cancel any pending result from old die
+
+  // Recalculate and reactivate boost for new die
+  if (wasBoosted) {
+    if (currentDie === 100) {
+      boostedMax = 151;
+    } else {
+      boostedMax = Math.floor(currentDie * BOOST_MULTIPLIER);
+    }
+    isBoosted = true;
+    selectedButton.textContent = `d${boostedMax}`;
+    selectedButton.classList.add('boosted');
+    
+    // Restart sparkle effect on new button
+    if (sparkleInterval) clearInterval(sparkleInterval);
+    sparkleInterval = setInterval(() => {
+      const btn = document.querySelector('[data-die][aria-checked="true"]');
+      if (btn) {
+        const r = btn.getBoundingClientRect();
+        spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
+      }
+    }, 150);
+  }
   
   announce(`Selected ${currentDie}-sided die`);
-  
-  requestAnimationFrame(() => addEnergy(ENERGY_PER_CLICK_MS));
 }
 
 function updateDieShape(sides) {

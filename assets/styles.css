@@ -167,7 +167,8 @@ nav {
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 0;
+  min-width: 3.5rem;
   background: transparent;
   border: none;
   color: var(--text-dim);
@@ -193,6 +194,11 @@ nav {
 
 .die-btn[aria-checked="true"] {
   color: var(--accent);
+}
+
+/* d100 needs extra width to accommodate "d151" when boosted */
+.die-btn[data-die="100"] {
+  min-width: 4rem;
 }
 
 /* Boosted dice button glow effect when power meter is full */
@@ -509,8 +515,13 @@ footer {
   }
 
   .die-btn {
-    padding: 0.65rem 0.7rem;
+    padding: 0.65rem 0;
+    min-width: 2.75rem;
     font-size: 0.7rem;
+  }
+
+  .die-btn[data-die="100"] {
+    min-width: 3.25rem;
   }
 }
 
