@@ -117,6 +117,8 @@ const GameState = {
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
 - `spawnParticles(x, y, dieSize)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
 - Spawned from the selected die button's position, not the die shape
+- **Object pooling**: Particles and scanlines are recycled via `acquireParticle()`/`releaseParticle()` to minimize GC pressure
+- **Swap-and-pop removal**: Dead particles are removed in O(1) instead of O(n) splice operations
 
 ### Loot System
 

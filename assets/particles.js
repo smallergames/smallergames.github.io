@@ -3,6 +3,7 @@
  *
  * Lightweight 2D canvas implementation for digital glitch effects on max dice rolls.
  * Features scanlines, pixel fragments, RGB splits, and data corruption aesthetics.
+ * Uses object pooling to minimize GC pressure during animation.
  */
 
 let canvas, ctx;
@@ -11,6 +12,45 @@ let scanlines = [];
 let animationId = null;
 let lastTime = 0;
 let isEnabled = false;
+
+// Object pools for reuse (avoids GC pressure in animation loop)
+const particlePool = [];
+const scanlinePool = [];
+
+function createParticle() {
+  return {
+    x: 0, y: 0, vx: 0, vy: 0,
+    width: 0, height: 0, color: '',
+    life: 0, maxLife: 0,
+    nextGlitch: 0, glitchIntensity: 0,
+    scaleX: 1, scaleY: 1
+  };
+}
+
+function createScanline() {
+  return {
+    x: 0, y: 0, vx: 0,
+    width: 0, height: 0, color: '',
+    life: 0, maxLife: 0,
+    flickerRate: 0, scaleY: 1
+  };
+}
+
+function acquireParticle() {
+  return particlePool.length > 0 ? particlePool.pop() : createParticle();
+}
+
+function releaseParticle(p) {
+  particlePool.push(p);
+}
+
+function acquireScanline() {
+  return scanlinePool.length > 0 ? scanlinePool.pop() : createScanline();
+}
+
+function releaseScanline(s) {
+  scanlinePool.push(s);
+}
 
 const DIE_MAGNITUDE = {
   4: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
@@ -76,21 +116,21 @@ export function spawnSparkles(x, y) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 30 + Math.random() * 40;
 
-    particles.push({
-      x: x + offsetX,
-      y: y + offsetY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      width: 2 + Math.random() * 4,
-      height: 1 + Math.random() * 2,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      life: 0.3 + Math.random() * 0.2,
-      maxLife: 0.5,
-      nextGlitch: Math.random() * 0.05,
-      glitchIntensity: 0.3 + Math.random() * 0.3,
-      scaleX: 1,
-      scaleY: 1
-    });
+    const p = acquireParticle();
+    p.x = x + offsetX;
+    p.y = y + offsetY;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.width = 2 + Math.random() * 4;
+    p.height = 1 + Math.random() * 2;
+    p.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    p.life = 0.3 + Math.random() * 0.2;
+    p.maxLife = 0.5;
+    p.nextGlitch = Math.random() * 0.05;
+    p.glitchIntensity = 0.3 + Math.random() * 0.3;
+    p.scaleX = 1;
+    p.scaleY = 1;
+    particles.push(p);
   }
 
   if (!animationId) {
@@ -114,39 +154,39 @@ export function spawnParticles(x, y, dieSize = 20) {
     const angle = Math.random() * Math.PI * 2;
     const speed = mag.speed * (0.5 + Math.random());
 
-    particles.push({
-      x: x + (Math.random() - 0.5) * mag.spread * 2,
-      y: y + (Math.random() - 0.5) * mag.spread * 2,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed * 0.5,
-      width: 2 + Math.random() * 8,
-      height: 2 + Math.random() * 4,
-      color: COLORS[Math.random() < 0.5 ? 0 : Math.random() < 0.5 ? 1 : Math.random() < 0.6 ? 2 : 3],
-      life: mag.lifetime * (0.5 + Math.random() * 0.5),
-      maxLife: mag.lifetime,
-      nextGlitch: Math.random() * 0.1,
-      glitchIntensity: 0.5 + Math.random() * 0.5,
-      scaleX: 1,
-      scaleY: 1
-    });
+    const p = acquireParticle();
+    p.x = x + (Math.random() - 0.5) * mag.spread * 2;
+    p.y = y + (Math.random() - 0.5) * mag.spread * 2;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed * 0.5;
+    p.width = 2 + Math.random() * 8;
+    p.height = 2 + Math.random() * 4;
+    p.color = COLORS[Math.random() < 0.5 ? 0 : Math.random() < 0.5 ? 1 : Math.random() < 0.6 ? 2 : 3];
+    p.life = mag.lifetime * (0.5 + Math.random() * 0.5);
+    p.maxLife = mag.lifetime;
+    p.nextGlitch = Math.random() * 0.1;
+    p.glitchIntensity = 0.5 + Math.random() * 0.5;
+    p.scaleX = 1;
+    p.scaleY = 1;
+    particles.push(p);
   }
 
   const scanlineCount = mag.scanlines + Math.floor(Math.random() * (mag.scanlines * 0.5));
   const scanSpread = mag.spread * 2;
 
   for (let i = 0; i < scanlineCount; i++) {
-    scanlines.push({
-      x: x,
-      y: y + (Math.random() - 0.5) * scanSpread,
-      width: mag.spread + Math.random() * mag.spread * 2,
-      height: 1 + Math.random() * 3,
-      vx: (Math.random() > 0.5 ? 1 : -1) * (mag.speed + Math.random() * mag.speed),
-      color: Math.random() > 0.7 ? '#ff00ff' : '#00f0ff',
-      life: 0.4 * mag.lifetime * (0.5 + Math.random() * 0.5),
-      maxLife: 0.4 * mag.lifetime,
-      flickerRate: 0.05 + Math.random() * 0.1,
-      scaleY: 1
-    });
+    const s = acquireScanline();
+    s.x = x;
+    s.y = y + (Math.random() - 0.5) * scanSpread;
+    s.width = mag.spread + Math.random() * mag.spread * 2;
+    s.height = 1 + Math.random() * 3;
+    s.vx = (Math.random() > 0.5 ? 1 : -1) * (mag.speed + Math.random() * mag.speed);
+    s.color = Math.random() > 0.7 ? '#ff00ff' : '#00f0ff';
+    s.life = 0.4 * mag.lifetime * (0.5 + Math.random() * 0.5);
+    s.maxLife = 0.4 * mag.lifetime;
+    s.flickerRate = 0.05 + Math.random() * 0.1;
+    s.scaleY = 1;
+    scanlines.push(s);
   }
 
   if (!animationId) {
@@ -165,7 +205,9 @@ function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
 
-  for (let i = particles.length - 1; i >= 0; i--) {
+  // Process particles with swap-and-pop removal (O(1) instead of splice's O(n))
+  let i = 0;
+  while (i < particles.length) {
     const p = particles[i];
 
     p.nextGlitch -= delta;
@@ -199,11 +241,19 @@ function animate() {
     }
 
     if (p.life <= 0) {
-      particles.splice(i, 1);
+      // Swap with last element and pop (O(1) removal)
+      releaseParticle(p);
+      particles[i] = particles[particles.length - 1];
+      particles.pop();
+      // Don't increment i - need to process the swapped element
+    } else {
+      i++;
     }
   }
 
-  for (let i = scanlines.length - 1; i >= 0; i--) {
+  // Process scanlines with swap-and-pop removal
+  i = 0;
+  while (i < scanlines.length) {
     const s = scanlines[i];
 
     s.x += s.vx * delta;
@@ -229,7 +279,13 @@ function animate() {
     }
 
     if (s.life <= 0) {
-      scanlines.splice(i, 1);
+      // Swap with last element and pop (O(1) removal)
+      releaseScanline(s);
+      scanlines[i] = scanlines[scanlines.length - 1];
+      scanlines.pop();
+      // Don't increment i - need to process the swapped element
+    } else {
+      i++;
     }
   }
 
