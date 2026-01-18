@@ -50,14 +50,9 @@ function handleDicePointerDown(event) {
   hasDraggedSinceDiceDown = false;
   dragStartX = event.clientX;
   diceSelection.setPointerCapture(event.pointerId);
-  event.preventDefault();
 }
 
-function handleDicePointerMove(event) {
-  if (!isDraggingDice) return;
-  
-  hasDraggedSinceDiceDown = true;
-  const x = event.clientX;
+function findDieButtonAt(x) {
   const containerRect = diceSelection.getBoundingClientRect();
   const relativeX = x - containerRect.left;
   
@@ -74,6 +69,15 @@ function handleDicePointerMove(event) {
     }
   });
   
+  return closestBtn;
+}
+
+function handleDicePointerMove(event) {
+  if (!isDraggingDice) return;
+  
+  hasDraggedSinceDiceDown = true;
+  const closestBtn = findDieButtonAt(event.clientX);
+  
   if (closestBtn && closestBtn.getAttribute('aria-checked') !== 'true') {
     selectDie(closestBtn);
   }
@@ -83,6 +87,13 @@ function handleDicePointerUp(event) {
   if (!isDraggingDice) return;
   isDraggingDice = false;
   diceSelection.releasePointerCapture(event.pointerId);
+  
+  if (!hasDraggedSinceDiceDown) {
+    const closestBtn = findDieButtonAt(event.clientX);
+    if (closestBtn) {
+      selectDie(closestBtn);
+    }
+  }
 }
 
 function updateIndicator(button) {
