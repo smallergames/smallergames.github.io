@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shhhh. Don't tell anyone you found us. We're building a multiplayer incremental game with server authoritive loot and trading. It's going to be so sick.">
+  <meta name="description" content="Shhhh. Don't tell anyone you found us. We're building a gigantic incremental game with server authoritative loot and trading. Or at least that's the longterm ambition. We're also making loads of smaller weirder incremental games. What's better than picking up loot and watching numbers go up?">
   <meta name="theme-color" content="#030305">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>smaller games | we're putting so much loot into our first game.</title>
+  <title>smaller games | building smaller weirder incremental games.</title>
   <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -17,13 +17,13 @@
   <main id="main-content">
     <button
       type="button"
-      class="die-container"
+      class="die-container d4"
       id="dieContainer"
       aria-label="Click or press Space/Enter to roll the die"
     >
       <div class="die-shape" id="dieShape" aria-hidden="true">
-        <svg viewBox="0 0 100 100" id="dieSvg" focusable="false">
-          <polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />
+        <svg viewBox="-50 -50 100 100" id="dieSvg" focusable="false">
+          <polygon points="0,-50 -45,25 45,25" />
         </svg>
       </div>
       <span class="die-result" id="result"></span>
@@ -31,12 +31,12 @@
 
     <nav aria-label="Dice selection">
       <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
-        <button class="die-btn" role="radio" data-die="4" aria-checked="false" aria-label="4-sided die">d4</button>
+        <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
         <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
         <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
         <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
         <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
-        <button class="die-btn" role="radio" data-die="20" aria-checked="true" aria-label="20-sided die">d20</button>
+        <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
         <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
       </div>
     </nav>
@@ -45,7 +45,9 @@
   </main>
 
   <footer>
-    <p class="quote">…building a super weird incremental looting game.</p>
+    <div class="charged-rolls" id="chargedRolls">charged rolls: 0</div>
+    <div class="loot-collected"></div>
+    <p class="quote" id="footerQuote">…there's loot in the dice. but you won't find it. cowards.</p>
   </footer>
 
   <canvas id="particleCanvas"></canvas>
