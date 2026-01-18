@@ -2,12 +2,7 @@
  * Dice Roller Application
  * 
  * A simple tabletop dice roller supporting d4, d6, d8, d10, d12, d20, and d100.
- * 
- * State:
- *   - currentDie: number (4, 6, 8, 10, 12, 20, or 100)
- *   - isRolling: boolean
- *   - rollTimeout: timeout ID or null
- *   - announceTimeout: timeout ID or null
+ * Features an energy bar system where clicks add energy and the die rolls until depleted.
  */
 
 const DIE_SHAPES = {
@@ -20,8 +15,6 @@ const DIE_SHAPES = {
   100: { viewBox: '0 0 100 100', markup: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />' }
 };
 
-const ROLL_DURATION_MS = 500;
-
 const diceSelection = document.querySelector('.dice-selection');
 const dieButtons = document.querySelectorAll('[data-die]');
 const dieContainer = document.getElementById('dieContainer');
@@ -31,11 +24,16 @@ const announcements = document.getElementById('announcements');
 
 let currentDie = 20;
 let isRolling = false;
-let rollTimeout = null;
 let announceTimeout = null;
-let rollStartTime = null;
-let orbitBeforeRotation = Math.random() * 360;
-let orbitAfterRotation = Math.random() * 360;
+
+
+const MAX_ENERGY_MS = 2000;
+const ENERGY_PER_CLICK_MS = 400;
+const ENERGY_FILL_RATE_MS = 50;
+let energy = 0;
+let energyDrainFrame = null;
+let isHolding = false;
+let holdInterval = null;
 
 function initDieButtons() {
   dieButtons.forEach(btn => {
@@ -61,7 +59,7 @@ function selectDie(selectedButton) {
   selectedButton.setAttribute('aria-checked', 'true');
   updateIndicator(selectedButton);
 
-  cancelRoll();
+  stopEnergySystem();
   
   currentDie = sides;
   updateDieShape(currentDie);
@@ -69,7 +67,7 @@ function selectDie(selectedButton) {
   
   announce(`Selected ${currentDie}-sided die`);
   
-  requestAnimationFrame(() => roll());
+  requestAnimationFrame(() => addEnergy(ENERGY_PER_CLICK_MS));
 }
 
 function updateDieShape(sides) {
@@ -83,81 +81,6 @@ function updateDieShape(sides) {
 function clearResult() {
   resultDisplay.classList.remove('show');
   resultDisplay.textContent = '';
-}
-
-function prepareOrbitalRings() {
-  const beforeNorm = ((orbitBeforeRotation % 360) + 360) % 360;
-  const afterNorm = ((orbitAfterRotation % 360) + 360) % 360;
-  
-  const beforeDelay = -(beforeNorm / 360) * 2.5;
-  const afterDelay = -((360 - afterNorm) / 360) * 8;
-  
-  dieContainer.style.setProperty('--orbit-before-rotation', `${orbitBeforeRotation}deg`);
-  dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);
-  dieContainer.style.setProperty('--orbit-before-delay', `${beforeDelay}s`);
-  dieContainer.style.setProperty('--orbit-after-delay', `${afterDelay}s`);
-}
-
-function freezeOrbitalRings() {
-  if (!rollStartTime) return;
-  
-  const elapsed = performance.now() - rollStartTime;
-  
-  orbitBeforeRotation += (elapsed / 2500) * 360;
-  orbitAfterRotation -= (elapsed / 8000) * 360;
-  
-  dieContainer.style.setProperty('--orbit-before-rotation', `${orbitBeforeRotation}deg`);
-  dieContainer.style.setProperty('--orbit-after-rotation', `${orbitAfterRotation}deg`);
-}
-
-function cancelRoll(keepRingsAnimating = false) {
-  if (rollTimeout) {
-    clearTimeout(rollTimeout);
-    if (!keepRingsAnimating) {
-      freezeOrbitalRings();
-      dieContainer.classList.remove('rolling');
-    }
-    isRolling = false;
-    rollTimeout = null;
-    rollStartTime = null;
-  }
-}
-
-function roll() {
-  const alreadyRolling = isRolling;
-  
-  if (rollTimeout) {
-    clearTimeout(rollTimeout);
-    rollTimeout = null;
-  }
-  
-  if (!alreadyRolling) {
-    isRolling = true;
-    rollStartTime = performance.now();
-    prepareOrbitalRings();
-    dieContainer.classList.add('rolling');
-  }
-  
-  resultDisplay.classList.remove('show');
-
-  rollTimeout = setTimeout(() => {
-    const result = randomInt(1, currentDie);
-    resultDisplay.textContent = result;
-    freezeOrbitalRings();
-    dieContainer.classList.remove('rolling');
-    resultDisplay.classList.add('show');
-    
-    dieContainer.setAttribute(
-      'aria-label', 
-      `Rolled ${result} on d${currentDie}. Click or press Space/Enter to roll again`
-    );
-    
-    announce(`Rolled ${result} on d${currentDie}`);
-    
-    isRolling = false;
-    rollTimeout = null;
-    rollStartTime = null;
-  }, ROLL_DURATION_MS);
 }
 
 function randomInt(min, max) {
@@ -175,16 +98,128 @@ function announce(message) {
   }, 1000);
 }
 
-function handleDieContainerClick() {
-  clearResult();
-  roll();
+function stopEnergySystem() {
+  if (energyDrainFrame) {
+    cancelAnimationFrame(energyDrainFrame);
+    energyDrainFrame = null;
+  }
+  if (holdInterval) {
+    clearInterval(holdInterval);
+    holdInterval = null;
+  }
+  isHolding = false;
+  energy = 0;
+  updateEnergyLevel();
+  
+  if (isRolling) {
+    dieContainer.classList.remove('rolling');
+    isRolling = false;
+  }
+}
+
+function updateEnergyLevel() {
+  const level = energy / MAX_ENERGY_MS;
+  diceSelection.style.setProperty('--energy-level', level);
+}
+
+function addEnergy(amount) {
+  energy = Math.min(energy + amount, MAX_ENERGY_MS);
+  updateEnergyLevel();
+  
+  if (!energyDrainFrame) {
+    startEnergyDrain();
+  }
+  
+  if (!isRolling) {
+    clearResult();
+    startContinuousRoll();
+  } else {
+    restartDieAnimation();
+  }
+}
+
+function restartDieAnimation() {
+  const svg = dieSvg;
+  svg.style.animation = 'none';
+  svg.offsetHeight;
+  svg.style.animation = '';
+}
+
+const HOLD_DRAIN_RATE = 0.1;
+const RELEASE_DRAIN_RATE = 1.5;
+
+function startEnergyDrain() {
+  let lastTime = performance.now();
+  
+  function drain() {
+    const now = performance.now();
+    const delta = now - lastTime;
+    lastTime = now;
+    
+    const drainAmount = delta * (isHolding ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
+    energy = Math.max(0, energy - drainAmount);
+    updateEnergyLevel();
+    
+    if (energy <= 0) {
+      energyDrainFrame = null;
+      finishRoll();
+      return;
+    }
+    
+    energyDrainFrame = requestAnimationFrame(drain);
+  }
+  
+  energyDrainFrame = requestAnimationFrame(drain);
+}
+
+function startContinuousRoll() {
+  isRolling = true;
+  dieContainer.classList.add('rolling');
+  resultDisplay.classList.remove('show');
+}
+
+function finishRoll() {
+  const result = randomInt(1, currentDie);
+  resultDisplay.textContent = result;
+  dieContainer.classList.remove('rolling');
+  resultDisplay.classList.add('show');
+  
+  dieContainer.setAttribute(
+    'aria-label', 
+    `Rolled ${result} on d${currentDie}. Click or press Space/Enter to roll again`
+  );
+  
+  announce(`Rolled ${result} on d${currentDie}`);
+  
+  isRolling = false;
+}
+
+function handlePointerDown(event) {
+  if (event.button && event.button !== 0) return;
+  
+  isHolding = true;
+  addEnergy(ENERGY_PER_CLICK_MS);
+  
+  holdInterval = setInterval(() => {
+    if (isHolding) {
+      addEnergy(ENERGY_PER_CLICK_MS);
+    }
+  }, 1000);
+}
+
+function handlePointerUp() {
+  isHolding = false;
+  if (holdInterval) {
+    clearInterval(holdInterval);
+    holdInterval = null;
+  }
 }
 
 function handleKeydown(event) {
   if (event.code === 'Space' || event.code === 'Enter') {
-    if (document.activeElement === document.body) {
+    if (document.activeElement === document.body || document.activeElement === dieContainer) {
       event.preventDefault();
-      dieContainer.click();
+      addEnergy(ENERGY_PER_CLICK_MS);
     }
   }
 }
@@ -197,9 +232,12 @@ function initIndicator() {
 }
 
 initDieButtons();
-dieContainer.addEventListener('click', handleDieContainerClick);
+dieContainer.addEventListener('pointerdown', handlePointerDown);
+dieContainer.addEventListener('pointerup', handlePointerUp);
+dieContainer.addEventListener('pointerleave', handlePointerUp);
+dieContainer.addEventListener('pointercancel', handlePointerUp);
 document.addEventListener('keydown', handleKeydown);
 window.addEventListener('resize', initIndicator);
 
 initIndicator();
-roll();
+addEnergy(ENERGY_PER_CLICK_MS);
