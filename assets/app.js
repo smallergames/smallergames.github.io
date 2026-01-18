@@ -41,13 +41,11 @@ function initDieButtons() {
 }
 
 let isDraggingDice = false;
-let dragStartX = 0;
 let hasDraggedSinceDiceDown = false;
 
 function handleDicePointerDown(event) {
   isDraggingDice = true;
   hasDraggedSinceDiceDown = false;
-  dragStartX = event.clientX;
   diceSelection.setPointerCapture(event.pointerId);
 }
 
@@ -195,7 +193,7 @@ function addEnergy(amount) {
 function restartDieAnimation() {
   const svg = dieSvg;
   svg.style.animation = 'none';
-  svg.offsetHeight;
+  svg.offsetHeight; // Force reflow to restart animation
   svg.style.animation = '';
 }
 
