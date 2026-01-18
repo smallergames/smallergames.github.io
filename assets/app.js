@@ -251,10 +251,11 @@ function finishRoll() {
 
 function handlePointerDown(event) {
   if (event.button && event.button !== 0) return;
-  
+
+  dieContainer.setPointerCapture(event.pointerId);
   isHolding = true;
   addEnergy(ENERGY_PER_CLICK_MS);
-  
+
   holdInterval = setInterval(() => {
     if (isHolding) {
       addEnergy(ENERGY_PER_CLICK_MS);
@@ -262,7 +263,10 @@ function handlePointerDown(event) {
   }, 1000);
 }
 
-function handlePointerUp() {
+function handlePointerUp(event) {
+  if (event.pointerId !== undefined) {
+    dieContainer.releasePointerCapture(event.pointerId);
+  }
   isHolding = false;
   if (holdInterval) {
     clearInterval(holdInterval);
@@ -289,8 +293,8 @@ function initIndicator() {
 initDieButtons();
 dieContainer.addEventListener('pointerdown', handlePointerDown);
 dieContainer.addEventListener('pointerup', handlePointerUp);
-dieContainer.addEventListener('pointerleave', handlePointerUp);
 dieContainer.addEventListener('pointercancel', handlePointerUp);
+dieContainer.addEventListener('lostpointercapture', handlePointerUp);
 diceSelection.addEventListener('pointerdown', handleDicePointerDown);
 diceSelection.addEventListener('pointermove', handleDicePointerMove);
 diceSelection.addEventListener('pointerup', handleDicePointerUp);

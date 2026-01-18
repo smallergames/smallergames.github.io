@@ -51,7 +51,6 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rem;
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -183,6 +182,10 @@ nav {
 main {
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
 }
 
 .die-container {
@@ -195,6 +198,7 @@ main {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  touch-action: none;
   background: transparent;
   border: none;
   font: inherit;
@@ -371,16 +375,18 @@ main {
    ========================================================================== */
 
 footer {
-  position: relative;
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
   z-index: 10;
 }
 
 .quote {
   font-family: inherit;
   font-style: normal;
-  font-size: clamp(0.65rem, 2vw, 0.75rem);
+  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
   color: var(--text-muted);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   white-space: nowrap;
   position: relative;
 }
@@ -439,7 +445,22 @@ footer {
 
 @media (max-width: 480px) {
   body {
-    gap: 3rem;
+    padding-bottom: 5rem;
+  }
+
+  main {
+    gap: 1.5rem;
+  }
+
+  footer {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .quote {
+    white-space: normal;
+    line-height: 1.5;
   }
 
   .dice-selection {
