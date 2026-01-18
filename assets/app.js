@@ -225,6 +225,7 @@ function startEnergyDrain() {
 
 function startContinuousRoll() {
   isRolling = true;
+  pendingFinish = null; // Cancel any pending finish if user adds more energy
   dieContainer.classList.add('rolling');
   resultDisplay.classList.remove('show');
 }
