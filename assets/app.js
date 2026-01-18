@@ -41,6 +41,50 @@ function initDieButtons() {
   });
 }
 
+let isDraggingDice = false;
+let dragStartX = 0;
+let hasDraggedSinceDiceDown = false;
+
+function handleDicePointerDown(event) {
+  isDraggingDice = true;
+  hasDraggedSinceDiceDown = false;
+  dragStartX = event.clientX;
+  diceSelection.setPointerCapture(event.pointerId);
+  event.preventDefault();
+}
+
+function handleDicePointerMove(event) {
+  if (!isDraggingDice) return;
+  
+  hasDraggedSinceDiceDown = true;
+  const x = event.clientX;
+  const containerRect = diceSelection.getBoundingClientRect();
+  const relativeX = x - containerRect.left;
+  
+  let closestBtn = null;
+  let closestDist = Infinity;
+  
+  dieButtons.forEach(btn => {
+    const btnRect = btn.getBoundingClientRect();
+    const btnCenter = btnRect.left + btnRect.width / 2 - containerRect.left;
+    const dist = Math.abs(relativeX - btnCenter);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestBtn = btn;
+    }
+  });
+  
+  if (closestBtn && closestBtn.getAttribute('aria-checked') !== 'true') {
+    selectDie(closestBtn);
+  }
+}
+
+function handleDicePointerUp(event) {
+  if (!isDraggingDice) return;
+  isDraggingDice = false;
+  diceSelection.releasePointerCapture(event.pointerId);
+}
+
 function updateIndicator(button) {
   const containerRect = diceSelection.getBoundingClientRect();
   const buttonRect = button.getBoundingClientRect();
@@ -236,6 +280,10 @@ dieContainer.addEventListener('pointerdown', handlePointerDown);
 dieContainer.addEventListener('pointerup', handlePointerUp);
 dieContainer.addEventListener('pointerleave', handlePointerUp);
 dieContainer.addEventListener('pointercancel', handlePointerUp);
+diceSelection.addEventListener('pointerdown', handleDicePointerDown);
+diceSelection.addEventListener('pointermove', handleDicePointerMove);
+diceSelection.addEventListener('pointerup', handleDicePointerUp);
+diceSelection.addEventListener('pointercancel', handleDicePointerUp);
 document.addEventListener('keydown', handleKeydown);
 window.addEventListener('resize', initIndicator);
 
