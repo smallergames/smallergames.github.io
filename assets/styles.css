@@ -1,5 +1,6 @@
 /* ==========================================================================
-   Fonts (TODO: base64 embed JetBrains Mono to prevent FOUT)
+   Fonts
+   Uses local() sources with font-display: block. Falls back to system monospace.
    ========================================================================== */
 
 @font-face {

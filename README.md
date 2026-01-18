@@ -9,6 +9,7 @@ A simple dice roller for tabletop gaming, hosted on GitHub Pages.
 ├── assets/
 │   ├── styles.css          # All styling
 │   └── app.js              # Dice logic and interactions
+├── AGENTS.md               # Development guidelines for AI assistants
 ├── CNAME                   # Custom domain config
 └── README.md
 ```
@@ -36,4 +37,4 @@ This site intentionally does not disable animations based on `prefers-reduced-mo
 
 ### Fonts
 
-Fonts are base64-embedded in `styles.css` to prevent FOUT (flash of unstyled text). The CSS blocks render until parsed, so fonts are ready before first paint.
+The site uses `font-display: block` with `local()` sources for JetBrains Mono. If the user doesn't have the font installed, it falls back to SF Mono, Fira Code, Consolas, or system monospace.
