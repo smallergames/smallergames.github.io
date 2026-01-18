@@ -18,19 +18,8 @@ const DIE_SHAPES = {
 };
 
 function buildDieMarkup(shapeConfig) {
-  const { viewBox, shape } = shapeConfig;
-  const [minX, minY, width, height] = viewBox.split(' ').map(Number);
-  const gridSize = 8;
-  return `
-    <defs>
-      <pattern id="dieGrid" patternUnits="userSpaceOnUse" width="${gridSize}" height="${gridSize}">
-        <path d="M ${gridSize} 0 L 0 0 0 ${gridSize}" fill="none" stroke="var(--accent)" stroke-width="0.5" opacity="0.4"/>
-      </pattern>
-      <clipPath id="dieClip">${shape}</clipPath>
-    </defs>
-    <rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="url(#dieGrid)" clip-path="url(#dieClip)" class="die-grid"/>
-    ${shape}
-  `;
+  const { shape } = shapeConfig;
+  return shape;
 }
 
 const diceSelection = document.querySelector('.dice-selection');
@@ -46,7 +35,7 @@ let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
 
 const MAX_ENERGY_MS = 2000;
-const ENERGY_PER_CLICK_MS = 400;
+const ENERGY_PER_CLICK_MS = 450;
 const ENERGY_FILL_RATE_MS = 50;
 let energy = 0;
 let energyDrainFrame = null;
@@ -60,6 +49,10 @@ let sparkleInterval = null; // Interval for boost sparkle effect
 let overchargedTimeout = null; // Timeout for overcharged effect duration
 let overchargedSettleFrame = null; // Animation frame for settling effect
 
+function isOvercharged() {
+  return isBoosted;
+}
+
 function initDieButtons() {
   dieButtons.forEach(btn => {
     btn.addEventListener('click', () => selectDie(btn));
@@ -70,6 +63,7 @@ let isDraggingDice = false;
 let hasDraggedSinceDiceDown = false;
 
 function handleDicePointerDown(event) {
+  if (isOvercharged()) return;
   isDraggingDice = true;
   hasDraggedSinceDiceDown = false;
   diceSelection.setPointerCapture(event.pointerId);
@@ -111,6 +105,8 @@ function handleDicePointerUp(event) {
   isDraggingDice = false;
   diceSelection.releasePointerCapture(event.pointerId);
 
+  if (isOvercharged()) return;
+
   if (!hasDraggedSinceDiceDown) {
     const closestBtn = findDieButtonAt(event.clientX);
     if (closestBtn) {
@@ -136,6 +132,7 @@ function updateIndicator(button) {
 }
 
 function selectDie(selectedButton) {
+  if (isOvercharged()) return;
   const sides = parseInt(selectedButton.dataset.die, 10);
   if (!DIE_SHAPES[sides]) return;
   if (sides === currentDie) return; // Already selected
@@ -316,6 +313,7 @@ function deactivateBoost() {
 }
 
 function addEnergy(amount) {
+  if (isOvercharged()) return;
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
   updateEnergyLevel();
 
@@ -345,7 +343,7 @@ function startEnergyDrain() {
     const delta = now - lastTime;
     lastTime = now;
     
-    const drainAmount = delta * (isHolding ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
+    const drainAmount = delta * (isHolding && !isOvercharged() ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
     energy = Math.max(0, energy - drainAmount);
     updateEnergyLevel();
     
@@ -455,6 +453,7 @@ dieSvg.addEventListener('animationiteration', () => {
 
 function handlePointerDown(event) {
   if (event.button && event.button !== 0) return;
+  if (isOvercharged()) return;
 
   dieContainer.setPointerCapture(event.pointerId);
   isHolding = true;
@@ -464,7 +463,7 @@ function handlePointerDown(event) {
     if (isHolding) {
       addEnergy(ENERGY_PER_CLICK_MS);
     }
-  }, 1000);
+  }, 500);
 }
 
 function handlePointerUp(event) {
@@ -482,6 +481,7 @@ function handleKeydown(event) {
   if (event.code === 'Space' || event.code === 'Enter') {
     if (document.activeElement === document.body || document.activeElement === dieContainer) {
       event.preventDefault();
+      if (isOvercharged()) return;
       addEnergy(ENERGY_PER_CLICK_MS);
     }
   }
