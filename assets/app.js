@@ -92,11 +92,17 @@ function handleDicePointerUp(event) {
   if (!isDraggingDice) return;
   isDraggingDice = false;
   diceSelection.releasePointerCapture(event.pointerId);
-  
+
   if (!hasDraggedSinceDiceDown) {
     const closestBtn = findDieButtonAt(event.clientX);
     if (closestBtn) {
-      selectDie(closestBtn);
+      const sides = parseInt(closestBtn.dataset.die, 10);
+      if (sides === currentDie) {
+        // Clicking on already-selected die triggers a roll
+        addEnergy(ENERGY_PER_CLICK_MS);
+      } else {
+        selectDie(closestBtn);
+      }
     }
   }
 }
