@@ -6,6 +6,7 @@
  */
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
+import { initLoot, spawnLoot, hasLootOnGround, incrementChargedRolls } from './loot.js';
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', shape: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -29,7 +30,7 @@ const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
 
-let currentDie = 20;
+let currentDie = 4;
 let isRolling = false;
 let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
@@ -64,6 +65,7 @@ let hasDraggedSinceDiceDown = false;
 let lastArrowKeyTime = 0;
 let keyHoldInterval = null;
 const HOLD_INTERVAL_MS = 500;
+
 
 function handleDicePointerDown(event) {
   if (isOvercharged()) return;
@@ -187,6 +189,7 @@ function updateDieShape(sides) {
   dieSvg.setAttribute('viewBox', shape.viewBox);
   dieSvg.innerHTML = buildDieMarkup(shape);
   dieContainer.classList.toggle('d4', sides === 4);
+  dieContainer.classList.toggle('d100', sides === 100);
 }
 
 function clearResult() {
@@ -385,12 +388,22 @@ function completeRollFinish({ result, rolledDie }) {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
+  // Track charged rolls (any roll with full energy bar)
+  if (rolledDie > currentDie) {
+    incrementChargedRolls();
+  }
+
   // Spawn glitch particle explosion and add overcharged effect if result is in overload range
   if (result > currentDie) {
     const rect = dieContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     spawnParticles(centerX, centerY, currentDie);
+
+    // Spawn loot
+    if (!hasLootOnGround()) {
+      spawnLoot(currentDie, centerX, centerY);
+    }
 
     // Add triple wiggling outlines effect
     dieContainer.classList.add('overcharged');
@@ -502,6 +515,11 @@ function handleKeydown(event) {
     if (event.repeat && now - lastArrowKeyTime < HOLD_INTERVAL_MS) return;
     lastArrowKeyTime = now;
 
+    // Clear focus from die buttons to prevent focus-visible outline staying behind
+    if (document.activeElement && document.activeElement.classList.contains('die-btn')) {
+      document.activeElement.blur();
+    }
+
     isHolding = true;
     if (isOvercharged()) return;
 
@@ -546,6 +564,8 @@ function initIndicator() {
 
 initDieButtons();
 initParticles();
+initLoot();
+
 dieContainer.addEventListener('pointerdown', handlePointerDown);
 dieContainer.addEventListener('pointerup', handlePointerUp);
 dieContainer.addEventListener('pointercancel', handlePointerUp);
@@ -560,3 +580,4 @@ window.addEventListener('resize', initIndicator);
 
 initIndicator();
 addEnergy(ENERGY_PER_CLICK_MS);
+
