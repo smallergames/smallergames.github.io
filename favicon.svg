@@ -1,21 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Cyan offset outline - glitch layer (behind) -->
-  <rect
-    x="14" y="8"
-    width="44" height="44"
-    rx="4"
-    fill="none"
-    stroke="#00f0ff"
-    stroke-width="3"
-  />
-
-  <!-- Primary D6 shape - solid black with cyan stroke -->
-  <rect
-    x="6" y="12"
-    width="44" height="44"
-    rx="4"
-    fill="#030305"
-    stroke="#00f0ff"
-    stroke-width="2"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <text x="50" y="75" font-size="80" text-anchor="middle">🤫</text>
 </svg>
