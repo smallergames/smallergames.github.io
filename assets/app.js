@@ -77,10 +77,16 @@ function handleDicePointerDown(event) {
 function findDieButtonAt(x) {
   const containerRect = diceSelection.getBoundingClientRect();
   const relativeX = x - containerRect.left;
-  
+
+  // Return null if pointer is significantly outside the container bounds
+  const padding = 50;
+  if (x < containerRect.left - padding || x > containerRect.right + padding) {
+    return null;
+  }
+
   let closestBtn = null;
   let closestDist = Infinity;
-  
+
   dieButtons.forEach(btn => {
     const btnRect = btn.getBoundingClientRect();
     const btnCenter = btnRect.left + btnRect.width / 2 - containerRect.left;
@@ -90,7 +96,7 @@ function findDieButtonAt(x) {
       closestBtn = btn;
     }
   });
-  
+
   return closestBtn;
 }
 
@@ -158,22 +164,9 @@ function selectDie(selectedButton) {
   clearResult();
   pendingFinish = null; // Cancel any pending result from old die
 
-  // Recalculate and reactivate boost for new die
+  // Reactivate boost for new die (without spawning particles again)
   if (wasBoosted) {
-    boostedMax = currentDie + 1;
-    isBoosted = true;
-    selectedButton.textContent = `d${boostedMax}`;
-    selectedButton.classList.add('boosted');
-    
-    // Restart sparkle effect on new button
-    if (sparkleInterval) clearInterval(sparkleInterval);
-    sparkleInterval = setInterval(() => {
-      const btn = document.querySelector('[data-die][aria-checked="true"]');
-      if (btn) {
-        const r = btn.getBoundingClientRect();
-        spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
-      }
-    }, 150);
+    activateBoost({ spawnInitialParticles: false });
   }
   
   announce(`Selected ${currentDie}-sided die`);
@@ -271,8 +264,12 @@ function updateEnergyLevel() {
   diceSelection.style.setProperty('--energy-level', level);
 }
 
-function activateBoost() {
-  if (isBoosted) return; // Already boosted
+function activateBoost({ spawnInitialParticles = true } = {}) {
+  // Clear any existing sparkle interval before setting up new one
+  if (sparkleInterval) {
+    clearInterval(sparkleInterval);
+    sparkleInterval = null;
+  }
 
   isBoosted = true;
   const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
@@ -285,11 +282,13 @@ function activateBoost() {
   selectedBtn.textContent = `d${boostedMax}`;
   selectedBtn.classList.add('boosted');
 
-  // Spawn glitch particles on overload
-  const rect = selectedBtn.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  spawnParticles(centerX, centerY, currentDie);
+  // Spawn glitch particles on initial overload (not on transfer)
+  if (spawnInitialParticles) {
+    const rect = selectedBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    spawnParticles(centerX, centerY, currentDie);
+  }
 
   // Start sparkle effect
   sparkleInterval = setInterval(() => {

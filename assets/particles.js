@@ -10,6 +10,7 @@ let particles = [];
 let scanlines = [];
 let animationId = null;
 let lastTime = 0;
+let isEnabled = false;
 
 const DIE_MAGNITUDE = {
   4: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
@@ -27,14 +28,27 @@ const COLORS = ['#00f0ff', '#ff00ff', '#ffffff', '#ff3366'];
 
 /**
  * Initialize the canvas renderer
+ * @returns {boolean} Whether initialization was successful
  */
 export function initParticles() {
   canvas = document.getElementById('particleCanvas');
-  if (!canvas) return;
+  if (!canvas) {
+    console.warn('[particles] Canvas element #particleCanvas not found. Particle effects disabled.');
+    isEnabled = false;
+    return false;
+  }
 
   ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.warn('[particles] Failed to get 2D context from canvas. Particle effects disabled.');
+    isEnabled = false;
+    return false;
+  }
+
+  isEnabled = true;
   resize();
   window.addEventListener('resize', resize);
+  return true;
 }
 
 function resize() {
@@ -52,7 +66,7 @@ function resize() {
  * @param {number} y - Screen Y coordinate
  */
 export function spawnSparkles(x, y) {
-  if (!ctx) return;
+  if (!isEnabled || !ctx) return;
 
   const count = 2 + Math.floor(Math.random() * 2); // 2-3 particles
 
@@ -92,7 +106,7 @@ export function spawnSparkles(x, y) {
  * @param {number} dieSize - The die size (4, 6, 8, 10, 12, 20, 100)
  */
 export function spawnParticles(x, y, dieSize = 20) {
-  if (!ctx) return;
+  if (!isEnabled || !ctx) return;
 
   const mag = DIE_MAGNITUDE[dieSize] || DEFAULT_MAGNITUDE;
 

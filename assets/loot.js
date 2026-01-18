@@ -37,7 +37,7 @@ const COLOR_FADE_MS = 5000; // How long color stays before fading to grey
 
 // State
 let collectedLoot = {}; // { tier: count }
-let isDropping = false;
+let dropsInFlight = 0; // Counter for animations in progress
 let hasCollectedOnce = false;
 let hasCollectedAll = false;
 let chargedRolls = 0;
@@ -85,7 +85,7 @@ function updateFooterQuote() {
 }
 
 export function hasLootOnGround() {
-  return isDropping;
+  return dropsInFlight > 0;
 }
 
 function rollTier(dieSize) {
@@ -118,7 +118,7 @@ export function incrementChargedRolls() {
 }
 
 export function spawnLoot(dieSize, originX, originY) {
-  if (isDropping) return;
+  if (dropsInFlight > 0) return;
   if (!lootCollected) initLoot();
 
   const dropCount = getDropCount();
@@ -132,11 +132,12 @@ export function spawnLoot(dieSize, originX, originY) {
   // Sort drops by tier (worst first, rarest last) for consistent animation order
   drops.sort((a, b) => b - a);
 
-  isDropping = true;
-
   // Stagger each drop at uniform rate
   drops.forEach((tier, index) => {
     setTimeout(() => {
+      // Increment counter when drop starts animating
+      dropsInFlight++;
+
       // Pre-add to inventory so element exists for targeting
       collectedLoot[tier] = (collectedLoot[tier] || 0) + 1;
       renderLoot();
@@ -165,9 +166,8 @@ export function spawnLoot(dieSize, originX, originY) {
         energizeTier(tier);
         updateFooterQuote();
 
-        if (index === drops.length - 1) {
-          isDropping = false;
-        }
+        // Decrement counter when drop lands
+        dropsInFlight--;
       }, PIXEL_TRAVEL_MS);
     }, index * DROP_INTERVAL_MS);
   });
