@@ -1,5 +1,18 @@
 # Agents Guide
 
+**Keep this file up to date.** When you change behavior, constants, or architecture, update the relevant section here. This is the source of truth for how the codebase works.
+
+## File Structure
+
+```
+index.html          # Single-page app markup
+assets/
+  app.js            # Main application logic, state, event handlers
+  particles.js      # Canvas-based glitch particle effects
+  styles.css        # All styles, CSS custom properties, animations
+  fonts/            # Self-hosted Outfit font (woff2)
+```
+
 ## Development
 
 Static site with no build step. Open `index.html` directly or use a local server:
@@ -67,9 +80,16 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 - Drag-to-select: Users can drag across dice buttons to change selection
 - Uses `requestAnimationFrame` for smooth energy drain animation
 
+### Game Mechanics
+
+**Boost:** Double-tap/click the roll area to activate boost mode. The selected die rolls one value higher than normal (d6 becomes d7, d20 becomes d21). Visual feedback includes sparkle particles and a `.boosted` class on the button. State tracked via `isBoosted` and `boostedMax`.
+
+**Overload:** When a roll result exceeds the die's normal maximum (only possible when boosted), it triggers the overload effect—a glitch particle explosion. The threshold is `currentDie + 1`. This creates dramatic feedback for "impossible" rolls.
+
 ### Particle System
 
-- `particles.js` handles the glitch burst effect on max rolls (rolling the highest possible value)
-- Effect magnitude scales by die size via `DIE_MAGNITUDE` config (d100 has 80 particles, d4 has 8)
+- `particles.js` handles glitch burst effects for max rolls and overload results
+- Effect uses consistent intensity across all dice via `DIE_MAGNITUDE` config (standardized to d8 values)
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
+- `spawnParticles(x, y, dieSize)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
 - Spawned from the selected die button's position, not the die shape
