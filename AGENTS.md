@@ -23,4 +23,4 @@ The roll animation provides essential feedback that the action occurred. Many mo
 
 ### Fonts
 
-Fonts are base64-embedded in `styles.css` to prevent FOUT. Do not add external font references—the `.woff2` files in `assets/fonts/` are source files only.
+Fonts are base64-embedded in `styles.css` to prevent FOUT. Do not add external font references.

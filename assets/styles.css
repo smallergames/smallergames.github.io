@@ -317,11 +317,11 @@ main {
    Animations
    ========================================================================== */
 
-.rolling .die-shape svg {
+.die-container.rolling .die-shape svg {
   animation: dieRoll 0.5s var(--transition-smooth);
 }
 
-.rolling .die-result {
+.die-container.rolling .die-result {
   animation: resultGlitch 0.5s steps(2);
 }
 
