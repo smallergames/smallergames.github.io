@@ -61,6 +61,9 @@ function initDieButtons() {
 
 let isDraggingDice = false;
 let hasDraggedSinceDiceDown = false;
+let lastArrowKeyTime = 0;
+let keyHoldInterval = null;
+const HOLD_INTERVAL_MS = 500;
 
 function handleDicePointerDown(event) {
   if (isOvercharged()) return;
@@ -463,7 +466,7 @@ function handlePointerDown(event) {
     if (isHolding) {
       addEnergy(ENERGY_PER_CLICK_MS);
     }
-  }, 500);
+  }, HOLD_INTERVAL_MS);
 }
 
 function handlePointerUp(event) {
@@ -482,8 +485,55 @@ function handleKeydown(event) {
     if (document.activeElement === document.body || document.activeElement === dieContainer) {
       event.preventDefault();
       if (isOvercharged()) return;
-      addEnergy(ENERGY_PER_CLICK_MS);
+
+      if (!event.repeat) {
+        isHolding = true;
+        addEnergy(ENERGY_PER_CLICK_MS);
+        keyHoldInterval = setInterval(() => {
+          addEnergy(ENERGY_PER_CLICK_MS);
+        }, HOLD_INTERVAL_MS);
+      }
     }
+  }
+
+  if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+    event.preventDefault();
+    const now = performance.now();
+    if (event.repeat && now - lastArrowKeyTime < HOLD_INTERVAL_MS) return;
+    lastArrowKeyTime = now;
+
+    isHolding = true;
+    if (isOvercharged()) return;
+
+    const currentIndex = Array.from(dieButtons).findIndex(btn => btn.getAttribute('aria-checked') === 'true');
+    if (currentIndex === -1) return;
+
+    const newIndex = event.code === 'ArrowLeft'
+      ? currentIndex - 1
+      : currentIndex + 1;
+
+    if (newIndex < 0 || newIndex >= dieButtons.length) {
+      diceSelection.classList.remove('bump-left', 'bump-right');
+      void diceSelection.offsetWidth;
+      diceSelection.classList.add(event.code === 'ArrowLeft' ? 'bump-left' : 'bump-right');
+      addEnergy(ENERGY_PER_CLICK_MS);
+      return;
+    }
+    selectDie(dieButtons[newIndex]);
+  }
+}
+
+function handleKeyup(event) {
+  if (event.code === 'Space' || event.code === 'Enter') {
+    isHolding = false;
+    if (keyHoldInterval) {
+      clearInterval(keyHoldInterval);
+      keyHoldInterval = null;
+    }
+  }
+
+  if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+    isHolding = false;
   }
 }
 
@@ -505,6 +555,7 @@ diceSelection.addEventListener('pointermove', handleDicePointerMove);
 diceSelection.addEventListener('pointerup', handleDicePointerUp);
 diceSelection.addEventListener('pointercancel', handleDicePointerUp);
 document.addEventListener('keydown', handleKeydown);
+document.addEventListener('keyup', handleKeyup);
 window.addEventListener('resize', initIndicator);
 
 initIndicator();
