@@ -243,9 +243,7 @@ main {
   fill: none;
   stroke: var(--accent);
   stroke-width: 1;
-  transition: 
-    transform var(--transition-speed) var(--transition-smooth),
-    filter var(--transition-speed) var(--transition-smooth);
+  transition: filter var(--transition-speed) var(--transition-smooth);
   -webkit-tap-highlight-color: transparent;
   transform-origin: 50% 50%;
   overflow: visible;
@@ -344,7 +342,6 @@ main {
 
 .die-container.rolling .die-shape svg {
   animation: dieRoll 0.5s linear infinite;
-  transition: none; /* Disable transition during animation to prevent bounce on stop */
 }
 
 .die-container.rolling .die-result {
