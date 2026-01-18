@@ -30,6 +30,10 @@
   --accent: #00f0ff;
   --accent-glow: rgba(0, 240, 255, 0.3);
   --accent-dim: rgba(0, 240, 255, 0.08);
+  --magenta: #ff00ff;
+  --magenta-glow: rgba(255, 0, 255, 0.3);
+  --white: #ffffff;
+  --white-glow: rgba(255, 255, 255, 0.3);
   --danger: rgba(255, 45, 106, 0.7);
   --transition-speed: 0.2s;
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -269,6 +273,42 @@ main {
   transform-origin: 50% 50%;
   overflow: visible;
   filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+/* Additional outlines for overcharged results */
+.die-shape svg.magenta-outline {
+  position: absolute;
+  inset: 0;
+  stroke: var(--magenta);
+  filter: drop-shadow(0 0 8px var(--magenta-glow));
+}
+
+.die-shape svg.white-outline {
+  position: absolute;
+  inset: 0;
+  stroke: var(--white);
+  filter: drop-shadow(0 0 8px var(--white-glow));
+}
+
+/* Overcharged state - triple wiggling outlines that settle */
+.die-container.overcharged .die-shape svg:not(.magenta-outline):not(.white-outline) {
+  animation: overchargedWiggle 0.8s ease-in-out infinite;
+  --wiggle-amount: 12deg;
+}
+
+.die-container.overcharged .die-shape svg.magenta-outline {
+  animation: overchargedWiggle 0.9s ease-in-out infinite reverse;
+  --wiggle-amount: 12deg;
+}
+
+.die-container.overcharged .die-shape svg.white-outline {
+  animation: overchargedWiggle 1.0s ease-in-out infinite;
+  --wiggle-amount: 12deg;
+}
+
+@keyframes overchargedWiggle {
+  0%, 100% { transform: rotate(calc(var(--wiggle-amount, 12deg) * -1)); }
+  50% { transform: rotate(var(--wiggle-amount, 12deg)); }
 }
 
 /* Scanline effect on shape - visible only during roll */
