@@ -187,16 +187,7 @@ function addEnergy(amount) {
   if (!isRolling) {
     clearResult();
     startContinuousRoll();
-  } else {
-    restartDieAnimation();
   }
-}
-
-function restartDieAnimation() {
-  const svg = dieSvg;
-  svg.style.animation = 'none';
-  svg.offsetHeight; // Force reflow to restart animation
-  svg.style.animation = '';
 }
 
 const HOLD_DRAIN_RATE = 0.1;
