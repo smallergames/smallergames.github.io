@@ -8,10 +8,7 @@ A simple dice roller for tabletop gaming, hosted on GitHub Pages.
 ├── index.html              # Page structure
 ├── assets/
 │   ├── styles.css          # All styling
-│   ├── app.js              # Dice logic and interactions
-│   └── fonts/
-│       ├── Cinzel-Bold.woff2
-│       └── Spectral-Italic.woff2
+│   └── app.js              # Dice logic and interactions
 ├── CNAME                   # Custom domain config
 └── README.md
 ```
@@ -39,4 +36,4 @@ This site intentionally does not disable animations based on `prefers-reduced-mo
 
 ### Fonts
 
-Fonts are base64-embedded in `styles.css` to prevent FOUT (flash of unstyled text). The CSS blocks render until parsed, so fonts are ready before first paint. The `.woff2` files in `assets/fonts/` are kept as source files but not referenced at runtime.
+Fonts are base64-embedded in `styles.css` to prevent FOUT (flash of unstyled text). The CSS blocks render until parsed, so fonts are ready before first paint.
