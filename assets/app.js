@@ -342,6 +342,14 @@ function completeRollFinish({ result, rolledDie }) {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
+  // Spawn glitch particle explosion if result is in overload range
+  if (result > currentDie) {
+    const rect = dieContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    spawnParticles(centerX, centerY, currentDie);
+  }
+
   dieContainer.setAttribute(
     'aria-label',
     `Rolled ${result} on d${rolledDie}. Click or press Space/Enter to roll again`

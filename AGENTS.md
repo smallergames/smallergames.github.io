@@ -33,6 +33,15 @@ The site uses self-hosted Outfit font (woff2) with preload to eliminate FOUT:
 
 Use `transform` and `opacity` for animations—avoid animating layout properties. The existing roll animation is transform-only for 60fps performance.
 
+### Text Stability
+
+**NEVER move, shake, or transform text elements.** Result text must remain stationary. For glitch effects on text, use only:
+- `text-shadow` (RGB splits, glow changes)
+- `filter` (brightness, saturate)
+- `opacity`
+
+Do NOT use `transform`, `translate`, `margin`, `padding`, or any property that shifts text position.
+
 ### Animation/JavaScript Sync
 
 When JavaScript needs to act at a specific point in a CSS animation cycle, use animation events (`animationiteration`, `animationend`) instead of `setTimeout`. JavaScript timers cannot reliably sync with CSS animation timing—they run on separate clocks and timeouts can be delayed by browser throttling.
