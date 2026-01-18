@@ -88,9 +88,36 @@ nav {
 
 .dice-selection {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  padding: 4px;
+  --indicator-left: 0px;
+  --indicator-width: 0px;
+}
+
+/* Sliding indicator */
+.dice-selection::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: calc(4px + var(--indicator-left));
+  width: var(--indicator-width);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  box-shadow:
+    0 0 12px var(--accent-glow),
+    inset 0 0 8px var(--accent-dim);
+  transition:
+    left 0.25s var(--transition-smooth),
+    width 0.25s var(--transition-smooth);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .die-btn {
@@ -101,55 +128,30 @@ nav {
   text-transform: uppercase;
   padding: 0.75rem 1.25rem;
   background: transparent;
-  border: 1px solid var(--text-muted);
+  border: none;
   color: var(--text-dim);
   cursor: pointer;
-  transition: 
-    border-color var(--transition-speed) var(--transition-smooth),
-    color var(--transition-speed) var(--transition-smooth),
-    background var(--transition-speed) var(--transition-smooth),
-    box-shadow var(--transition-speed) var(--transition-smooth),
-    transform 0.1s var(--transition-smooth);
+  transition: color var(--transition-speed) var(--transition-smooth);
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   touch-action: manipulation;
   position: relative;
-  overflow: hidden;
-}
-
-.die-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-  transform: translateX(-100%);
+  z-index: 1;
 }
 
 .die-btn:focus-visible {
   outline: 1px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: -2px;
+  border-radius: 2px;
 }
 
 .die-btn:active {
-  transform: scale(0.96);
+  opacity: 0.8;
 }
 
 .die-btn[aria-checked="true"] {
-  border-color: var(--accent);
   color: var(--accent);
-}
-
-.die-btn[aria-checked="true"]::before {
-  animation: btnSweep 0.4s var(--transition-smooth);
-}
-
-@keyframes btnSweep {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
 }
 
 /* ==========================================================================
@@ -466,13 +468,19 @@ footer {
   body {
     gap: 3rem;
   }
-  
+
   .dice-selection {
-    gap: 0.4rem;
+    padding: 3px;
+  }
+
+  .dice-selection::before {
+    top: 3px;
+    bottom: 3px;
+    left: calc(3px + var(--indicator-left));
   }
 
   .die-btn {
-    padding: 0.6rem 0.9rem;
+    padding: 0.65rem 0.7rem;
     font-size: 0.7rem;
   }
 }
@@ -488,11 +496,15 @@ footer {
     --text-dim: rgba(255, 255, 255, 0.85);
     --text-muted: rgba(255, 255, 255, 0.7);
   }
-  
-  .die-btn {
+
+  .dice-selection {
     border-width: 2px;
   }
-  
+
+  .dice-selection::before {
+    border-width: 2px;
+  }
+
   .die-shape svg {
     stroke-width: 2;
   }
