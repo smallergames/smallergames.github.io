@@ -22,6 +22,7 @@ const DIE_SHAPES = {
 
 const ROLL_DURATION_MS = 500;
 
+const diceSelection = document.querySelector('.dice-selection');
 const dieButtons = document.querySelectorAll('[data-die]');
 const dieContainer = document.getElementById('dieContainer');
 const dieSvg = document.getElementById('dieSvg');
@@ -42,13 +43,24 @@ function initDieButtons() {
   });
 }
 
+function updateIndicator(button) {
+  const containerRect = diceSelection.getBoundingClientRect();
+  const buttonRect = button.getBoundingClientRect();
+  const left = buttonRect.left - containerRect.left - 4; // 4px padding offset
+  const width = buttonRect.width;
+
+  diceSelection.style.setProperty('--indicator-left', `${left}px`);
+  diceSelection.style.setProperty('--indicator-width', `${width}px`);
+}
+
 function selectDie(selectedButton) {
   const sides = parseInt(selectedButton.dataset.die, 10);
   if (!DIE_SHAPES[sides]) return;
-  
+
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
-  
+  updateIndicator(selectedButton);
+
   cancelRoll();
   
   currentDie = sides;
@@ -177,8 +189,17 @@ function handleKeydown(event) {
   }
 }
 
+function initIndicator() {
+  const selected = document.querySelector('[data-die][aria-checked="true"]');
+  if (selected) {
+    updateIndicator(selected);
+  }
+}
+
 initDieButtons();
 dieContainer.addEventListener('click', handleDieContainerClick);
 document.addEventListener('keydown', handleKeydown);
+window.addEventListener('resize', initIndicator);
 
+initIndicator();
 roll();
