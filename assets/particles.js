@@ -12,16 +12,16 @@ let animationId = null;
 let lastTime = 0;
 
 const DIE_MAGNITUDE = {
-  4: { count: 8, speed: 80, spread: 30, scanlines: 1, lifetime: 0.5 },
-  6: { count: 14, speed: 100, spread: 40, scanlines: 2, lifetime: 0.6 },
+  4: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
+  6: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
   8: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  10: { count: 28, speed: 150, spread: 55, scanlines: 3, lifetime: 0.7 },
-  12: { count: 36, speed: 180, spread: 60, scanlines: 4, lifetime: 0.75 },
-  20: { count: 50, speed: 220, spread: 70, scanlines: 5, lifetime: 0.8 },
-  100: { count: 80, speed: 300, spread: 100, scanlines: 8, lifetime: 1.0 }
+  10: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
+  12: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
+  20: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
+  100: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 }
 };
 
-const DEFAULT_MAGNITUDE = { count: 30, speed: 150, spread: 60, scanlines: 3, lifetime: 0.8 };
+const DEFAULT_MAGNITUDE = { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 };
 
 const COLORS = ['#00f0ff', '#ff00ff', '#ffffff', '#ff3366'];
 
