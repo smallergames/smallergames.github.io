@@ -41,6 +41,8 @@ let holdInterval = null;
 let isBoosted = false;
 let boostedMax = null; // The max+1 value when boosted
 let sparkleInterval = null; // Interval for boost sparkle effect
+let overchargedTimeout = null; // Timeout for overcharged effect duration
+let overchargedSettleFrame = null; // Animation frame for settling effect
 
 function initDieButtons() {
   dieButtons.forEach(btn => {
@@ -174,6 +176,31 @@ function updateDieShape(sides) {
 function clearResult() {
   resultDisplay.classList.remove('show');
   resultDisplay.textContent = '';
+  clearOverchargedState();
+}
+
+function clearOverchargedState() {
+  if (overchargedTimeout) {
+    clearTimeout(overchargedTimeout);
+    overchargedTimeout = null;
+  }
+  if (overchargedSettleFrame) {
+    cancelAnimationFrame(overchargedSettleFrame);
+    overchargedSettleFrame = null;
+  }
+  dieContainer.classList.remove('overcharged');
+  const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
+  const whiteOutline = document.querySelector('.die-shape svg.white-outline');
+  if (magentaOutline) {
+    magentaOutline.remove();
+  }
+  if (whiteOutline) {
+    whiteOutline.remove();
+  }
+
+  // Clear boost after overcharged effect has settled
+  deactivateBoost();
+  boostedMax = null;
 }
 
 function randomInt(min, max) {
@@ -207,6 +234,9 @@ function stopEnergySystem() {
   // Clear boost state
   deactivateBoost();
   boostedMax = null;
+
+  // Clear overcharged state
+  clearOverchargedState();
 
   updateEnergyLevel();
 
@@ -338,12 +368,50 @@ function completeRollFinish({ result, rolledDie }) {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
-  // Spawn glitch particle explosion if result is in overload range
+  // Spawn glitch particle explosion and add overcharged effect if result is in overload range
   if (result > currentDie) {
     const rect = dieContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     spawnParticles(centerX, centerY, currentDie);
+
+    // Add triple wiggling outlines effect
+    dieContainer.classList.add('overcharged');
+    const magentaOutline = dieSvg.cloneNode(true);
+    magentaOutline.classList.add('magenta-outline');
+    magentaOutline.removeAttribute('id');
+    dieSvg.parentElement.appendChild(magentaOutline);
+
+    const whiteOutline = dieSvg.cloneNode(true);
+    whiteOutline.classList.add('white-outline');
+    whiteOutline.removeAttribute('id');
+    dieSvg.parentElement.appendChild(whiteOutline);
+
+    // Animate settling: burst starts strong, gradually settles to rest
+    const duration = 3000;
+    const startTime = performance.now();
+    const startWiggle = 15; // degrees at burst
+    const allOutlines = [dieSvg, magentaOutline, whiteOutline];
+
+    function animateSettle(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Ease out - fast decay at start, slow settle at end
+      const wiggle = startWiggle * Math.pow(1 - progress, 2);
+
+      allOutlines.forEach(svg => {
+        svg.style.setProperty('--wiggle-amount', `${wiggle}deg`);
+      });
+
+      if (progress < 1) {
+        overchargedSettleFrame = requestAnimationFrame(animateSettle);
+      } else {
+        clearOverchargedState();
+      }
+    }
+
+    overchargedSettleFrame = requestAnimationFrame(animateSettle);
   }
 
   dieContainer.setAttribute(
@@ -353,9 +421,11 @@ function completeRollFinish({ result, rolledDie }) {
 
   announce(`Rolled ${result} on d${rolledDie}`);
 
-  // Clear boost for next roll
-  deactivateBoost();
-  boostedMax = null;
+  // Clear boost for next roll (delay if overcharged to let effect settle)
+  if (result <= currentDie) {
+    deactivateBoost();
+    boostedMax = null;
+  }
 }
 
 // Handle animation cycle completion - fires exactly when animation reaches 100%
