@@ -23,7 +23,11 @@ The roll animation provides essential feedback that the action occurred. Many mo
 
 ### Fonts
 
-The site uses `font-display: block` with `local()` sources for JetBrains Mono. If the user doesn't have the font installed, it falls back to SF Mono, Fira Code, Consolas, or system monospace.
+The site uses self-hosted Outfit font (woff2) with preload to eliminate FOUT:
+- `<link rel="preload">` in `<head>` starts font download immediately
+- `fonts-loading` class on `<html>` hides content via `visibility: hidden`
+- `document.fonts.ready` removes the class when font is loaded
+- CSS custom property `--font-family` for consistency, but `.die-result` uses `font` shorthand to override button UA styles
 
 ### Animation Performance
 
