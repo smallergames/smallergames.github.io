@@ -100,7 +100,7 @@ function celebrateWin() {
 
   // Animate quote reveal
   footerQuote.classList.add('win-reveal');
-  footerQuote.textContent = `…you found all the loot in ${chargedRolls} charged rolls. i mean, you can keep finding it, but you basically have it all. you win.`;
+  footerQuote.textContent = `…you found all the loot in ${chargedRolls} maximum effort rolls. i mean, you can keep finding it, but you basically have it all. you win.`;
 }
 
 // No longer exported - spawnLoot handles queuing internally
@@ -130,7 +130,7 @@ export function incrementChargedRolls() {
     chargedRollsEl = document.getElementById('chargedRolls');
   }
   if (chargedRollsEl) {
-    chargedRollsEl.textContent = `charged rolls: ${chargedRolls}`;
+    chargedRollsEl.textContent = `maximum effort rolls: ${chargedRolls}`;
   }
 }
 
