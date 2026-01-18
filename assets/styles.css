@@ -199,15 +199,7 @@ nav {
 /* Settling state - input blocked during overcharge settle animation */
 .dice-selection.settling {
   pointer-events: none;
-  border-color: var(--magenta);
   animation: settlingPulse 0.8s ease-in-out infinite;
-}
-
-.dice-selection.settling::before {
-  border-color: var(--magenta);
-  box-shadow:
-    0 0 12px var(--magenta-glow),
-    inset 0 0 8px rgba(255, 0, 255, 0.1);
 }
 
 @keyframes settlingPulse {
