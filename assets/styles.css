@@ -195,6 +195,15 @@ nav {
   color: var(--accent);
 }
 
+/* Boosted dice button glow effect when power meter is full */
+.die-btn.boosted {
+  color: #fff;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 12px var(--accent),
+    0 0 20px var(--accent-glow);
+}
+
 /* ==========================================================================
    Die Container
    ========================================================================== */
