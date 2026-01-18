@@ -1,9 +1,11 @@
 /**
  * Dice Roller Application
- * 
+ *
  * A simple tabletop dice roller supporting d4, d6, d8, d10, d12, d20, and d100.
  * Features an energy bar system where clicks add energy and the die rolls until depleted.
  */
+
+import { initParticles, spawnParticles } from './particles.js';
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', markup: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -236,13 +238,24 @@ function finishRoll() {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
+  // Spawn particles on max roll
+  if (result === currentDie) {
+    const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+    if (selectedBtn) {
+      const rect = selectedBtn.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      spawnParticles(centerX, centerY, currentDie);
+    }
+  }
+
   dieContainer.setAttribute(
-    'aria-label', 
+    'aria-label',
     `Rolled ${result} on d${currentDie}. Click or press Space/Enter to roll again`
   );
-  
+
   announce(`Rolled ${result} on d${currentDie}`);
-  
+
   isRolling = false;
 }
 
@@ -288,6 +301,7 @@ function initIndicator() {
 }
 
 initDieButtons();
+initParticles();
 dieContainer.addEventListener('pointerdown', handlePointerDown);
 dieContainer.addEventListener('pointerup', handlePointerUp);
 dieContainer.addEventListener('pointercancel', handlePointerUp);
