@@ -150,6 +150,7 @@ function selectDie(selectedButton) {
 
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
+  selectedButton.blur(); // Clear focus to prevent outline conflict with spacebar/enter
   updateIndicator(selectedButton);
 
   currentDie = sides;
