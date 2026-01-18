@@ -1,14 +1,19 @@
 /* ==========================================================================
    Fonts
-   Uses local() sources with font-display: block. Falls back to system monospace.
+   Self-hosted with preload. Content hidden until font loads (no FOUT).
    ========================================================================== */
 
 @font-face {
-  font-family: 'JetBrains Mono';
+  font-family: 'Outfit';
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: local('JetBrains Mono Regular'), local('JetBrainsMono-Regular');
+  src: url('fonts/outfit-regular.woff2') format('woff2');
+}
+
+/* Hide content until font is loaded */
+.fonts-loading {
+  visibility: hidden;
 }
 
 /* ==========================================================================
@@ -16,6 +21,7 @@
    ========================================================================== */
 
 :root {
+  --font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --void: #030305;
   --surface: #0a0a0f;
   --text: #e0e0e8;
@@ -44,7 +50,7 @@ html {
 }
 
 body {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--font-family);
   background: var(--void);
   color: var(--text);
   min-height: 100vh;
@@ -156,7 +162,7 @@ nav {
 }
 
 .die-btn {
-  font-family: inherit;
+  font-family: var(--font-family);
   font-size: 0.8rem;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -215,7 +221,7 @@ main {
   touch-action: none;
   background: transparent;
   border: none;
-  font: inherit;
+  font-family: var(--font-family);
   color: inherit;
   overflow: visible;
 }
@@ -282,9 +288,7 @@ main {
    ========================================================================== */
 
 .die-result {
-  font-family: inherit;
-  font-size: clamp(3.5rem, 12vw, 6rem);
-  font-weight: 400;
+  font: 400 clamp(3.5rem, 12vw, 6rem) 'Outfit', system-ui, sans-serif;
   color: var(--text);
   z-index: 1;
   opacity: 0;
@@ -404,7 +408,7 @@ footer {
 }
 
 .quote {
-  font-family: inherit;
+  font-family: var(--font-family);
   font-style: normal;
   font-size: clamp(0.6rem, 1.5vw, 0.7rem);
   color: var(--text-muted);

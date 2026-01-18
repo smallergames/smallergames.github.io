@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" style="color-scheme: dark">
+<html lang="en" style="color-scheme: dark" class="fonts-loading">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="An interactive dice roller for tabletop gaming. Roll d4, d6, d8, d10, d12, d20, and d100 dice.">
   <meta name="theme-color" content="#030305">
   <title>smallergames.com</title>
+  <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -46,6 +47,11 @@
   </footer>
 
   <canvas id="particleCanvas"></canvas>
+  <script>
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.remove('fonts-loading');
+    });
+  </script>
   <script type="module" src="assets/app.js"></script>
 </body>
 </html>
