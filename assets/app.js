@@ -168,7 +168,11 @@ function stopEnergySystem() {
   updateEnergyLevel();
 
   if (isRolling) {
+    // Disable transition to prevent backward bounce
+    dieSvg.style.transition = 'none';
     dieContainer.classList.remove('rolling');
+    void dieSvg.offsetHeight;
+    dieSvg.style.transition = '';
     isRolling = false;
   }
 }
@@ -236,7 +240,15 @@ function finishRoll() {
 
 function completeRollFinish({ result, rolledDie }) {
   resultDisplay.textContent = result;
+
+  // Disable transition to prevent backward bounce when animation stops
+  // (the base CSS has a transform transition that would interpolate -360deg → 0deg)
+  dieSvg.style.transition = 'none';
   dieContainer.classList.remove('rolling');
+  // Force reflow to commit the non-animated state before re-enabling transition
+  void dieSvg.offsetHeight;
+  dieSvg.style.transition = '';
+
   resultDisplay.classList.add('show');
 
   // Spawn particles on max roll

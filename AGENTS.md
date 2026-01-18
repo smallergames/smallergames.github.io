@@ -33,6 +33,10 @@ Use `transform` and `opacity` for animations—avoid animating layout properties
 
 When JavaScript needs to act at a specific point in a CSS animation cycle, use animation events (`animationiteration`, `animationend`) instead of `setTimeout`. JavaScript timers cannot reliably sync with CSS animation timing—they run on separate clocks and timeouts can be delayed by browser throttling.
 
+### Animations vs Transitions
+
+CSS animations and transitions can conflict. If an element has both a `transition` on `transform` and an `animation` that transforms it, removing the animation class will trigger the transition to animate back to the rest state. To prevent this, disable the transition before removing the animation class, force a reflow, then re-enable the transition.
+
 ### CSS Architecture
 
 - Theme tokens are in `:root` at the top of `styles.css`
