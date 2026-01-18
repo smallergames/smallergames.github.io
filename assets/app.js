@@ -133,11 +133,7 @@ function selectDie(selectedButton) {
 
   // Recalculate and reactivate boost for new die
   if (wasBoosted) {
-    if (currentDie === 100) {
-      boostedMax = 151;
-    } else {
-      boostedMax = Math.floor(currentDie * BOOST_MULTIPLIER);
-    }
+    boostedMax = currentDie + 1;
     isBoosted = true;
     selectedButton.textContent = `d${boostedMax}`;
     selectedButton.classList.add('boosted');
