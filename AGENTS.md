@@ -29,6 +29,10 @@ The site uses `font-display: block` with `local()` sources for JetBrains Mono. I
 
 Use `transform` and `opacity` for animations—avoid animating layout properties. The existing roll animation is transform-only for 60fps performance.
 
+### Animation/JavaScript Sync
+
+When JavaScript needs to act at a specific point in a CSS animation cycle, use animation events (`animationiteration`, `animationend`) instead of `setTimeout`. JavaScript timers cannot reliably sync with CSS animation timing—they run on separate clocks and timeouts can be delayed by browser throttling.
+
 ### CSS Architecture
 
 - Theme tokens are in `:root` at the top of `styles.css`

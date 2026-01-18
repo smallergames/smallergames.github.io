@@ -27,9 +27,7 @@ const announcements = document.getElementById('announcements');
 let currentDie = 20;
 let isRolling = false;
 let announceTimeout = null;
-let rollAnimationStartTime = null;
-let finishRollTimeout = null;
-const ROLL_ANIMATION_DURATION_MS = 500; // matches CSS dieRoll animation
+let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
 
 const MAX_ENERGY_MS = 2000;
 const ENERGY_PER_CLICK_MS = 400;
@@ -164,10 +162,7 @@ function stopEnergySystem() {
     clearInterval(holdInterval);
     holdInterval = null;
   }
-  if (finishRollTimeout) {
-    clearTimeout(finishRollTimeout);
-    finishRollTimeout = null;
-  }
+  pendingFinish = null;
   isHolding = false;
   energy = 0;
   updateEnergyLevel();
@@ -226,7 +221,6 @@ function startEnergyDrain() {
 
 function startContinuousRoll() {
   isRolling = true;
-  rollAnimationStartTime = performance.now();
   dieContainer.classList.add('rolling');
   resultDisplay.classList.remove('show');
 }
@@ -235,38 +229,43 @@ function finishRoll() {
   const result = randomInt(1, currentDie);
   const rolledDie = currentDie;
 
-  // Calculate time until animation cycle completes to avoid mid-cycle stutter
-  const elapsed = performance.now() - rollAnimationStartTime;
-  const cyclePosition = elapsed % ROLL_ANIMATION_DURATION_MS;
-  const timeUntilCycleEnd = ROLL_ANIMATION_DURATION_MS - cyclePosition;
-
-  finishRollTimeout = setTimeout(() => {
-    finishRollTimeout = null;
-    resultDisplay.textContent = result;
-    dieContainer.classList.remove('rolling');
-    resultDisplay.classList.add('show');
-
-    // Spawn particles on max roll
-    if (result === rolledDie) {
-      const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
-      if (selectedBtn) {
-        const rect = selectedBtn.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        spawnParticles(centerX, centerY, rolledDie);
-      }
-    }
-
-    dieContainer.setAttribute(
-      'aria-label',
-      `Rolled ${result} on d${rolledDie}. Click or press Space/Enter to roll again`
-    );
-
-    announce(`Rolled ${result} on d${rolledDie}`);
-  }, timeUntilCycleEnd);
-
+  // Store pending finish - will complete when animation cycle ends
+  pendingFinish = { result, rolledDie };
   isRolling = false;
 }
+
+function completeRollFinish({ result, rolledDie }) {
+  resultDisplay.textContent = result;
+  dieContainer.classList.remove('rolling');
+  resultDisplay.classList.add('show');
+
+  // Spawn particles on max roll
+  if (result === rolledDie) {
+    const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+    if (selectedBtn) {
+      const rect = selectedBtn.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      spawnParticles(centerX, centerY, rolledDie);
+    }
+  }
+
+  dieContainer.setAttribute(
+    'aria-label',
+    `Rolled ${result} on d${rolledDie}. Click or press Space/Enter to roll again`
+  );
+
+  announce(`Rolled ${result} on d${rolledDie}`);
+}
+
+// Handle animation cycle completion - fires exactly when animation reaches 100%
+dieSvg.addEventListener('animationiteration', () => {
+  if (pendingFinish) {
+    const finish = pendingFinish;
+    pendingFinish = null;
+    completeRollFinish(finish);
+  }
+});
 
 function handlePointerDown(event) {
   if (event.button && event.button !== 0) return;
