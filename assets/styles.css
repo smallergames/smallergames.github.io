@@ -311,31 +311,20 @@ main {
   50% { transform: rotate(var(--wiggle-amount, 12deg)); }
 }
 
-/* Scanline effect on shape - visible only during roll */
-.die-shape::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 240, 255, 0.03) 2px,
-    rgba(0, 240, 255, 0.03) 4px
-  );
-  pointer-events: none;
+/* Grid effect inside die shape - visible only during roll */
+.die-grid {
   opacity: 0;
   transition: opacity 0.2s var(--transition-smooth);
 }
 
-.die-container.rolling .die-shape::after {
+.die-container.rolling .die-grid {
   opacity: 1;
-  animation: scanlines 0.15s linear infinite;
+  animation: gridPan 0.4s linear infinite;
 }
 
-@keyframes scanlines {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(4px); }
+@keyframes gridPan {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(8px, 8px); }
 }
 
 /* ==========================================================================

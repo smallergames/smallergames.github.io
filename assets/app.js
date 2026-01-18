@@ -8,14 +8,30 @@
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
 
 const DIE_SHAPES = {
-  4: { viewBox: '-50 -50 100 100', markup: '<polygon points="0,-50 -45,25 45,25" />' },
-  6: { viewBox: '0 0 100 100', markup: '<rect x="10" y="10" width="80" height="80" rx="4" />' },
-  8: { viewBox: '0 0 100 100', markup: '<polygon points="50,10 90,50 50,90 10,50" />' },
-  10: { viewBox: '0 0 100 100', markup: '<polygon points="50,10 82,28 90,58 50,90 10,58 18,28" />' },
-  12: { viewBox: '0 0 100 100', markup: '<polygon points="50,10 78,18 92,42 82,75 50,90 18,75 8,42 22,18" />' },
-  20: { viewBox: '0 0 100 100', markup: '<polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />' },
-  100: { viewBox: '0 0 100 100', markup: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />' }
+  4: { viewBox: '-50 -50 100 100', shape: '<polygon points="0,-50 -45,25 45,25" />' },
+  6: { viewBox: '0 0 100 100', shape: '<rect x="10" y="10" width="80" height="80" rx="4" />' },
+  8: { viewBox: '0 0 100 100', shape: '<polygon points="50,10 90,50 50,90 10,50" />' },
+  10: { viewBox: '0 0 100 100', shape: '<polygon points="50,10 82,28 90,58 50,90 10,58 18,28" />' },
+  12: { viewBox: '0 0 100 100', shape: '<polygon points="50,10 78,18 92,42 82,75 50,90 18,75 8,42 22,18" />' },
+  20: { viewBox: '0 0 100 100', shape: '<polygon points="50,8 90,28 90,72 50,92 10,72 10,28" />' },
+  100: { viewBox: '0 0 100 100', shape: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />' }
 };
+
+function buildDieMarkup(shapeConfig) {
+  const { viewBox, shape } = shapeConfig;
+  const [minX, minY, width, height] = viewBox.split(' ').map(Number);
+  const gridSize = 8;
+  return `
+    <defs>
+      <pattern id="dieGrid" patternUnits="userSpaceOnUse" width="${gridSize}" height="${gridSize}">
+        <path d="M ${gridSize} 0 L 0 0 0 ${gridSize}" fill="none" stroke="var(--accent)" stroke-width="0.5" opacity="0.4"/>
+      </pattern>
+      <clipPath id="dieClip">${shape}</clipPath>
+    </defs>
+    <rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="url(#dieGrid)" clip-path="url(#dieClip)" class="die-grid"/>
+    ${shape}
+  `;
+}
 
 const diceSelection = document.querySelector('.dice-selection');
 const dieButtons = document.querySelectorAll('[data-die]');
@@ -169,7 +185,7 @@ function updateDieShape(sides) {
   const shape = DIE_SHAPES[sides];
   if (!shape) return;
   dieSvg.setAttribute('viewBox', shape.viewBox);
-  dieSvg.innerHTML = shape.markup;
+  dieSvg.innerHTML = buildDieMarkup(shape);
   dieContainer.classList.toggle('d4', sides === 4);
 }
 
