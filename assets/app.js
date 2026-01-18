@@ -26,6 +26,10 @@ let currentDie = 20;
 let isRolling = false;
 let announceTimeout = null;
 
+function haptic(ms = 10) {
+  navigator.vibrate?.(ms);
+}
+
 
 const MAX_ENERGY_MS = 2000;
 const ENERGY_PER_CLICK_MS = 400;
@@ -113,6 +117,7 @@ function selectDie(selectedButton) {
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
   updateIndicator(selectedButton);
+  haptic(15);
 
   stopEnergySystem();
   
@@ -238,6 +243,7 @@ function finishRoll() {
   resultDisplay.textContent = result;
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
+  haptic(40);
   
   dieContainer.setAttribute(
     'aria-label', 
@@ -254,6 +260,7 @@ function handlePointerDown(event) {
 
   dieContainer.setPointerCapture(event.pointerId);
   isHolding = true;
+  haptic(20);
   addEnergy(ENERGY_PER_CLICK_MS);
 
   holdInterval = setInterval(() => {
