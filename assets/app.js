@@ -31,8 +31,6 @@ const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
 const energyLabel = document.querySelector('.energy-label');
-const stateCurrent = document.querySelector('.state-current');
-const stateNext = document.querySelector('.state-next');
 // Game state machine
 const GameState = {
   IDLE: 'idle',       // Waiting for input, can roll
@@ -65,31 +63,19 @@ let overchargedSettleFrame = null; // Animation frame for settling effect
 let idleTimeout = null;
 const IDLE_DELAY_MS = 1000;
 
-// State flow: idle → ramping → ramped → loot
-const STATE_FLOW = ['idle', 'ramping', 'ramped', 'loot'];
+function updateEnergyLabel() {
+  if (!energyLabel) return;
 
-function updateEnergyLabel(lootVariant = null) {
-  if (!energyLabel || !stateCurrent || !stateNext) return;
-
-  let current;
-  if (lootVariant) {
-    current = 'loot';
-  } else if (energy === 0) {
-    current = 'idle';
+  let state;
+  if (energy === 0) {
+    state = 'idle';
   } else if (isBoosted) {
-    current = 'ramped';
+    state = 'ramped';
   } else {
-    current = 'ramping';
+    state = 'ramping';
   }
 
-  const currentIndex = STATE_FLOW.indexOf(current);
-  const next = STATE_FLOW[currentIndex + 1] || null;
-
-  stateCurrent.textContent = current;
-  stateNext.textContent = next || '';
-  
-  energyLabel.dataset.state = current;
-  energyLabel.dataset.lootVariant = lootVariant || '';
+  energyLabel.dataset.state = state;
 }
 
 function resetIdleTimer() {
@@ -262,10 +248,14 @@ function clearOverchargedState() {
   }
 
   // Clear boost and return to IDLE state after overcharged effect has settled
-  gameState = GameState.IDLE;
-  updateEnergyLabel();
-  deactivateBoost();
+  deactivateBoost({ skipLabelUpdate: true });
   boostedMax = null;
+
+  // Keep loot state visible for a moment before returning to idle
+  setTimeout(() => {
+    gameState = GameState.IDLE;
+    updateEnergyLabel();
+  }, 800);
 }
 
 function randomInt(min, max) {
@@ -356,7 +346,7 @@ function activateBoost({ spawnInitialParticles = true } = {}) {
   updateEnergyLabel();
 }
 
-function deactivateBoost() {
+function deactivateBoost({ skipLabelUpdate = false } = {}) {
   if (!isBoosted) return;
 
   isBoosted = false;
@@ -373,7 +363,9 @@ function deactivateBoost() {
     selectedBtn.classList.remove('boosted');
   }
 
-  updateEnergyLabel();
+  if (!skipLabelUpdate) {
+    updateEnergyLabel();
+  }
 }
 
 function addEnergy(amount) {
@@ -461,7 +453,7 @@ function completeRollFinish({ result, rolledDie }) {
   if (result > currentDie) {
     // Enter SETTLING state - input blocked until animation completes
     gameState = GameState.SETTLING;
-    updateEnergyLabel('glitch');
+    updateEnergyLabel();
 
     const rect = dieContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -523,7 +515,9 @@ function completeRollFinish({ result, rolledDie }) {
     gameState = GameState.IDLE;
     // Only show loot fail if we were ramped (boosted)
     if (boostedMax) {
-      updateEnergyLabel('fail');
+      updateEnergyLabel();
+      deactivateBoost({ skipLabelUpdate: true });
+      boostedMax = null;
       // Keep loot state visible for a moment before returning to idle
       setTimeout(() => {
         if (energy === 0) {
@@ -532,9 +526,9 @@ function completeRollFinish({ result, rolledDie }) {
       }, 800);
     } else {
       updateEnergyLabel();
+      deactivateBoost();
+      boostedMax = null;
     }
-    deactivateBoost();
-    boostedMax = null;
   }
 }
 
@@ -659,6 +653,7 @@ document.addEventListener('keyup', handleKeyup);
 window.addEventListener('resize', initIndicator);
 
 initIndicator();
+updateEnergyLabel();
 
 // Start the first roll
 addEnergy(ENERGY_PER_CLICK_MS);

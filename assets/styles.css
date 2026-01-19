@@ -119,97 +119,51 @@ nav {
   pointer-events: none;
 }
 
-.state-current {
-  transition: color 0.15s, text-shadow 0.15s;
+/* Base: everything dim */
+.state-item {
+  color: #333;
 }
 
 .state-arrow {
-  color: #444;
-  margin: 0 0.3em;
+  color: #333;
+  margin: 0 0.25em;
 }
 
-.state-next {
-  color: #555;
+/* IDLE: "idle" glows */
+.energy-label[data-state="idle"] [data-state="idle"] {
+  color: #aaa;
+  animation: idlePulse 2.5s ease-in-out infinite;
 }
 
-/* Idle state */
-.energy-label[data-state="idle"] .state-current {
-  color: #555;
+@keyframes idlePulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
-/* Ramping state */
-.energy-label[data-state="ramping"] .state-current {
+/* RAMPING: "ramping" glows cyan */
+.energy-label[data-state="ramping"] [data-state="ramping"] {
   color: var(--accent);
+  text-shadow: 0 0 6px var(--accent-glow);
   animation: rampingPulse 0.8s ease-in-out infinite;
 }
 
 @keyframes rampingPulse {
-  0%, 100% {
-    opacity: 0.7;
-    text-shadow: 0 0 4px var(--accent-glow);
-  }
-  50% {
-    opacity: 1;
-    text-shadow: 0 0 8px var(--accent-glow);
-  }
+  0%, 100% { opacity: 0.7; text-shadow: 0 0 4px var(--accent-glow); }
+  50% { opacity: 1; text-shadow: 0 0 10px var(--accent-glow); }
 }
 
-/* Ramped state */
-.energy-label[data-state="ramped"] .state-current {
+/* RAMPED: "ramped" glows bright */
+.energy-label[data-state="ramped"] [data-state="ramped"] {
   color: #fff;
+  text-shadow: 0 0 6px #fff, 0 0 12px var(--accent), 0 0 20px var(--magenta-glow);
   animation: rampedGlow 0.6s ease-in-out infinite;
-  text-shadow:
-    0 0 4px #fff,
-    0 0 12px var(--accent),
-    0 0 20px var(--magenta-glow);
 }
 
 @keyframes rampedGlow {
-  0%, 100% {
-    text-shadow:
-      0 0 4px #fff,
-      0 0 12px var(--accent),
-      0 0 20px var(--magenta-glow);
-  }
-  50% {
-    text-shadow:
-      0 0 8px #fff,
-      0 0 16px var(--accent),
-      0 0 28px var(--magenta-glow);
-  }
+  0%, 100% { text-shadow: 0 0 4px #fff, 0 0 10px var(--accent), 0 0 18px var(--magenta-glow); }
+  50% { text-shadow: 0 0 8px #fff, 0 0 16px var(--accent), 0 0 28px var(--magenta-glow); }
 }
 
-/* Loot state - glitch variant (got loot) */
-.energy-label[data-state="loot"][data-loot-variant="glitch"] .state-current {
-  color: var(--accent);
-  animation: lootGlitchState 0.5s steps(3);
-  text-shadow:
-    0 0 8px var(--accent-glow),
-    0 0 16px var(--accent-glow);
-}
-
-@keyframes lootGlitchState {
-  0%, 100% { opacity: 1; }
-  25% { opacity: 0.6; }
-  50% { opacity: 1; }
-  75% { opacity: 0.7; }
-}
-
-/* Loot state - fail variant (no loot) */
-.energy-label[data-state="loot"][data-loot-variant="fail"] .state-current {
-  animation: lootFailState 0.4s ease-out forwards;
-}
-
-@keyframes lootFailState {
-  0% { color: #ff4444; text-shadow: 0 0 12px #ff4444; }
-  100% { color: #555; text-shadow: none; }
-}
-
-/* Hide arrow and next when at loot state */
-.energy-label[data-state="loot"] .state-arrow,
-.energy-label[data-state="loot"] .state-next {
-  display: none;
-}
 
 .dice-selection {
   display: flex;
