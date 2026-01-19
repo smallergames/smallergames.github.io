@@ -353,6 +353,30 @@ function clearOutlineEffects() {
   if (whiteOutline) whiteOutline.remove();
 }
 
+function startSettlingAnimation(elements) {
+  const duration = 3000;
+  const startTime = performance.now();
+  const startWiggle = 15;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const wiggle = startWiggle * Math.pow(1 - progress, 2);
+
+    elements.forEach(svg => {
+      svg.style.setProperty('--wiggle-amount', `${wiggle}deg`);
+    });
+
+    if (progress < 1) {
+      settlingAnimationFrame = requestAnimationFrame(animate);
+    } else {
+      clearSettlingState();
+    }
+  }
+
+  settlingAnimationFrame = requestAnimationFrame(animate);
+}
+
 function clearSettlingState() {
   clearOutlineEffects();
 
@@ -520,29 +544,7 @@ function completeRollFinish({ result, rolledDie }) {
       whiteOutline.removeAttribute('id');
       dieSvg.parentElement.appendChild(whiteOutline);
 
-      // Animate settling: burst starts strong, gradually settles to rest
-      const duration = 3000;
-      const startTime = performance.now();
-      const startWiggle = 15;
-      const allOutlines = [dieSvg, magentaOutline, whiteOutline];
-
-      function animateSettle(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const wiggle = startWiggle * Math.pow(1 - progress, 2);
-
-        allOutlines.forEach(svg => {
-          svg.style.setProperty('--wiggle-amount', `${wiggle}deg`);
-        });
-
-        if (progress < 1) {
-          settlingAnimationFrame = requestAnimationFrame(animateSettle);
-        } else {
-          clearSettlingState();
-        }
-      }
-
-      settlingAnimationFrame = requestAnimationFrame(animateSettle);
+      startSettlingAnimation([dieSvg, magentaOutline, whiteOutline]);
     } else {
       // Loot miss - brief display then return to IDLE
       setTimeout(() => clearSettlingState(), 800);
