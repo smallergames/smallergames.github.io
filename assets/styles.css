@@ -254,7 +254,7 @@ nav {
   border: 1px solid var(--accent);
   border-radius: 2px;
   box-shadow:
-    0 0 12px var(--accent-glow),
+    0 0 8px var(--accent-glow),
     inset 0 0 8px var(--accent-dim);
   transition:
     left 0.25s var(--transition-smooth),
@@ -263,7 +263,14 @@ nav {
   z-index: 0;
 }
 
-/* Energy bar along bottom edge */
+/* Enhanced indicator glow when ramped */
+.dice-selection.ramped::before {
+  box-shadow:
+    0 0 16px var(--accent-glow),
+    inset 0 0 8px var(--accent-dim);
+}
+
+/* Energy bar along bottom edge - width shows progress, glow only when ramped */
 .dice-selection::after {
   content: '';
   position: absolute;
@@ -272,10 +279,15 @@ nav {
   height: 2px;
   width: calc(100% * var(--energy-level));
   background: var(--accent);
-  box-shadow: 0 0 calc(8px + var(--energy-level) * 12px) var(--accent-glow);
+  box-shadow: 0 0 8px var(--accent-glow);
   border-radius: 0 0 4px 4px;
   pointer-events: none;
   z-index: 1;
+}
+
+/* Intense glow only when ramped */
+.dice-selection.ramped::after {
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 /* Edge bump feedback for arrow key navigation */
@@ -297,7 +309,7 @@ nav {
   50% { transform: translateX(4px); }
 }
 
-/* Settling state - input blocked during overcharge settle animation */
+/* Settling state - input blocked during loot hit animation */
 .dice-selection.settling {
   pointer-events: none;
   animation: settlingPulse 0.8s ease-in-out infinite;
@@ -349,13 +361,13 @@ nav {
   color: var(--accent);
 }
 
-/* d100 needs extra width to accommodate "d151" when boosted */
+/* d100 needs extra width to accommodate "d151" when ramped */
 .die-btn[data-die="100"] {
   min-width: 4rem;
 }
 
-/* Boosted dice button glow effect when power meter is full */
-.die-btn.boosted {
+/* Ramped dice button glow effect when power meter is full */
+.die-btn.ramped {
   color: #fff;
   text-shadow:
     0 0 4px #fff,
@@ -425,7 +437,7 @@ main {
   filter: drop-shadow(0 0 8px var(--accent-glow));
 }
 
-/* Additional outlines for overcharged results */
+/* Additional outlines for loot hit results */
 .die-shape svg.magenta-outline {
   position: absolute;
   inset: 0;
@@ -440,37 +452,37 @@ main {
   filter: drop-shadow(0 0 8px var(--white-glow));
 }
 
-/* Overcharged state - triple wiggling outlines that settle */
-.die-container.overcharged .die-shape svg:not(.magenta-outline):not(.white-outline) {
-  animation: overchargedWiggle 0.8s ease-in-out infinite;
+/* Settling state - triple wiggling outlines that settle */
+.die-container.settling .die-shape svg:not(.magenta-outline):not(.white-outline) {
+  animation: settlingWiggle 0.8s ease-in-out infinite;
   --wiggle-amount: 12deg;
 }
 
-.die-container.overcharged .die-shape svg.magenta-outline {
-  animation: overchargedWiggle 0.9s ease-in-out infinite reverse;
+.die-container.settling .die-shape svg.magenta-outline {
+  animation: settlingWiggle 0.9s ease-in-out infinite reverse;
   --wiggle-amount: 12deg;
 }
 
-.die-container.overcharged .die-shape svg.white-outline {
-  animation: overchargedWiggle 1.0s ease-in-out infinite;
+.die-container.settling .die-shape svg.white-outline {
+  animation: settlingWiggle 1.0s ease-in-out infinite;
   --wiggle-amount: 12deg;
 }
 
-@keyframes overchargedWiggle {
+@keyframes settlingWiggle {
   0%, 100% { transform: rotate(calc(var(--wiggle-amount, 12deg) * -1)); }
   50% { transform: rotate(var(--wiggle-amount, 12deg)); }
 }
 
 /* d100 needs more rotation due to its rounder shape */
-.die-container.d100.overcharged .die-shape svg:not(.magenta-outline):not(.white-outline) {
+.die-container.d100.settling .die-shape svg:not(.magenta-outline):not(.white-outline) {
   --wiggle-amount: 20deg;
 }
 
-.die-container.d100.overcharged .die-shape svg.magenta-outline {
+.die-container.d100.settling .die-shape svg.magenta-outline {
   --wiggle-amount: 20deg;
 }
 
-.die-container.d100.overcharged .die-shape svg.white-outline {
+.die-container.d100.settling .die-shape svg.white-outline {
   --wiggle-amount: 20deg;
 }
 

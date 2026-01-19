@@ -35,7 +35,7 @@ const energyLabel = document.querySelector('.energy-label');
 const GameState = {
   IDLE: 'idle',       // Waiting for input, can roll
   ROLLING: 'rolling', // Die is spinning, draining energy
-  SETTLING: 'settling' // Overcharged effect playing, input blocked
+  SETTLING: 'settling' // Loot hit effect playing, input blocked
 };
 
 let gameState = GameState.IDLE;
@@ -51,13 +51,13 @@ let energyDrainFrame = null;
 let isHolding = false;
 let holdInterval = null;
 
-// Boost system - when power meter is full, dice max is increased by 1
-// This is separate from GameState - isBoosted affects the +1 max mechanic, not input blocking
-let isBoosted = false;
-let boostedMax = null; // The max+1 value when boosted
-let sparkleInterval = null; // Interval for boost sparkle effect
-let overchargedTimeout = null; // Timeout for overcharged effect duration
-let overchargedSettleFrame = null; // Animation frame for settling effect
+// Ramp system - when power meter is full, dice max is increased by 1
+// This is separate from GameState - isRamped affects the +1 max mechanic, not input blocking
+let isRamped = false;
+let rampedMax = null; // The max+1 value when ramped
+let sparkleInterval = null; // Interval for ramp sparkle effect
+let settlingTimeout = null; // Timeout for settling effect duration
+let settlingAnimationFrame = null; // Animation frame for settling effect
 
 // Energy label state tracking
 let idleTimeout = null;
@@ -76,7 +76,7 @@ function updateEnergyLabel() {
     state = 'loot-miss';
   } else if (energy === 0) {
     state = 'idle';
-  } else if (isBoosted) {
+  } else if (isRamped) {
     state = 'ramped';
   } else {
     state = 'ramping';
@@ -194,12 +194,8 @@ function selectDie(selectedButton) {
   if (!DIE_SHAPES[sides]) return;
   if (sides === currentDie) return; // Already selected
 
-  // Clear boost when switching dice - must ramp up again on new die
-  if (isBoosted) {
-    deactivateBoost();
-    boostedMax = null;
-    updateEnergyLabel();
-  }
+  // Clear ramp when switching dice - must ramp up again on new die
+  setRamped(false);
 
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
@@ -231,19 +227,19 @@ function updateDieShape(sides) {
 function clearResult() {
   resultDisplay.classList.remove('show');
   resultDisplay.textContent = '';
-  clearOverchargedState();
+  clearSettlingState();
 }
 
-function clearOverchargedState() {
-  if (overchargedTimeout) {
-    clearTimeout(overchargedTimeout);
-    overchargedTimeout = null;
+function clearSettlingState() {
+  if (settlingTimeout) {
+    clearTimeout(settlingTimeout);
+    settlingTimeout = null;
   }
-  if (overchargedSettleFrame) {
-    cancelAnimationFrame(overchargedSettleFrame);
-    overchargedSettleFrame = null;
+  if (settlingAnimationFrame) {
+    cancelAnimationFrame(settlingAnimationFrame);
+    settlingAnimationFrame = null;
   }
-  dieContainer.classList.remove('overcharged');
+  dieContainer.classList.remove('settling');
   diceSelection.classList.remove('settling');
   const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
   const whiteOutline = document.querySelector('.die-shape svg.white-outline');
@@ -254,9 +250,8 @@ function clearOverchargedState() {
     whiteOutline.remove();
   }
 
-  // Clear boost and return to IDLE state after overcharged effect has settled
-  deactivateBoost({ skipLabelUpdate: true });
-  boostedMax = null;
+  // Clear ramp after settling effect completes
+  setRamped(false);
 
   // Keep loot state visible for a moment before returning to idle
   setTimeout(() => {
@@ -294,15 +289,14 @@ function stopEnergySystem() {
   isHolding = false;
   energy = 0;
 
-  // Clear boost state
-  deactivateBoost();
-  boostedMax = null;
+  // Clear ramp state
+  setRamped(false);
 
   // Clear loot outcome
   lootOutcome = null;
 
-  // Clear overcharged state
-  clearOverchargedState();
+  // Clear settling state
+  clearSettlingState();
 
   updateEnergyLevel();
 
@@ -318,64 +312,65 @@ function updateEnergyLevel() {
   diceSelection.style.setProperty('--energy-level', level);
 }
 
-function activateBoost({ spawnInitialParticles = true } = {}) {
-  // Clear any existing sparkle interval before setting up new one
-  if (sparkleInterval) {
-    clearInterval(sparkleInterval);
-    sparkleInterval = null;
+function setRamped(value, { spawnParticles: shouldSpawnParticles = true } = {}) {
+  if (isRamped === value) return; // No change
+
+  isRamped = value;
+
+  if (value) {
+    rampedMax = currentDie + 1;
+  } else {
+    rampedMax = null;
   }
 
-  isBoosted = true;
+  // Update ALL state-driven visuals together
   updateEnergyLabel();
+  updateEnergyLevel();
+
+  // Now update all visuals to match
   const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
-  if (!selectedBtn) return;
 
-  // Calculate boosted max (die value + 1)
-  boostedMax = currentDie + 1;
+  if (value) {
+    // Activating ramp - ALL effects turn on together
+    diceSelection.classList.add('ramped');
 
-  // Update button text to show boosted value
-  selectedBtn.textContent = `d${boostedMax}`;
-  selectedBtn.classList.add('boosted');
+    if (selectedBtn) {
+      selectedBtn.textContent = `d${rampedMax}`;
+      selectedBtn.classList.add('ramped');
 
-  // Spawn glitch particles on initial overload (not on transfer)
-  if (spawnInitialParticles) {
-    const rect = selectedBtn.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    spawnParticles(centerX, centerY, currentDie);
-  }
-
-  // Start sparkle effect
-  sparkleInterval = setInterval(() => {
-    const btn = document.querySelector('[data-die][aria-checked="true"]');
-    if (btn) {
-      const r = btn.getBoundingClientRect();
-      spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
+      // Spawn glitch particles on activation
+      if (shouldSpawnParticles) {
+        const rect = selectedBtn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        spawnParticles(centerX, centerY, currentDie);
+      }
     }
-  }, 150);
 
-  updateEnergyLabel();
-}
+    // Start sparkle effect
+    if (!sparkleInterval) {
+      sparkleInterval = setInterval(() => {
+        const btn = document.querySelector('[data-die][aria-checked="true"]');
+        if (btn) {
+          const r = btn.getBoundingClientRect();
+          spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
+        }
+      }, 150);
+    }
+  } else {
+    // Deactivating ramp - ALL effects turn off together
+    diceSelection.classList.remove('ramped');
 
-function deactivateBoost({ skipLabelUpdate = false } = {}) {
-  if (!isBoosted) return;
+    // Stop sparkle effect
+    if (sparkleInterval) {
+      clearInterval(sparkleInterval);
+      sparkleInterval = null;
+    }
 
-  isBoosted = false;
-
-  // Stop sparkle effect
-  if (sparkleInterval) {
-    clearInterval(sparkleInterval);
-    sparkleInterval = null;
-  }
-
-  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
-  if (selectedBtn) {
-    selectedBtn.textContent = `d${currentDie}`;
-    selectedBtn.classList.remove('boosted');
-  }
-
-  if (!skipLabelUpdate) {
-    updateEnergyLabel();
+    if (selectedBtn) {
+      selectedBtn.textContent = `d${currentDie}`;
+      selectedBtn.classList.remove('ramped');
+    }
   }
 }
 
@@ -383,19 +378,24 @@ function addEnergy(amount) {
   if (!canAcceptInput()) return;
 
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
-  updateEnergyLevel();
 
-  // Activate boost when energy hits max (boost stays until roll completes)
+  // Activate ramp when energy hits max (ramp stays until roll completes)
   if (energy >= MAX_ENERGY_MS) {
-    activateBoost();
+    setRamped(true);
+  } else {
+    updateEnergyLabel();
   }
 
-  updateEnergyLabel();
+  // Update energy bar AFTER ramp state is set so visuals are in sync
+  updateEnergyLevel();
   resetIdleTimer();
 
   if (!energyDrainFrame) {
     startEnergyDrain();
   }
+
+  // Cancel any pending finish - user is adding more energy
+  pendingFinish = null;
 
   if (gameState !== GameState.ROLLING) {
     clearResult();
@@ -445,13 +445,13 @@ function startContinuousRoll() {
 }
 
 function finishRoll() {
-  // Use boosted max if power was full when roll started
-  const effectiveMax = boostedMax || currentDie;
+  // Use ramped max if power was full when roll started
+  const effectiveMax = rampedMax || currentDie;
   const result = randomInt(1, effectiveMax);
   const rolledDie = effectiveMax;
 
   // Store pending finish - will complete when animation cycle ends
-  // State transitions to IDLE in completeRollFinish (or SETTLING if overcharged)
+  // State transitions to IDLE in completeRollFinish (or SETTLING if loot hit)
   pendingFinish = { result, rolledDie };
 }
 
@@ -460,7 +460,7 @@ function completeRollFinish({ result, rolledDie }) {
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
 
-  // Spawn glitch particle explosion and add overcharged effect if result is in overload range
+  // Spawn glitch particle explosion and enter settling state if result exceeded normal die max
   if (result > currentDie) {
     // Enter SETTLING state - input blocked until animation completes
     gameState = GameState.SETTLING;
@@ -478,7 +478,7 @@ function completeRollFinish({ result, rolledDie }) {
     spawnLoot(currentDie, centerX, centerY);
 
     // Add triple wiggling outlines effect
-    dieContainer.classList.add('overcharged');
+    dieContainer.classList.add('settling');
     diceSelection.classList.add('settling');
     const magentaOutline = dieSvg.cloneNode(true);
     magentaOutline.classList.add('magenta-outline');
@@ -508,13 +508,13 @@ function completeRollFinish({ result, rolledDie }) {
       });
 
       if (progress < 1) {
-        overchargedSettleFrame = requestAnimationFrame(animateSettle);
+        settlingAnimationFrame = requestAnimationFrame(animateSettle);
       } else {
-        clearOverchargedState();
+        clearSettlingState();
       }
     }
 
-    overchargedSettleFrame = requestAnimationFrame(animateSettle);
+    settlingAnimationFrame = requestAnimationFrame(animateSettle);
   }
 
   dieContainer.setAttribute(
@@ -524,16 +524,19 @@ function completeRollFinish({ result, rolledDie }) {
 
   announce(`Rolled ${result} on d${rolledDie}`);
 
-  // Clear boost for next roll (delay if overcharged to let effect settle)
+  // Clear ramp for next roll (delay if loot hit to let settling effect play)
   if (result <= currentDie) {
     gameState = GameState.IDLE;
-    // Only show loot fail if we were ramped (boosted)
-    if (boostedMax) {
-      // Set loot-miss outcome for visual feedback
+
+    // Show loot-miss outcome if we were ramped
+    const wasRamped = isRamped;
+    if (wasRamped) {
       lootOutcome = 'miss';
-      updateEnergyLabel();
-      deactivateBoost({ skipLabelUpdate: true });
-      boostedMax = null;
+    }
+
+    setRamped(false);
+
+    if (wasRamped) {
       // Clear outcome after brief display
       setTimeout(() => {
         lootOutcome = null;
@@ -541,10 +544,6 @@ function completeRollFinish({ result, rolledDie }) {
           updateEnergyLabel();
         }
       }, 800);
-    } else {
-      updateEnergyLabel();
-      deactivateBoost();
-      boostedMax = null;
     }
   }
 }
@@ -563,6 +562,10 @@ function handlePointerDown(event) {
   if (!canAcceptInput()) return;
 
   dieContainer.setPointerCapture(event.pointerId);
+
+  // Guard against multiple calls (equivalent to keyboard's !event.repeat check)
+  if (isHolding) return;
+
   isHolding = true;
   addEnergy(ENERGY_PER_CLICK_MS);
 
