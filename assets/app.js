@@ -15,8 +15,13 @@ const motionWarningDismiss = document.getElementById('motionWarningDismiss');
 
 function checkMotionWarning() {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const alreadyDismissed = localStorage.getItem(MOTION_WARNING_KEY) === 'true';
-  
+  let alreadyDismissed = false;
+  try {
+    alreadyDismissed = localStorage.getItem(MOTION_WARNING_KEY) === 'true';
+  } catch (e) {
+    // localStorage may be unavailable (private browsing, quota exceeded, etc.)
+  }
+
   if (prefersReducedMotion && !alreadyDismissed) {
     motionWarning.showModal();
     return true;
@@ -25,7 +30,11 @@ function checkMotionWarning() {
 }
 
 motionWarningDismiss.addEventListener('click', () => {
-  localStorage.setItem(MOTION_WARNING_KEY, 'true');
+  try {
+    localStorage.setItem(MOTION_WARNING_KEY, 'true');
+  } catch (e) {
+    // localStorage may be unavailable (private browsing, quota exceeded, etc.)
+  }
   motionWarning.close();
   addEnergy(ENERGY_PER_CLICK_MS);
 });
