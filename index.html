@@ -12,9 +12,7 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
-  <main id="main-content">
+  <main>
     <button
       type="button"
       class="die-container d4"
@@ -39,7 +37,7 @@
         <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
         <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
       </div>
-      <div class="energy-label" data-state="idle" aria-hidden="true">idle</div>
+      <div class="energy-label" data-state="idle" aria-live="polite" aria-atomic="true">idle</div>
     </nav>
 
     <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>

@@ -34,7 +34,7 @@ python3 -m http.server 8000
 
 ### On prefers-reduced-motion
 
-This site intentionally does not disable animations based on `prefers-reduced-motion`. The roll animation provides essential feedback that the action occurred. Many mobile users have OS-level "reduce motion" enabled to disable bouncy UI chrome (parallax, zoom transitions), not to remove all animation. Automatically stripping the roll animation would degrade the experience for these users.
+This site does not support `prefers-reduced-motion`.
 
 ### Fonts
 
