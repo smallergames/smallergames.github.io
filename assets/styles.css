@@ -713,20 +713,19 @@ footer {
   letter-spacing: 0.1em;
   padding: 0.6rem 1.25rem;
   background: transparent;
-  border: 1px solid var(--text-muted);
+  border: 1px solid var(--accent);
   border-radius: 4px;
-  color: var(--text-dim);
+  color: var(--accent);
+  text-shadow: 0 0 4px var(--accent-glow);
   cursor: pointer;
-  transition: border-color var(--transition-speed) var(--transition-smooth),
-              color var(--transition-speed) var(--transition-smooth),
-              text-shadow var(--transition-speed) var(--transition-smooth);
+  transition: text-shadow var(--transition-speed) var(--transition-smooth),
+              filter var(--transition-speed) var(--transition-smooth);
 }
 
 .motion-warning button:hover,
 .motion-warning button:focus-visible {
-  border-color: var(--accent);
-  color: var(--accent);
-  text-shadow: 0 0 8px var(--accent-glow);
+  text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
+  filter: brightness(1.2);
   outline: none;
 }
 
