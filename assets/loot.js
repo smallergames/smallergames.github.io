@@ -7,15 +7,20 @@
 import { spawnParticles } from './particles.js';
 
 // Tier definitions - tier number determines rarity (1 = rarest, 7 = most common)
+const TIER_TRASH = 7;
+const TIER_ZZZ = 6;
+
 const LOOT_TIERS = {
-  7: { name: 'TRASH', color: '#888' },
-  6: { name: 'ZZZ', color: '#aaa' },
+  [TIER_TRASH]: { name: 'TRASH', color: '#888' },
+  [TIER_ZZZ]: { name: 'ZZZ', color: '#aaa' },
   5: { name: 'DECENT', color: '#4ade80' },
   4: { name: 'DOPE', color: '#60a5fa' },
   3: { name: 'BASED', color: '#c084fc' },
   2: { name: 'SHEESH', color: '#fb923c' },
   1: { name: 'JAWESOME', color: '#00f0ff' }
 };
+
+export { TIER_TRASH, TIER_ZZZ };
 
 // Drop quantity range [min, max]
 const DROP_COUNT = [3, 5];
@@ -133,16 +138,38 @@ export function spawnLoot(dieSize, originX, originY) {
   processLootDrop(dieSize, originX, originY);
 }
 
-function processLootDrop(dieSize, originX, originY) {
-  if (!footerLabel) initLoot();
+export function spawnConsolationLoot(originX, originY) {
+  // 1-3 trash guaranteed, 25% chance for 1 zzz
+  const trashCount = 1 + Math.floor(Math.random() * 3);
+  const includeZzz = Math.random() < 0.25;
+  
+  const drops = [];
+  for (let i = 0; i < trashCount; i++) {
+    drops.push(TIER_TRASH);
+  }
+  if (includeZzz) {
+    drops.push(TIER_ZZZ);
+  }
+  
+  processDrops(drops, originX, originY);
+  
+  // Return best tier for UI feedback
+  return includeZzz ? TIER_ZZZ : TIER_TRASH;
+}
 
+function processLootDrop(dieSize, originX, originY) {
   const dropCount = getDropCount();
   const drops = [];
 
-  // Roll tier for each drop
   for (let i = 0; i < dropCount; i++) {
     drops.push(rollTier(dieSize));
   }
+
+  processDrops(drops, originX, originY);
+}
+
+function processDrops(drops, originX, originY) {
+  if (!footerLabel) initLoot();
 
   // Sort drops by tier (worst first, rarest last) for consistent animation order
   drops.sort((a, b) => b - a);
@@ -150,17 +177,12 @@ function processLootDrop(dieSize, originX, originY) {
   // Stagger each drop at uniform rate
   drops.forEach((tier, index) => {
     setTimeout(() => {
-      // Increment counter when drop starts animating
       dropsInFlight++;
 
-      // Track if this is a new discovery before incrementing
       const isNewDiscovery = !collectedLoot[tier];
-
-      // Pre-add to inventory so element exists for targeting
       collectedLoot[tier] = (collectedLoot[tier] || 0) + 1;
       renderLabel();
 
-      // Get the tier element's position
       const tierEl = footerLabel.querySelector(`[data-tier="${tier}"]`);
       let destX, destY;
 
@@ -169,16 +191,13 @@ function processLootDrop(dieSize, originX, originY) {
         destX = tierRect.left + tierRect.width / 2;
         destY = tierRect.top + tierRect.height / 2;
       } else {
-        // Fallback to footer center
         const footerRect = footerLabel.getBoundingClientRect();
         destX = footerRect.left + footerRect.width / 2;
         destY = footerRect.top;
       }
 
-      // Spawn pixel trail
       spawnPixelTrail(tier, originX, originY, destX, destY);
 
-      // Glitch and energize after pixel arrives
       setTimeout(() => {
         glitchTier(tier);
         energizeTier(tier);
@@ -187,10 +206,8 @@ function processLootDrop(dieSize, originX, originY) {
         }
         checkWinCondition();
 
-        // Decrement counter when drop lands
         dropsInFlight--;
 
-        // Process next queued loot when all drops finish
         if (dropsInFlight === 0 && lootQueue.length > 0) {
           const next = lootQueue.shift();
           processLootDrop(next.dieSize, next.originX, next.originY);

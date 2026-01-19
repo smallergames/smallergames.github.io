@@ -6,7 +6,7 @@
  */
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
-import { initLoot, spawnLoot } from './loot.js';
+import { initLoot, spawnLoot, spawnConsolationLoot, TIER_TRASH, TIER_ZZZ } from './loot.js';
 
 // Motion warning for users with prefers-reduced-motion
 const MOTION_WARNING_KEY = 'motion-warning-dismissed';
@@ -53,6 +53,7 @@ const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
 const energyLabel = document.querySelector('.energy-label');
+const missLabel = document.querySelector('.state-item[data-state="loot-miss"]');
 
 /**
  * Returns the currently selected die button element.
@@ -546,7 +547,16 @@ function completeRollFinish({ result, rolledDie }) {
 
       startSettlingAnimation([dieSvg, magentaOutline, whiteOutline]);
     } else {
-      // Loot miss - brief display then return to IDLE
+      // Loot miss - consolation trash then return to IDLE
+      const rect = dieContainer.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const consolationType = spawnConsolationLoot(centerX, centerY);
+      
+      // Update miss text to show what dropped
+      if (missLabel) {
+        missLabel.textContent = consolationType === TIER_ZZZ ? 'try again. zzz.' : 'try again. just trash.';
+      }
       setTimeout(() => clearSettlingState(), 800);
     }
   } else {
