@@ -46,9 +46,11 @@ let hasCollectedAll = false;
 // DOM elements
 let footerLabel = null;
 let pixelContainer = null;
+let announcements = null;
 
 export function initLoot() {
   footerLabel = document.getElementById('footerLabel');
+  announcements = document.getElementById('announcements');
 
   // Create pixel container if it doesn't exist
   pixelContainer = document.querySelector('.loot-pixels');
@@ -59,6 +61,16 @@ export function initLoot() {
   }
 
   renderLabel();
+}
+
+function announce(message) {
+  if (!announcements) return;
+  announcements.textContent = message;
+  setTimeout(() => {
+    if (announcements.textContent === message) {
+      announcements.textContent = '';
+    }
+  }, 1000);
 }
 
 function checkWinCondition() {
@@ -73,6 +85,8 @@ function checkWinCondition() {
 
 function celebrateWin() {
   if (!footerLabel) return;
+
+  announce('All loot tiers collected!');
 
   // Spawn particle bursts at footer location
   const rect = footerLabel.getBoundingClientRect();
@@ -139,6 +153,9 @@ function processLootDrop(dieSize, originX, originY) {
       // Increment counter when drop starts animating
       dropsInFlight++;
 
+      // Track if this is a new discovery before incrementing
+      const isNewDiscovery = !collectedLoot[tier];
+
       // Pre-add to inventory so element exists for targeting
       collectedLoot[tier] = (collectedLoot[tier] || 0) + 1;
       renderLabel();
@@ -165,6 +182,9 @@ function processLootDrop(dieSize, originX, originY) {
       setTimeout(() => {
         glitchTier(tier);
         energizeTier(tier);
+        if (isNewDiscovery) {
+          announce(`Discovered ${LOOT_TIERS[tier].name}`);
+        }
         checkWinCondition();
 
         // Decrement counter when drop lands
