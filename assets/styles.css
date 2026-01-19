@@ -164,6 +164,63 @@ nav {
   50% { text-shadow: 0 0 8px #fff, 0 0 16px var(--accent), 0 0 28px var(--magenta-glow); }
 }
 
+/* Outcome states - hide the flow, show only the outcome */
+.state-outcome {
+  display: none;
+}
+
+/* LOOT-HIT: Hide flow, show "loot!" prominently */
+.energy-label[data-state="loot-hit"] .state-item:not(.state-outcome),
+.energy-label[data-state="loot-hit"] .state-arrow {
+  display: none;
+}
+
+.energy-label[data-state="loot-hit"] [data-state="loot-hit"] {
+  display: inline;
+  color: #fff;
+  text-shadow:
+    0 0 8px var(--accent),
+    0 0 16px var(--accent),
+    0 0 24px #fff;
+  animation: lootHitBurst 0.5s ease-out;
+}
+
+@keyframes lootHitBurst {
+  0% {
+    opacity: 0;
+    transform: scale(1.4);
+    text-shadow: 0 0 20px #fff, 0 0 40px var(--accent);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent), 0 0 24px #fff;
+  }
+}
+
+/* LOOT-MISS: Hide flow, show "miss" with subtle shake */
+.energy-label[data-state="loot-miss"] .state-item:not(.state-outcome),
+.energy-label[data-state="loot-miss"] .state-arrow {
+  display: none;
+}
+
+.energy-label[data-state="loot-miss"] [data-state="loot-miss"] {
+  display: inline;
+  color: #666;
+  animation: missShake 0.3s ease-out;
+}
+
+@keyframes missShake {
+  0% { transform: translateX(0); opacity: 0; }
+  25% { transform: translateX(-2px); opacity: 1; }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
 
 .dice-selection {
   display: flex;
