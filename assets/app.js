@@ -63,11 +63,18 @@ let overchargedSettleFrame = null; // Animation frame for settling effect
 let idleTimeout = null;
 const IDLE_DELAY_MS = 1000;
 
+// Loot outcome tracking for visual feedback
+let lootOutcome = null; // 'hit', 'miss', or null
+
 function updateEnergyLabel() {
   if (!energyLabel) return;
 
   let state;
-  if (energy === 0) {
+  if (lootOutcome === 'hit') {
+    state = 'loot-hit';
+  } else if (lootOutcome === 'miss') {
+    state = 'loot-miss';
+  } else if (energy === 0) {
     state = 'idle';
   } else if (isBoosted) {
     state = 'ramped';
@@ -253,6 +260,7 @@ function clearOverchargedState() {
 
   // Keep loot state visible for a moment before returning to idle
   setTimeout(() => {
+    lootOutcome = null;
     gameState = GameState.IDLE;
     updateEnergyLabel();
   }, 800);
@@ -289,6 +297,9 @@ function stopEnergySystem() {
   // Clear boost state
   deactivateBoost();
   boostedMax = null;
+
+  // Clear loot outcome
+  lootOutcome = null;
 
   // Clear overcharged state
   clearOverchargedState();
@@ -453,6 +464,9 @@ function completeRollFinish({ result, rolledDie }) {
   if (result > currentDie) {
     // Enter SETTLING state - input blocked until animation completes
     gameState = GameState.SETTLING;
+
+    // Set loot-hit outcome for visual feedback
+    lootOutcome = 'hit';
     updateEnergyLabel();
 
     const rect = dieContainer.getBoundingClientRect();
@@ -515,11 +529,14 @@ function completeRollFinish({ result, rolledDie }) {
     gameState = GameState.IDLE;
     // Only show loot fail if we were ramped (boosted)
     if (boostedMax) {
+      // Set loot-miss outcome for visual feedback
+      lootOutcome = 'miss';
       updateEnergyLabel();
       deactivateBoost({ skipLabelUpdate: true });
       boostedMax = null;
-      // Keep loot state visible for a moment before returning to idle
+      // Clear outcome after brief display
       setTimeout(() => {
+        lootOutcome = null;
         if (energy === 0) {
           updateEnergyLabel();
         }
