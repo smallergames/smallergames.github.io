@@ -213,25 +213,39 @@ function handleDicePointerMove(event) {
   }
 }
 
+function endDiceDrag() {
+  isDraggingDice = false;
+  isHolding = false;
+  if (holdInterval) {
+    clearInterval(holdInterval);
+    holdInterval = null;
+  }
+}
+
 function handleDicePointerUp(event) {
   if (!isDraggingDice) return;
-  isDraggingDice = false;
+  
+  const wasDrag = hasDraggedSinceDiceDown;
+  endDiceDrag();
   diceSelection.releasePointerCapture(event.pointerId);
 
   if (!canAcceptInput()) return;
 
-  if (!hasDraggedSinceDiceDown) {
+  if (!wasDrag) {
     const closestBtn = findDieButtonAt(event.clientX);
     if (closestBtn) {
       const sides = parseInt(closestBtn.dataset.die, 10);
       if (sides === currentDie) {
-        // Clicking on already-selected die triggers a roll
         addEnergy(ENERGY_PER_CLICK_MS);
       } else {
         selectDie(closestBtn);
       }
     }
   }
+}
+
+function handleDiceLostCapture() {
+  endDiceDrag();
 }
 
 function updateIndicator(button) {
@@ -264,12 +278,16 @@ function selectDie(selectedButton) {
   currentDie = sides;
   updateDieShape(currentDie);
   clearResult();
-  pendingFinish = null; // Cancel any pending result from old die
+
+  // If there was a pending finish, cancel it and restart the roll
+  // (energy may have hit 0 and drain stopped, so we need to add energy to continue)
+  const hadPendingFinish = pendingFinish !== null;
+  pendingFinish = null;
 
   announce(`Selected ${currentDie}-sided die`);
 
-  // Kick off a new roll when switching dice via slider (if not already rolling)
-  if (gameState === GameState.IDLE) {
+  // Kick off a new roll when switching dice, or restart if we cancelled a pending finish
+  if (gameState === GameState.IDLE || hadPendingFinish) {
     addEnergy(ENERGY_PER_CLICK_MS);
   }
 }
@@ -635,7 +653,8 @@ dieContainer.addEventListener('lostpointercapture', handlePointerUp);
 diceSelection.addEventListener('pointerdown', handleDicePointerDown);
 diceSelection.addEventListener('pointermove', handleDicePointerMove);
 diceSelection.addEventListener('pointerup', handleDicePointerUp);
-diceSelection.addEventListener('pointercancel', handleDicePointerUp);
+diceSelection.addEventListener('pointercancel', handleDiceLostCapture);
+diceSelection.addEventListener('lostpointercapture', handleDiceLostCapture);
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
 window.addEventListener('resize', initIndicator);
