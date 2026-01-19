@@ -36,10 +36,13 @@ This is a small static site with no build step, bundler, or test framework. Keep
 - **No unit tests** — The project is too small to justify test framework overhead. Manual testing is sufficient.
 - **No setTimeout ID tracking** — Since the site never tears down (no SPA routing, no cleanup lifecycle), storing timeout IDs for cancellation is unnecessary.
 - **No minification/bundling** — Files are small enough that build tooling adds more complexity than value.
+- **No loot persistence** — This is a fidget toy, not a balanced game. Persisting loot would require a reset UI, adding clutter for minimal benefit. Refresh to start fresh. Note: this may change if more gamelike mechanics are added in the future.
 
 ### prefers-reduced-motion
 
 **The site does NOT reduce or disable animations** for users with `prefers-reduced-motion` enabled. Instead, a warning modal (`#motionWarning` dialog) appears on first visit to inform users about glitch effects and rapid animations. Dismissal is stored in localStorage (`motion-warning-dismissed`) so the modal only shows once.
+
+**This is intentional and final.** This site is a dice fidget toy—the animations ARE the functionality. Removing them removes 100% of what makes this site exist. Users who want a random number without visual effects can ask Google "roll a d20" and get one instantly. There is no reason for someone to be here if they cannot experience the animations. The warning modal is the appropriate solution: inform the user, let them choose to proceed or leave. Do not raise this in code review.
 
 ### Fonts
 
@@ -93,16 +96,20 @@ The app uses an explicit state machine instead of scattered booleans:
 
 ```javascript
 const GameState = {
-  IDLE: 'idle',       // Waiting for input, can roll
-  ROLLING: 'rolling', // Die is spinning, draining energy
-  SETTLING: 'settling' // Overcharged effect playing, input blocked
+  IDLE: 'idle',                      // No energy, waiting for input
+  RAMPING: 'ramping',                // Building energy, die rolling
+  RAMPED: 'ramped',                  // Fully charged, +1 max active
+  LOOT_RESOLUTION: 'loot_resolution' // Showing hit/miss result
 };
 ```
 
-- `canAcceptInput()` returns `true` when `gameState !== GameState.SETTLING`
-- Use `canAcceptInput()` in input handlers to block interaction during settling
-- `isBoosted` is **separate** from GameState—it tracks the +1 max mechanic, not UI blocking
-- State transitions: IDLE → ROLLING (on addEnergy) → IDLE (normal roll) or SETTLING (overcharged) → IDLE
+- `canAcceptInput()` blocks input during LOOT_RESOLUTION (hit only—miss allows immediate retry)
+- `rampedMax` tracks the +1 die value during RAMPED and LOOT_RESOLUTION states
+- State transitions:
+  - IDLE → RAMPING (on addEnergy)
+  - RAMPING → IDLE (energy depletes before full) or RAMPED (energy fills)
+  - RAMPED → RAMPING (die changed, loses +1) or LOOT_RESOLUTION (roll completes)
+  - LOOT_RESOLUTION → IDLE (settles) or RAMPING (miss interrupted by new input)
 
 ### Game Mechanics
 
@@ -115,7 +122,7 @@ const GameState = {
 - `particles.js` handles glitch burst effects for max rolls and overload results
 - Effect uses consistent intensity across all dice via `DIE_MAGNITUDE` config (standardized to d8 values)
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
-- `spawnParticles(x, y, dieSize)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
+- `spawnParticles(x, y)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
 - Spawned from the selected die button's position, not the die shape
 - **Object pooling**: Particles and scanlines are recycled via `acquireParticle()`/`releaseParticle()` to minimize GC pressure
 - **Swap-and-pop removal**: Dead particles are removed in O(1) instead of O(n) splice operations

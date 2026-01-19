@@ -99,9 +99,9 @@ function celebrateWin() {
   const centerY = rect.top + rect.height / 2;
 
   // Multiple bursts with slight delays for dramatic effect
-  spawnParticles(centerX, centerY, 100); // Large burst
-  setTimeout(() => spawnParticles(centerX - 50, centerY, 20), 100);
-  setTimeout(() => spawnParticles(centerX + 50, centerY, 20), 200);
+  spawnParticles(centerX, centerY);
+  setTimeout(() => spawnParticles(centerX - 50, centerY), 100);
+  setTimeout(() => spawnParticles(centerX + 50, centerY), 200);
 
   // Add win effect
   footerLabel.classList.add('win-reveal');
