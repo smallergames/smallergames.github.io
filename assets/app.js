@@ -99,6 +99,9 @@ let pendingFinish = null; // stores {result, rolledDie} when waiting for animati
 const MAX_ENERGY_MS = 2000;
 const ENERGY_PER_CLICK_MS = 450;
 const ENERGY_FILL_RATE_MS = 50;
+// Win sequence timing
+const WIN_SELECTOR_DURATION_MS = 400; // How long selector stays highlighted before reverting
+const WIN_LOOT_DELAY_MS = 950;        // Delay before loot flies to inventory
 let energy = 0;
 let energyDrainFrame = null;
 let isHolding = false;
@@ -142,10 +145,11 @@ function updateVisuals(prevState, newState) {
     stopSparkles();
   }
 
-  // Loot resolution visual effects (only during LOOT_RESOLUTION with a hit)
-  const lootHit = newState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
-  diceSelection.classList.toggle('loot-resolution', lootHit);
-  dieContainer.classList.toggle('loot-resolution', lootHit);
+  // Clear loot-resolution classes when leaving that state (adding is handled by runWinSequence)
+  if (newState !== GameState.LOOT_RESOLUTION) {
+    diceSelection.classList.remove('loot-resolution');
+    dieContainer.classList.remove('loot-resolution');
+  }
 
   // Rolling animation
   if (newState === GameState.RAMPING || newState === GameState.RAMPED) {
@@ -510,6 +514,39 @@ function finishRoll() {
   pendingFinish = { result, rolledDie };
 }
 
+// Orchestrates the win sequence after a loot hit
+function runWinSequence(centerX, centerY, die) {
+  const stateGuard = () => gameState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
+
+  // Immediate: Selector + die effects together
+  diceSelection.classList.add('loot-resolution');
+  dieContainer.classList.add('loot-resolution');
+  spawnParticles(centerX, centerY, die);
+
+  const magentaOutline = dieSvg.cloneNode(true);
+  magentaOutline.classList.add('magenta-outline');
+  magentaOutline.removeAttribute('id');
+  dieSvg.parentElement.appendChild(magentaOutline);
+
+  const whiteOutline = dieSvg.cloneNode(true);
+  whiteOutline.classList.add('white-outline');
+  whiteOutline.removeAttribute('id');
+  dieSvg.parentElement.appendChild(whiteOutline);
+
+  startSettlingAnimation([dieSvg, magentaOutline, whiteOutline]);
+
+  // Selector reverts quickly so focus shifts to die
+  setTimeout(() => {
+    diceSelection.classList.remove('loot-resolution');
+  }, WIN_SELECTOR_DURATION_MS);
+
+  // Delayed: Loot flies to inventory
+  setTimeout(() => {
+    if (!stateGuard()) return;
+    spawnLoot(die, centerX, centerY);
+  }, WIN_LOOT_DELAY_MS);
+}
+
 function completeRollFinish({ result, rolledDie }) {
   resultDisplay.textContent = result;
   resultDisplay.classList.add('show');
@@ -527,25 +564,10 @@ function completeRollFinish({ result, rolledDie }) {
     setState(GameState.LOOT_RESOLUTION);
 
     if (isHit) {
-      // Loot hit - spawn particles, loot, and settling animation
       const rect = dieContainer.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      spawnParticles(centerX, centerY, currentDie);
-      spawnLoot(currentDie, centerX, centerY);
-
-      // Add triple wiggling outlines effect
-      const magentaOutline = dieSvg.cloneNode(true);
-      magentaOutline.classList.add('magenta-outline');
-      magentaOutline.removeAttribute('id');
-      dieSvg.parentElement.appendChild(magentaOutline);
-
-      const whiteOutline = dieSvg.cloneNode(true);
-      whiteOutline.classList.add('white-outline');
-      whiteOutline.removeAttribute('id');
-      dieSvg.parentElement.appendChild(whiteOutline);
-
-      startSettlingAnimation([dieSvg, magentaOutline, whiteOutline]);
+      runWinSequence(centerX, centerY, currentDie);
     } else {
       // Loot miss - consolation trash then return to IDLE
       const rect = dieContainer.getBoundingClientRect();
