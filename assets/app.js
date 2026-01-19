@@ -8,6 +8,28 @@
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
 import { initLoot, spawnLoot } from './loot.js';
 
+// Motion warning for users with prefers-reduced-motion
+const MOTION_WARNING_KEY = 'motion-warning-dismissed';
+const motionWarning = document.getElementById('motionWarning');
+const motionWarningDismiss = document.getElementById('motionWarningDismiss');
+
+function checkMotionWarning() {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const alreadyDismissed = localStorage.getItem(MOTION_WARNING_KEY) === 'true';
+  
+  if (prefersReducedMotion && !alreadyDismissed) {
+    motionWarning.showModal();
+    return true;
+  }
+  return false;
+}
+
+motionWarningDismiss.addEventListener('click', () => {
+  localStorage.setItem(MOTION_WARNING_KEY, 'true');
+  motionWarning.close();
+  addEnergy(ENERGY_PER_CLICK_MS);
+});
+
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', shape: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -662,6 +684,8 @@ window.addEventListener('resize', initIndicator);
 
 initIndicator();
 
-// Start the first roll
-addEnergy(ENERGY_PER_CLICK_MS);
+// Start the first roll (unless motion warning is shown)
+if (!checkMotionWarning()) {
+  addEnergy(ENERGY_PER_CLICK_MS);
+}
 
