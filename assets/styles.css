@@ -309,13 +309,13 @@ nav {
   50% { transform: translateX(4px); }
 }
 
-/* Settling state - input blocked during loot hit animation */
-.dice-selection.settling {
+/* Loot resolution state - input blocked during loot hit animation */
+.dice-selection.loot-resolution {
   pointer-events: none;
-  animation: settlingPulse 0.8s ease-in-out infinite;
+  animation: lootResolutionPulse 0.8s ease-in-out infinite;
 }
 
-@keyframes settlingPulse {
+@keyframes lootResolutionPulse {
   0%, 100% {
     border-color: var(--magenta);
     box-shadow: 0 0 8px var(--magenta-glow);
@@ -452,37 +452,37 @@ main {
   filter: drop-shadow(0 0 8px var(--white-glow));
 }
 
-/* Settling state - triple wiggling outlines that settle */
-.die-container.settling .die-shape svg:not(.magenta-outline):not(.white-outline) {
-  animation: settlingWiggle 0.8s ease-in-out infinite;
+/* Loot resolution state - triple wiggling outlines that settle */
+.die-container.loot-resolution .die-shape svg:not(.magenta-outline):not(.white-outline) {
+  animation: lootResolutionWiggle 0.8s ease-in-out infinite;
   --wiggle-amount: 12deg;
 }
 
-.die-container.settling .die-shape svg.magenta-outline {
-  animation: settlingWiggle 0.9s ease-in-out infinite reverse;
+.die-container.loot-resolution .die-shape svg.magenta-outline {
+  animation: lootResolutionWiggle 0.9s ease-in-out infinite reverse;
   --wiggle-amount: 12deg;
 }
 
-.die-container.settling .die-shape svg.white-outline {
-  animation: settlingWiggle 1.0s ease-in-out infinite;
+.die-container.loot-resolution .die-shape svg.white-outline {
+  animation: lootResolutionWiggle 1.0s ease-in-out infinite;
   --wiggle-amount: 12deg;
 }
 
-@keyframes settlingWiggle {
+@keyframes lootResolutionWiggle {
   0%, 100% { transform: rotate(calc(var(--wiggle-amount, 12deg) * -1)); }
   50% { transform: rotate(var(--wiggle-amount, 12deg)); }
 }
 
 /* d100 needs more rotation due to its rounder shape */
-.die-container.d100.settling .die-shape svg:not(.magenta-outline):not(.white-outline) {
+.die-container.d100.loot-resolution .die-shape svg:not(.magenta-outline):not(.white-outline) {
   --wiggle-amount: 20deg;
 }
 
-.die-container.d100.settling .die-shape svg.magenta-outline {
+.die-container.d100.loot-resolution .die-shape svg.magenta-outline {
   --wiggle-amount: 20deg;
 }
 
-.die-container.d100.settling .die-shape svg.white-outline {
+.die-container.d100.loot-resolution .die-shape svg.white-outline {
   --wiggle-amount: 20deg;
 }
 
@@ -492,7 +492,7 @@ main {
   transition: opacity 0.2s var(--transition-smooth);
 }
 
-.die-container.rolling .die-grid {
+.die-container.ramping .die-grid {
   opacity: 1;
   animation: gridPan 0.4s linear infinite;
 }
@@ -552,11 +552,11 @@ main {
    Animations
    ========================================================================== */
 
-.die-container.rolling .die-shape svg {
+.die-container.ramping .die-shape svg {
   animation: dieRoll 0.5s linear infinite;
 }
 
-.die-container.rolling .die-result {
+.die-container.ramping .die-result {
   animation: resultGlitch 0.5s steps(2);
 }
 
