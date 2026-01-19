@@ -29,32 +29,6 @@ const dieContainer = document.getElementById('dieContainer');
 const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
-const hintElement = document.getElementById('hint');
-
-// Onboarding hints
-const HINTS_KEY = 'dice-hints-seen';
-let seenHints = JSON.parse(localStorage.getItem(HINTS_KEY) || '{}');
-
-function showHint(key, text, autoFade = false) {
-  if (seenHints[key]) return;
-  seenHints[key] = true;
-  localStorage.setItem(HINTS_KEY, JSON.stringify(seenHints));
-
-  hintElement.textContent = text;
-  hintElement.classList.add('visible');
-
-  if (autoFade) {
-    hintElement.classList.add('fading');
-    hintElement.addEventListener('animationend', () => {
-      hintElement.classList.remove('visible', 'fading');
-    }, { once: true });
-  }
-}
-
-function hideHint() {
-  hintElement.classList.remove('visible');
-}
-
 // Game state machine
 const GameState = {
   IDLE: 'idle',       // Waiting for input, can roll
@@ -306,11 +280,6 @@ function activateBoost({ spawnInitialParticles = true } = {}) {
     sparkleInterval = null;
   }
 
-  // Show boost hint on first boost
-  if (spawnInitialParticles) {
-    showHint('boost', '+1 max on charged rolls', true);
-  }
-
   isBoosted = true;
   const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
   if (!selectedBtn) return;
@@ -360,9 +329,6 @@ function deactivateBoost() {
 
 function addEnergy(amount) {
   if (!canAcceptInput()) return;
-
-  // Hide initial hint on first user interaction
-  hideHint();
 
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
   updateEnergyLevel();
@@ -627,7 +593,6 @@ window.addEventListener('resize', initIndicator);
 
 initIndicator();
 
-// Show initial hint, then start the first roll
-showHint('initial', 'click or hold the die to roll', false);
+// Start the first roll
 addEnergy(ENERGY_PER_CLICK_MS);
 

@@ -97,13 +97,6 @@ const GameState = {
 - `isBoosted` is **separate** from GameState—it tracks the +1 max mechanic, not UI blocking
 - State transitions: IDLE → ROLLING (on addEnergy) → IDLE (normal roll) or SETTLING (overcharged) → IDLE
 
-### Onboarding Hints
-
-- Contextual hints stored in localStorage (`dice-hints-seen`)
-- `showHint(key, text, autoFade)` shows a hint if not previously seen
-- Initial hint: "click or hold the die to roll" (shown on load)
-- Boost hint: "+1 max on charged rolls" (shown on first boost, auto-fades)
-
 ### Game Mechanics
 
 **Boost:** Double-tap/click the roll area to activate boost mode. The selected die rolls one value higher than normal (d6 becomes d7, d20 becomes d21). Visual feedback includes sparkle particles and a `.boosted` class on the button. State tracked via `isBoosted` and `boostedMax`.
