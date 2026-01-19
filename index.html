@@ -39,16 +39,14 @@
         <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
         <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
       </div>
-      <div class="energy-label" aria-hidden="true">effort</div>
+      <div class="energy-label" data-state="idle" aria-hidden="true">idle</div>
     </nav>
 
     <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
 
   <footer>
-    <div class="charged-rolls" id="chargedRolls">maximum effort rolls: 0</div>
-    <div class="loot-collected"></div>
-    <p class="quote" id="footerQuote">…there's loot in the dice. but you won't find it. cowards.</p>
+    <div class="footer-label" id="footerLabel"></div>
   </footer>
 
   <canvas id="particleCanvas"></canvas>

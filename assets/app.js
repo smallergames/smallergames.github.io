@@ -6,7 +6,7 @@
  */
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
-import { initLoot, spawnLoot, incrementChargedRolls } from './loot.js';
+import { initLoot, spawnLoot } from './loot.js';
 
 const DIE_SHAPES = {
   4: { viewBox: '-50 -50 100 100', shape: '<polygon points="0,-50 -45,25 45,25" />' },
@@ -29,6 +29,7 @@ const dieContainer = document.getElementById('dieContainer');
 const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
+const energyLabel = document.querySelector('.energy-label');
 // Game state machine
 const GameState = {
   IDLE: 'idle',       // Waiting for input, can roll
@@ -56,6 +57,37 @@ let boostedMax = null; // The max+1 value when boosted
 let sparkleInterval = null; // Interval for boost sparkle effect
 let overchargedTimeout = null; // Timeout for overcharged effect duration
 let overchargedSettleFrame = null; // Animation frame for settling effect
+
+// Energy label state tracking
+let idleTimeout = null;
+const IDLE_DELAY_MS = 1000;
+
+function updateEnergyLabel() {
+  if (!energyLabel) return;
+
+  let state;
+  if (energy === 0) {
+    state = 'idle';
+  } else if (isBoosted) {
+    state = 'ramped';
+  } else {
+    state = 'ramping';
+  }
+
+  energyLabel.textContent = state;
+  energyLabel.dataset.state = state;
+}
+
+function resetIdleTimer() {
+  if (idleTimeout) {
+    clearTimeout(idleTimeout);
+  }
+  idleTimeout = setTimeout(() => {
+    if (energy === 0) {
+      updateEnergyLabel();
+    }
+  }, IDLE_DELAY_MS);
+}
 
 function canAcceptInput() {
   return gameState !== GameState.SETTLING;
@@ -307,6 +339,8 @@ function activateBoost({ spawnInitialParticles = true } = {}) {
       spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
     }
   }, 150);
+
+  updateEnergyLabel();
 }
 
 function deactivateBoost() {
@@ -338,6 +372,9 @@ function addEnergy(amount) {
     activateBoost();
   }
 
+  updateEnergyLabel();
+  resetIdleTimer();
+
   if (!energyDrainFrame) {
     startEnergyDrain();
   }
@@ -365,6 +402,7 @@ function startEnergyDrain() {
     
     if (energy <= 0) {
       energyDrainFrame = null;
+      updateEnergyLabel();
       finishRoll();
       return;
     }
@@ -378,7 +416,12 @@ function startEnergyDrain() {
 function startContinuousRoll() {
   gameState = GameState.ROLLING;
   pendingFinish = null; // Cancel any pending finish if user adds more energy
+
+  // Force animation restart by ensuring class is removed, then forcing reflow
+  dieContainer.classList.remove('rolling');
+  void dieContainer.offsetWidth;
   dieContainer.classList.add('rolling');
+
   resultDisplay.classList.remove('show');
 }
 
@@ -397,11 +440,6 @@ function completeRollFinish({ result, rolledDie }) {
   resultDisplay.textContent = result;
   dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
-
-  // Track charged rolls (any roll with full energy bar)
-  if (rolledDie > currentDie) {
-    incrementChargedRolls();
-  }
 
   // Spawn glitch particle explosion and add overcharged effect if result is in overload range
   if (result > currentDie) {

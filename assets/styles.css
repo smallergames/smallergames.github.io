@@ -119,6 +119,49 @@ nav {
   color: var(--text-muted);
   opacity: 0.6;
   pointer-events: none;
+  transition: color 0.3s, opacity 0.3s, text-shadow 0.3s;
+}
+
+.energy-label[data-state="ramping"] {
+  color: var(--accent);
+  opacity: 1;
+  animation: rampingPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes rampingPulse {
+  0%, 100% {
+    opacity: 0.7;
+    text-shadow: 0 0 4px var(--accent-glow);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--accent-glow);
+  }
+}
+
+.energy-label[data-state="ramped"] {
+  color: #fff;
+  opacity: 1;
+  animation: rampedGlow 0.6s ease-in-out infinite;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 12px var(--accent),
+    0 0 20px var(--magenta-glow);
+}
+
+@keyframes rampedGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 4px #fff,
+      0 0 12px var(--accent),
+      0 0 20px var(--magenta-glow);
+  }
+  50% {
+    text-shadow:
+      0 0 8px #fff,
+      0 0 16px var(--accent),
+      0 0 28px var(--magenta-glow);
+  }
 }
 
 .dice-selection {
@@ -497,7 +540,7 @@ main {
 }
 
 /* ==========================================================================
-   Quote / Footer
+   Footer
    ========================================================================== */
 
 footer {
@@ -507,31 +550,15 @@ footer {
   z-index: 10;
 }
 
-.quote {
+.footer-label {
   font-family: var(--font-family);
-  font-style: normal;
-  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-  position: relative;
+  font-size: clamp(0.55rem, 1.4vw, 0.65rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* Typing cursor effect */
-.quote::after {
-  content: '▮';
-  margin-left: 0.25em;
-  animation: cursorBlink 1s steps(1) infinite;
-}
-
-@keyframes cursorBlink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-/* Win celebration - glowing reveal effect (no transforms per AGENTS.md) */
-.quote.win-reveal {
-  color: var(--accent);
+/* Win celebration - glowing reveal effect */
+.footer-label.win-reveal {
   animation: winGlow 2s ease-out forwards;
 }
 
@@ -606,7 +633,7 @@ footer {
     right: 1rem;
   }
 
-  .quote {
+  .footer-label {
     white-space: normal;
     line-height: 1.5;
   }
@@ -661,27 +688,6 @@ footer {
    Loot System
    ========================================================================== */
 
-.charged-rolls {
-  margin-bottom: 0.5rem;
-  font-family: var(--font-family);
-  font-size: clamp(0.55rem, 1.4vw, 0.65rem);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.loot-collected {
-  margin-bottom: 0.5rem;
-  font-family: var(--font-family);
-  font-size: clamp(0.55rem, 1.4vw, 0.65rem);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.loot-collected:empty {
-  display: none;
-}
-
 .loot-tier {
   color: var(--loot-color);
   position: relative;
@@ -690,6 +696,11 @@ footer {
   transition:
     filter var(--fade-duration, 5000ms) ease-out,
     text-shadow var(--fade-duration, 5000ms) ease-out;
+}
+
+.loot-tier.undiscovered {
+  color: #888;
+  filter: none;
 }
 
 .loot-tier.energized {
@@ -725,7 +736,7 @@ footer {
 }
 
 .loot-separator {
-  color: var(--text-muted);
+  color: #888;
   margin: 0 0.25em;
 }
 

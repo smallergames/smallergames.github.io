@@ -9,7 +9,7 @@ import { spawnParticles } from './particles.js';
 // Tier definitions - tier number determines rarity (1 = rarest, 7 = most common)
 const LOOT_TIERS = {
   7: { name: 'TRASH', color: '#888' },
-  6: { name: 'ZZZ', color: '#ccc' },
+  6: { name: 'ZZZ', color: '#aaa' },
   5: { name: 'DECENT', color: '#4ade80' },
   4: { name: 'DOPE', color: '#60a5fa' },
   3: { name: 'BASED', color: '#c084fc' },
@@ -41,20 +41,14 @@ const COLOR_FADE_MS = 5000; // How long color stays before fading to grey
 let collectedLoot = {}; // { tier: count }
 let dropsInFlight = 0; // Counter for animations in progress
 let lootQueue = []; // Queue for pending loot drops { dieSize, originX, originY }
-let hasCollectedOnce = false;
 let hasCollectedAll = false;
-let chargedRolls = 0;
 
 // DOM elements
-let lootCollected = null;
+let footerLabel = null;
 let pixelContainer = null;
-let footerQuote = null;
-let chargedRollsEl = null;
 
 export function initLoot() {
-  lootCollected = document.querySelector('.loot-collected');
-  footerQuote = document.getElementById('footerQuote');
-  chargedRollsEl = document.getElementById('chargedRolls');
+  footerLabel = document.getElementById('footerLabel');
 
   // Create pixel container if it doesn't exist
   pixelContainer = document.querySelector('.loot-pixels');
@@ -64,32 +58,24 @@ export function initLoot() {
     document.body.appendChild(pixelContainer);
   }
 
-  renderLoot();
+  renderLabel();
 }
 
-function updateFooterQuote() {
-  if (!footerQuote) return;
+function checkWinCondition() {
+  if (hasCollectedAll) return;
 
-  // Check if all 7 tiers have been collected
-  if (!hasCollectedAll) {
-    const allTiersCollected = [1, 2, 3, 4, 5, 6, 7].every(tier => collectedLoot[tier] > 0);
-    if (allTiersCollected) {
-      hasCollectedAll = true;
-      celebrateWin();
-      return;
-    }
-  }
-
-  // First collection message
-  if (!hasCollectedOnce) {
-    hasCollectedOnce = true;
-    footerQuote.textContent = '…this might be the world\'s laziest inventory system. there\'s more loot in the dice. good luck.';
+  const allTiersCollected = [1, 2, 3, 4, 5, 6, 7].every(tier => collectedLoot[tier] > 0);
+  if (allTiersCollected) {
+    hasCollectedAll = true;
+    celebrateWin();
   }
 }
 
 function celebrateWin() {
+  if (!footerLabel) return;
+
   // Spawn particle bursts at footer location
-  const rect = footerQuote.getBoundingClientRect();
+  const rect = footerLabel.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
@@ -98,9 +84,8 @@ function celebrateWin() {
   setTimeout(() => spawnParticles(centerX - 50, centerY, 20), 100);
   setTimeout(() => spawnParticles(centerX + 50, centerY, 20), 200);
 
-  // Animate quote reveal
-  footerQuote.classList.add('win-reveal');
-  footerQuote.textContent = `…you found all the loot in ${chargedRolls} maximum effort rolls. i mean, you can keep finding it, but you basically have it all. you win.`;
+  // Add win effect
+  footerLabel.classList.add('win-reveal');
 }
 
 // No longer exported - spawnLoot handles queuing internally
@@ -124,16 +109,6 @@ function getDropCount() {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function incrementChargedRolls() {
-  chargedRolls++;
-  if (!chargedRollsEl) {
-    chargedRollsEl = document.getElementById('chargedRolls');
-  }
-  if (chargedRollsEl) {
-    chargedRollsEl.textContent = `maximum effort rolls: ${chargedRolls}`;
-  }
-}
-
 export function spawnLoot(dieSize, originX, originY) {
   // Queue loot if drops are in flight
   if (dropsInFlight > 0) {
@@ -145,7 +120,7 @@ export function spawnLoot(dieSize, originX, originY) {
 }
 
 function processLootDrop(dieSize, originX, originY) {
-  if (!lootCollected) initLoot();
+  if (!footerLabel) initLoot();
 
   const dropCount = getDropCount();
   const drops = [];
@@ -166,10 +141,10 @@ function processLootDrop(dieSize, originX, originY) {
 
       // Pre-add to inventory so element exists for targeting
       collectedLoot[tier] = (collectedLoot[tier] || 0) + 1;
-      renderLoot();
+      renderLabel();
 
       // Get the tier element's position
-      const tierEl = lootCollected.querySelector(`[data-tier="${tier}"]`);
+      const tierEl = footerLabel.querySelector(`[data-tier="${tier}"]`);
       let destX, destY;
 
       if (tierEl) {
@@ -178,7 +153,7 @@ function processLootDrop(dieSize, originX, originY) {
         destY = tierRect.top + tierRect.height / 2;
       } else {
         // Fallback to footer center
-        const footerRect = lootCollected.getBoundingClientRect();
+        const footerRect = footerLabel.getBoundingClientRect();
         destX = footerRect.left + footerRect.width / 2;
         destY = footerRect.top;
       }
@@ -190,7 +165,7 @@ function processLootDrop(dieSize, originX, originY) {
       setTimeout(() => {
         glitchTier(tier);
         energizeTier(tier);
-        updateFooterQuote();
+        checkWinCondition();
 
         // Decrement counter when drop lands
         dropsInFlight--;
@@ -285,7 +260,7 @@ function spawnLandingBurst(tier, x, y) {
 }
 
 function energizeTier(tier) {
-  const tierEl = lootCollected.querySelector(`[data-tier="${tier}"]`);
+  const tierEl = footerLabel.querySelector(`[data-tier="${tier}"]`);
   if (!tierEl) return;
 
   const rawIntensity = 8 - tier;
@@ -310,7 +285,7 @@ function energizeTier(tier) {
 }
 
 function glitchTier(tier) {
-  const tierEl = lootCollected.querySelector(`[data-tier="${tier}"]`);
+  const tierEl = footerLabel.querySelector(`[data-tier="${tier}"]`);
   if (!tierEl) return;
 
   // Rarer tiers (lower number) get more intense glitch
@@ -323,22 +298,24 @@ function glitchTier(tier) {
   setTimeout(() => tierEl.classList.remove('glitch'), duration);
 }
 
-function renderLoot() {
-  if (!lootCollected) return;
+function renderLabel() {
+  if (!footerLabel) return;
 
-  const entries = Object.entries(collectedLoot)
-    .filter(([_, count]) => count > 0)
-    .sort(([a], [b]) => parseInt(b) - parseInt(a));
+  // Build discovered tier entries (sorted: trash first, jawesome last)
+  const tierOrder = [7, 6, 5, 4, 3, 2, 1];
+  const discoveredEntries = tierOrder
+    .filter(tier => collectedLoot[tier] > 0)
+    .map(tier => {
+      const tierData = LOOT_TIERS[tier];
+      const count = collectedLoot[tier];
+      return `<span class="loot-tier" data-tier="${tier}" style="--loot-color: ${tierData.color}">${tierData.name}: ${count}</span>`;
+    });
 
-  if (entries.length === 0) {
-    lootCollected.innerHTML = '';
-    return;
+  // Add ??? if any tiers remain undiscovered
+  const undiscoveredCount = tierOrder.filter(tier => !collectedLoot[tier]).length;
+  if (undiscoveredCount > 0) {
+    discoveredEntries.push('<span class="loot-tier undiscovered">???</span>');
   }
 
-  const parts = entries.map(([tier, count]) => {
-    const tierData = LOOT_TIERS[tier];
-    return `<span class="loot-tier" data-tier="${tier}" style="--loot-color: ${tierData.color}">${tierData.name}: ${count}</span>`;
-  });
-
-  lootCollected.innerHTML = parts.join('<span class="loot-separator">|</span>');
+  footerLabel.innerHTML = discoveredEntries.join('<span class="loot-separator">|</span>');
 }
