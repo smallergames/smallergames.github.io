@@ -355,6 +355,8 @@ function deactivateBoost() {
     selectedBtn.textContent = `d${currentDie}`;
     selectedBtn.classList.remove('boosted');
   }
+
+  updateEnergyLabel();
 }
 
 function addEnergy(amount) {
