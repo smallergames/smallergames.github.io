@@ -53,6 +53,14 @@ const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
 const energyLabel = document.querySelector('.energy-label');
+
+/**
+ * Returns the currently selected die button element.
+ * @returns {Element|null} The selected die button, or null if none selected
+ */
+function getSelectedDie() {
+  return document.querySelector('[data-die][aria-checked="true"]');
+}
 // Game state machine - single source of truth
 const GameState = {
   IDLE: 'idle',                    // No energy, waiting for input
@@ -102,7 +110,7 @@ let settlingTimeout = null; // Timeout for settling effect duration
 let settlingAnimationFrame = null; // Animation frame for settling effect
 
 function updateVisuals(prevState, newState) {
-  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+  const selectedBtn = getSelectedDie();
 
   // Map game state to energy label CSS state
   let labelState;
@@ -155,7 +163,7 @@ function updateVisuals(prevState, newState) {
 function startSparkles() {
   if (sparkleInterval) return;
   sparkleInterval = setInterval(() => {
-    const btn = document.querySelector('[data-die][aria-checked="true"]');
+    const btn = getSelectedDie();
     if (btn) {
       const r = btn.getBoundingClientRect();
       spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
@@ -330,7 +338,7 @@ function clearResult() {
   clearSettlingState();
 }
 
-function clearSettlingState() {
+function clearOutlineEffects() {
   if (settlingTimeout) {
     clearTimeout(settlingTimeout);
     settlingTimeout = null;
@@ -339,12 +347,14 @@ function clearSettlingState() {
     cancelAnimationFrame(settlingAnimationFrame);
     settlingAnimationFrame = null;
   }
-
-  // Remove outline effect elements
   const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
   const whiteOutline = document.querySelector('.die-shape svg.white-outline');
   if (magentaOutline) magentaOutline.remove();
   if (whiteOutline) whiteOutline.remove();
+}
+
+function clearSettlingState() {
+  clearOutlineEffects();
 
   // Clear ramp value for next roll
   rampedMax = null;
@@ -386,20 +396,7 @@ function stopEnergySystem() {
   rampedMax = null;
   lootResult = null;
 
-  // Clear settling animation elements
-  if (settlingTimeout) {
-    clearTimeout(settlingTimeout);
-    settlingTimeout = null;
-  }
-  if (settlingAnimationFrame) {
-    cancelAnimationFrame(settlingAnimationFrame);
-    settlingAnimationFrame = null;
-  }
-  const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
-  const whiteOutline = document.querySelector('.die-shape svg.white-outline');
-  if (magentaOutline) magentaOutline.remove();
-  if (whiteOutline) whiteOutline.remove();
-
+  clearOutlineEffects();
   updateEnergyLevel();
   stopSparkles();
 
@@ -442,7 +439,7 @@ function addEnergy(amount) {
     setState(GameState.RAMPED);
 
     // Spawn particles on ramp activation
-    const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+    const selectedBtn = getSelectedDie();
     if (selectedBtn) {
       const rect = selectedBtn.getBoundingClientRect();
       spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, currentDie);
@@ -641,6 +638,7 @@ function handleKeydown(event) {
       return;
     }
     selectDie(dieButtons[newIndex]);
+    addEnergy(ENERGY_PER_CLICK_MS);
   }
 }
 
@@ -659,7 +657,7 @@ function handleKeyup(event) {
 }
 
 function initIndicator() {
-  const selected = document.querySelector('[data-die][aria-checked="true"]');
+  const selected = getSelectedDie();
   if (selected) {
     updateIndicator(selected);
   }
