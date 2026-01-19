@@ -764,13 +764,13 @@ footer {
   }
 
   .die-btn {
-    padding: 0.85rem 0;
-    min-width: 2.75rem;
-    font-size: 0.7rem;
+    padding: 1rem 0;
+    min-width: 3rem;
+    font-size: 0.75rem;
   }
 
   .die-btn[data-die="100"] {
-    min-width: 3.25rem;
+    min-width: 3.5rem;
   }
 }
 
