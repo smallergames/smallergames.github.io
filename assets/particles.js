@@ -52,17 +52,8 @@ function releaseScanline(s) {
   scanlinePool.push(s);
 }
 
-const DIE_MAGNITUDE = {
-  4: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  6: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  8: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  10: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  12: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  20: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 },
-  100: { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 }
-};
-
-const DEFAULT_MAGNITUDE = { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 };
+// Particle burst configuration (standardized across all dice)
+const PARTICLE_MAGNITUDE = { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 };
 
 const COLORS = ['#00f0ff', '#ff00ff', '#ffffff', '#ff3366'];
 
@@ -87,7 +78,12 @@ export function initParticles() {
 
   isEnabled = true;
   resize();
-  window.addEventListener('resize', resize);
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resize, 100);
+  });
   return true;
 }
 
@@ -145,10 +141,10 @@ export function spawnSparkles(x, y) {
  * @param {number} y - Screen Y coordinate
  * @param {number} dieSize - The die size (4, 6, 8, 10, 12, 20, 100)
  */
-export function spawnParticles(x, y, dieSize = 20) {
+export function spawnParticles(x, y) {
   if (!isEnabled || !ctx) return;
 
-  const mag = DIE_MAGNITUDE[dieSize] || DEFAULT_MAGNITUDE;
+  const mag = PARTICLE_MAGNITUDE;
 
   for (let i = 0; i < mag.count; i++) {
     const angle = Math.random() * Math.PI * 2;

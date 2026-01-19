@@ -41,11 +41,6 @@ const DIE_SHAPES = {
   100: { viewBox: '0 0 100 100', shape: '<polygon points="50,6 79,13 95,38 95,62 79,87 50,94 21,87 5,62 5,38 21,13" />' }
 };
 
-function buildDieMarkup(shapeConfig) {
-  const { shape } = shapeConfig;
-  return shape;
-}
-
 const diceSelection = document.querySelector('.dice-selection');
 const dieButtons = document.querySelectorAll('[data-die]');
 const dieContainer = document.getElementById('dieContainer');
@@ -100,8 +95,10 @@ const MAX_ENERGY_MS = 2000;
 const ENERGY_PER_CLICK_MS = 450;
 const ENERGY_FILL_RATE_MS = 50;
 // Win sequence timing
-const WIN_SELECTOR_DURATION_MS = 400; // How long selector stays highlighted before reverting
-const WIN_LOOT_DELAY_MS = 950;        // Delay before loot flies to inventory
+const WIN_SELECTOR_DURATION_MS = 400;  // How long selector stays highlighted before reverting
+const WIN_LOOT_DELAY_MS = 950;         // Delay before loot flies to inventory
+const MISS_FEEDBACK_MS = 800;          // How long miss state shows before returning to idle
+const SETTLING_DURATION_MS = 3000;     // How long the settling wiggle animation runs
 let energy = 0;
 let energyDrainFrame = null;
 let isHolding = false;
@@ -332,7 +329,7 @@ function updateDieShape(sides) {
   const shape = DIE_SHAPES[sides];
   if (!shape) return;
   dieSvg.setAttribute('viewBox', shape.viewBox);
-  dieSvg.innerHTML = buildDieMarkup(shape);
+  dieSvg.innerHTML = shape.shape;
   dieContainer.classList.toggle('d4', sides === 4);
   dieContainer.classList.toggle('d100', sides === 100);
 }
@@ -359,13 +356,12 @@ function clearOutlineEffects() {
 }
 
 function startSettlingAnimation(elements) {
-  const duration = 3000;
   const startTime = performance.now();
   const startWiggle = 15;
 
   function animate(now) {
     const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
+    const progress = Math.min(elapsed / SETTLING_DURATION_MS, 1);
     const wiggle = startWiggle * Math.pow(1 - progress, 2);
 
     elements.forEach(svg => {
@@ -471,7 +467,7 @@ function addEnergy(amount) {
     const selectedBtn = getSelectedDie();
     if (selectedBtn) {
       const rect = selectedBtn.getBoundingClientRect();
-      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, currentDie);
+      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
   }
 }
@@ -484,7 +480,8 @@ function startEnergyDrain() {
 
   function drain() {
     const now = performance.now();
-    const delta = now - lastTime;
+    // Cap delta to 100ms to handle tab backgrounding gracefully
+    const delta = Math.min(now - lastTime, 100);
     lastTime = now;
 
     const drainAmount = delta * (isHolding && canAcceptInput() ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
@@ -521,7 +518,7 @@ function runWinSequence(centerX, centerY, die) {
   // Immediate: Selector + die effects together
   diceSelection.classList.add('loot-resolution');
   dieContainer.classList.add('loot-resolution');
-  spawnParticles(centerX, centerY, die);
+  spawnParticles(centerX, centerY);
 
   const magentaOutline = dieSvg.cloneNode(true);
   magentaOutline.classList.add('magenta-outline');
@@ -579,7 +576,7 @@ function completeRollFinish({ result, rolledDie }) {
       if (missLabel) {
         missLabel.textContent = consolationType === TIER_ZZZ ? 'try again. zzz.' : 'try again. just trash.';
       }
-      setTimeout(() => clearSettlingState(), 800);
+      setTimeout(() => clearSettlingState(), MISS_FEEDBACK_MS);
     }
   } else {
     // Was RAMPING (not ramped) - go directly to IDLE (no loot feedback)
