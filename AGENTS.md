@@ -31,7 +31,7 @@ python3 -m http.server 8000
 
 ### prefers-reduced-motion
 
-**Do NOT add `prefers-reduced-motion` handling to this site.** We don't support it.
+**The site does NOT reduce or disable animations** for users with `prefers-reduced-motion` enabled. Instead, a warning modal (`#motionWarning` dialog) appears on first visit to inform users about glitch effects and rapid animations. Dismissal is stored in localStorage (`motion-warning-dismissed`) so the modal only shows once.
 
 ### Fonts
 
