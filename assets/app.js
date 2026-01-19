@@ -210,6 +210,7 @@ function handleDicePointerMove(event) {
   
   if (closestBtn && closestBtn.getAttribute('aria-checked') !== 'true') {
     selectDie(closestBtn);
+    addEnergy(ENERGY_PER_CLICK_MS);
   }
 }
 
