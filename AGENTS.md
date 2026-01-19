@@ -29,6 +29,14 @@ python3 -m http.server 8000
 
 ## Design Decisions
 
+### Project Scope
+
+This is a small static site with no build step, bundler, or test framework. Keep it simple:
+
+- **No unit tests** — The project is too small to justify test framework overhead. Manual testing is sufficient.
+- **No setTimeout ID tracking** — Since the site never tears down (no SPA routing, no cleanup lifecycle), storing timeout IDs for cancellation is unnecessary.
+- **No minification/bundling** — Files are small enough that build tooling adds more complexity than value.
+
 ### prefers-reduced-motion
 
 **The site does NOT reduce or disable animations** for users with `prefers-reduced-motion` enabled. Instead, a warning modal (`#motionWarning` dialog) appears on first visit to inform users about glitch effects and rapid animations. Dismissal is stored in localStorage (`motion-warning-dismissed`) so the modal only shows once.
