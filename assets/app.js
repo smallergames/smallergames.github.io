@@ -47,7 +47,7 @@ const validTransitions = {
   [GameState.IDLE]: [GameState.RAMPING],
   [GameState.RAMPING]: [GameState.IDLE, GameState.RAMPED],
   [GameState.RAMPED]: [GameState.RAMPING, GameState.LOOT_RESOLUTION],
-  [GameState.LOOT_RESOLUTION]: [GameState.IDLE]
+  [GameState.LOOT_RESOLUTION]: [GameState.IDLE, GameState.RAMPING]
 };
 
 function setState(newState) {
@@ -111,22 +111,22 @@ function updateVisuals(prevState, newState) {
     stopSparkles();
   }
 
-  // Settling visual effects (only during LOOT_RESOLUTION with a hit)
-  const settling = newState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
-  diceSelection.classList.toggle('settling', settling);
-  dieContainer.classList.toggle('settling', settling);
+  // Loot resolution visual effects (only during LOOT_RESOLUTION with a hit)
+  const lootHit = newState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
+  diceSelection.classList.toggle('loot-resolution', lootHit);
+  dieContainer.classList.toggle('loot-resolution', lootHit);
 
   // Rolling animation
   if (newState === GameState.RAMPING || newState === GameState.RAMPED) {
-    if (prevState === GameState.IDLE) {
-      // Starting a new roll
-      dieContainer.classList.remove('rolling');
+    if (prevState === GameState.IDLE || prevState === GameState.LOOT_RESOLUTION) {
+      // Starting a new roll (from idle or interrupting a miss)
+      dieContainer.classList.remove('ramping');
       void dieContainer.offsetWidth;
-      dieContainer.classList.add('rolling');
+      dieContainer.classList.add('ramping');
       resultDisplay.classList.remove('show');
     }
   } else if (newState === GameState.IDLE || newState === GameState.LOOT_RESOLUTION) {
-    dieContainer.classList.remove('rolling');
+    dieContainer.classList.remove('ramping');
   }
 }
 
@@ -149,7 +149,11 @@ function stopSparkles() {
 }
 
 function canAcceptInput() {
-  return gameState !== GameState.LOOT_RESOLUTION;
+  // Block input during loot hit animation, but allow during miss (try again)
+  if (gameState === GameState.LOOT_RESOLUTION) {
+    return lootResult === 'miss';
+  }
+  return true;
 }
 
 function initDieButtons() {
@@ -385,8 +389,8 @@ function addEnergy(amount) {
   pendingFinish = null;
 
   // Handle state transitions
-  if (wasIdle) {
-    // Starting fresh - clear result and enter RAMPING
+  if (wasIdle || (gameState === GameState.LOOT_RESOLUTION && lootResult === 'miss')) {
+    // Starting fresh or interrupting a miss - clear result and enter RAMPING
     clearResult();
     setState(GameState.RAMPING);
   }
