@@ -31,14 +31,36 @@ const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
 const announcements = document.getElementById('announcements');
 const energyLabel = document.querySelector('.energy-label');
-// Game state machine
+// Game state machine - single source of truth
 const GameState = {
-  IDLE: 'idle',       // Waiting for input, can roll
-  ROLLING: 'rolling', // Die is spinning, draining energy
-  SETTLING: 'settling' // Loot hit effect playing, input blocked
+  IDLE: 'idle',                    // No energy, waiting for input
+  RAMPING: 'ramping',              // Building energy, die rolling
+  RAMPED: 'ramped',                // Fully charged, +1 max active
+  LOOT_RESOLUTION: 'loot_resolution' // Showing hit/miss result, input blocked
 };
 
 let gameState = GameState.IDLE;
+let lootResult = null; // 'hit' or 'miss' during LOOT_RESOLUTION
+
+// Valid state transitions
+const validTransitions = {
+  [GameState.IDLE]: [GameState.RAMPING],
+  [GameState.RAMPING]: [GameState.IDLE, GameState.RAMPED],
+  [GameState.RAMPED]: [GameState.RAMPING, GameState.LOOT_RESOLUTION],
+  [GameState.LOOT_RESOLUTION]: [GameState.IDLE]
+};
+
+function setState(newState) {
+  if (!validTransitions[gameState].includes(newState)) {
+    console.error(`Invalid state transition: ${gameState} -> ${newState}`);
+    return false;
+  }
+
+  const prevState = gameState;
+  gameState = newState;
+  updateVisuals(prevState, newState);
+  return true;
+}
 let currentDie = 4;
 let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
@@ -51,53 +73,83 @@ let energyDrainFrame = null;
 let isHolding = false;
 let holdInterval = null;
 
-// Ramp system - when power meter is full, dice max is increased by 1
-// This is separate from GameState - isRamped affects the +1 max mechanic, not input blocking
-let isRamped = false;
-let rampedMax = null; // The max+1 value when ramped
+// Ramp system - rampedMax tracks the +1 value during RAMPED and LOOT_RESOLUTION states
+let rampedMax = null;
 let sparkleInterval = null; // Interval for ramp sparkle effect
 let settlingTimeout = null; // Timeout for settling effect duration
 let settlingAnimationFrame = null; // Animation frame for settling effect
 
-// Energy label state tracking
-let idleTimeout = null;
-const IDLE_DELAY_MS = 1000;
+function updateVisuals(prevState, newState) {
+  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
 
-// Loot outcome tracking for visual feedback
-let lootOutcome = null; // 'hit', 'miss', or null
-
-function updateEnergyLabel() {
-  if (!energyLabel) return;
-
-  let state;
-  if (lootOutcome === 'hit') {
-    state = 'loot-hit';
-  } else if (lootOutcome === 'miss') {
-    state = 'loot-miss';
-  } else if (energy === 0) {
-    state = 'idle';
-  } else if (isRamped) {
-    state = 'ramped';
+  // Map game state to energy label CSS state
+  let labelState;
+  if (newState === GameState.LOOT_RESOLUTION) {
+    labelState = lootResult === 'hit' ? 'loot-hit' : 'loot-miss';
+  } else if (newState === GameState.IDLE) {
+    labelState = 'idle';
+  } else if (newState === GameState.RAMPED) {
+    labelState = 'ramped';
   } else {
-    state = 'ramping';
+    labelState = 'ramping';
+  }
+  if (energyLabel) {
+    energyLabel.dataset.state = labelState;
   }
 
-  energyLabel.dataset.state = state;
+  // Ramped visual effects (sparkles, glow, d+1 label)
+  const showRampedEffects = newState === GameState.RAMPED;
+  diceSelection.classList.toggle('ramped', showRampedEffects);
+  if (selectedBtn) {
+    selectedBtn.classList.toggle('ramped', showRampedEffects);
+    selectedBtn.textContent = showRampedEffects ? `d${rampedMax}` : `d${currentDie}`;
+  }
+
+  if (showRampedEffects) {
+    startSparkles();
+  } else {
+    stopSparkles();
+  }
+
+  // Settling visual effects (only during LOOT_RESOLUTION with a hit)
+  const settling = newState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
+  diceSelection.classList.toggle('settling', settling);
+  dieContainer.classList.toggle('settling', settling);
+
+  // Rolling animation
+  if (newState === GameState.RAMPING || newState === GameState.RAMPED) {
+    if (prevState === GameState.IDLE) {
+      // Starting a new roll
+      dieContainer.classList.remove('rolling');
+      void dieContainer.offsetWidth;
+      dieContainer.classList.add('rolling');
+      resultDisplay.classList.remove('show');
+    }
+  } else if (newState === GameState.IDLE || newState === GameState.LOOT_RESOLUTION) {
+    dieContainer.classList.remove('rolling');
+  }
 }
 
-function resetIdleTimer() {
-  if (idleTimeout) {
-    clearTimeout(idleTimeout);
-  }
-  idleTimeout = setTimeout(() => {
-    if (energy === 0) {
-      updateEnergyLabel();
+function startSparkles() {
+  if (sparkleInterval) return;
+  sparkleInterval = setInterval(() => {
+    const btn = document.querySelector('[data-die][aria-checked="true"]');
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
     }
-  }, IDLE_DELAY_MS);
+  }, 150);
+}
+
+function stopSparkles() {
+  if (sparkleInterval) {
+    clearInterval(sparkleInterval);
+    sparkleInterval = null;
+  }
 }
 
 function canAcceptInput() {
-  return gameState !== GameState.SETTLING;
+  return gameState !== GameState.LOOT_RESOLUTION;
 }
 
 function initDieButtons() {
@@ -194,8 +246,11 @@ function selectDie(selectedButton) {
   if (!DIE_SHAPES[sides]) return;
   if (sides === currentDie) return; // Already selected
 
-  // Clear ramp when switching dice - must ramp up again on new die
-  setRamped(false);
+  // Changing dice while ramped -> fall back to RAMPING (loses +1 max)
+  if (gameState === GameState.RAMPED) {
+    rampedMax = null;
+    setState(GameState.RAMPING);
+  }
 
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
   selectedButton.setAttribute('aria-checked', 'true');
@@ -206,11 +261,11 @@ function selectDie(selectedButton) {
   updateDieShape(currentDie);
   clearResult();
   pendingFinish = null; // Cancel any pending result from old die
-  
+
   announce(`Selected ${currentDie}-sided die`);
 
   // Kick off a new roll when switching dice via slider (if not already rolling)
-  if (gameState !== GameState.ROLLING) {
+  if (gameState === GameState.IDLE) {
     addEnergy(ENERGY_PER_CLICK_MS);
   }
 }
@@ -239,26 +294,21 @@ function clearSettlingState() {
     cancelAnimationFrame(settlingAnimationFrame);
     settlingAnimationFrame = null;
   }
-  dieContainer.classList.remove('settling');
-  diceSelection.classList.remove('settling');
+
+  // Remove outline effect elements
   const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
   const whiteOutline = document.querySelector('.die-shape svg.white-outline');
-  if (magentaOutline) {
-    magentaOutline.remove();
-  }
-  if (whiteOutline) {
-    whiteOutline.remove();
-  }
+  if (magentaOutline) magentaOutline.remove();
+  if (whiteOutline) whiteOutline.remove();
 
-  // Clear ramp after settling effect completes
-  setRamped(false);
+  // Clear ramp value for next roll
+  rampedMax = null;
+  lootResult = null;
 
-  // Keep loot state visible for a moment before returning to idle
-  setTimeout(() => {
-    lootOutcome = null;
-    gameState = GameState.IDLE;
-    updateEnergyLabel();
-  }, 800);
+  // Transition to IDLE only if in LOOT_RESOLUTION
+  if (gameState === GameState.LOOT_RESOLUTION) {
+    setState(GameState.IDLE);
+  }
 }
 
 function randomInt(min, max) {
@@ -288,23 +338,30 @@ function stopEnergySystem() {
   pendingFinish = null;
   isHolding = false;
   energy = 0;
+  rampedMax = null;
+  lootResult = null;
 
-  // Clear ramp state
-  setRamped(false);
-
-  // Clear loot outcome
-  lootOutcome = null;
-
-  // Clear settling state
-  clearSettlingState();
+  // Clear settling animation elements
+  if (settlingTimeout) {
+    clearTimeout(settlingTimeout);
+    settlingTimeout = null;
+  }
+  if (settlingAnimationFrame) {
+    cancelAnimationFrame(settlingAnimationFrame);
+    settlingAnimationFrame = null;
+  }
+  const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
+  const whiteOutline = document.querySelector('.die-shape svg.white-outline');
+  if (magentaOutline) magentaOutline.remove();
+  if (whiteOutline) whiteOutline.remove();
 
   updateEnergyLevel();
+  stopSparkles();
 
-  if (gameState === GameState.ROLLING) {
-    dieContainer.classList.remove('rolling');
-  }
+  // Force reset to IDLE (bypasses transition validation)
+  const prevState = gameState;
   gameState = GameState.IDLE;
-  updateEnergyLabel();
+  updateVisuals(prevState, GameState.IDLE);
 }
 
 function updateEnergyLevel() {
@@ -312,84 +369,14 @@ function updateEnergyLevel() {
   diceSelection.style.setProperty('--energy-level', level);
 }
 
-function setRamped(value, { spawnParticles: shouldSpawnParticles = true } = {}) {
-  if (isRamped === value) return; // No change
-
-  isRamped = value;
-
-  if (value) {
-    rampedMax = currentDie + 1;
-  } else {
-    rampedMax = null;
-  }
-
-  // Update ALL state-driven visuals together
-  updateEnergyLabel();
-  updateEnergyLevel();
-
-  // Now update all visuals to match
-  const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
-
-  if (value) {
-    // Activating ramp - ALL effects turn on together
-    diceSelection.classList.add('ramped');
-
-    if (selectedBtn) {
-      selectedBtn.textContent = `d${rampedMax}`;
-      selectedBtn.classList.add('ramped');
-
-      // Spawn glitch particles on activation
-      if (shouldSpawnParticles) {
-        const rect = selectedBtn.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        spawnParticles(centerX, centerY, currentDie);
-      }
-    }
-
-    // Start sparkle effect
-    if (!sparkleInterval) {
-      sparkleInterval = setInterval(() => {
-        const btn = document.querySelector('[data-die][aria-checked="true"]');
-        if (btn) {
-          const r = btn.getBoundingClientRect();
-          spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
-        }
-      }, 150);
-    }
-  } else {
-    // Deactivating ramp - ALL effects turn off together
-    diceSelection.classList.remove('ramped');
-
-    // Stop sparkle effect
-    if (sparkleInterval) {
-      clearInterval(sparkleInterval);
-      sparkleInterval = null;
-    }
-
-    if (selectedBtn) {
-      selectedBtn.textContent = `d${currentDie}`;
-      selectedBtn.classList.remove('ramped');
-    }
-  }
-}
-
 function addEnergy(amount) {
   if (!canAcceptInput()) return;
 
+  const wasIdle = gameState === GameState.IDLE;
   energy = Math.min(energy + amount, MAX_ENERGY_MS);
-
-  // Activate ramp when energy hits max (ramp stays until roll completes)
-  if (energy >= MAX_ENERGY_MS) {
-    setRamped(true);
-  } else {
-    updateEnergyLabel();
-  }
-
-  // Update energy bar AFTER ramp state is set so visuals are in sync
   updateEnergyLevel();
-  resetIdleTimer();
 
+  // Start energy drain if not already running
   if (!energyDrainFrame) {
     startEnergyDrain();
   }
@@ -397,9 +384,24 @@ function addEnergy(amount) {
   // Cancel any pending finish - user is adding more energy
   pendingFinish = null;
 
-  if (gameState !== GameState.ROLLING) {
+  // Handle state transitions
+  if (wasIdle) {
+    // Starting fresh - clear result and enter RAMPING
     clearResult();
-    startContinuousRoll();
+    setState(GameState.RAMPING);
+  }
+
+  // Check for RAMPING -> RAMPED transition when energy fills
+  if (gameState === GameState.RAMPING && energy >= MAX_ENERGY_MS) {
+    rampedMax = currentDie + 1;
+    setState(GameState.RAMPED);
+
+    // Spawn particles on ramp activation
+    const selectedBtn = document.querySelector('[data-die][aria-checked="true"]');
+    if (selectedBtn) {
+      const rect = selectedBtn.getBoundingClientRect();
+      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, currentDie);
+    }
   }
 }
 
@@ -408,40 +410,26 @@ const RELEASE_DRAIN_RATE = 1.5;
 
 function startEnergyDrain() {
   let lastTime = performance.now();
-  
+
   function drain() {
     const now = performance.now();
     const delta = now - lastTime;
     lastTime = now;
-    
+
     const drainAmount = delta * (isHolding && canAcceptInput() ? HOLD_DRAIN_RATE : RELEASE_DRAIN_RATE);
     energy = Math.max(0, energy - drainAmount);
     updateEnergyLevel();
-    
+
     if (energy <= 0) {
       energyDrainFrame = null;
-      updateEnergyLabel();
       finishRoll();
       return;
     }
-    
+
     energyDrainFrame = requestAnimationFrame(drain);
   }
-  
+
   energyDrainFrame = requestAnimationFrame(drain);
-}
-
-function startContinuousRoll() {
-  gameState = GameState.ROLLING;
-  updateEnergyLabel();
-  pendingFinish = null; // Cancel any pending finish if user adds more energy
-
-  // Force animation restart by ensuring class is removed, then forcing reflow
-  dieContainer.classList.remove('rolling');
-  void dieContainer.offsetWidth;
-  dieContainer.classList.add('rolling');
-
-  resultDisplay.classList.remove('show');
 }
 
 function finishRoll() {
@@ -451,100 +439,76 @@ function finishRoll() {
   const rolledDie = effectiveMax;
 
   // Store pending finish - will complete when animation cycle ends
-  // State transitions to IDLE in completeRollFinish (or SETTLING if loot hit)
+  // State transitions in completeRollFinish (RAMPED->LOOT_RESOLUTION, RAMPING->IDLE)
   pendingFinish = { result, rolledDie };
 }
 
 function completeRollFinish({ result, rolledDie }) {
   resultDisplay.textContent = result;
-  dieContainer.classList.remove('rolling');
   resultDisplay.classList.add('show');
-
-  // Spawn glitch particle explosion and enter settling state if result exceeded normal die max
-  if (result > currentDie) {
-    // Enter SETTLING state - input blocked until animation completes
-    gameState = GameState.SETTLING;
-
-    // Set loot-hit outcome for visual feedback
-    lootOutcome = 'hit';
-    updateEnergyLabel();
-
-    const rect = dieContainer.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    spawnParticles(centerX, centerY, currentDie);
-
-    // Spawn loot (queues if drops are in flight)
-    spawnLoot(currentDie, centerX, centerY);
-
-    // Add triple wiggling outlines effect
-    dieContainer.classList.add('settling');
-    diceSelection.classList.add('settling');
-    const magentaOutline = dieSvg.cloneNode(true);
-    magentaOutline.classList.add('magenta-outline');
-    magentaOutline.removeAttribute('id');
-    dieSvg.parentElement.appendChild(magentaOutline);
-
-    const whiteOutline = dieSvg.cloneNode(true);
-    whiteOutline.classList.add('white-outline');
-    whiteOutline.removeAttribute('id');
-    dieSvg.parentElement.appendChild(whiteOutline);
-
-    // Animate settling: burst starts strong, gradually settles to rest
-    const duration = 3000;
-    const startTime = performance.now();
-    const startWiggle = 15; // degrees at burst
-    const allOutlines = [dieSvg, magentaOutline, whiteOutline];
-
-    function animateSettle(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Ease out - fast decay at start, slow settle at end
-      const wiggle = startWiggle * Math.pow(1 - progress, 2);
-
-      allOutlines.forEach(svg => {
-        svg.style.setProperty('--wiggle-amount', `${wiggle}deg`);
-      });
-
-      if (progress < 1) {
-        settlingAnimationFrame = requestAnimationFrame(animateSettle);
-      } else {
-        clearSettlingState();
-      }
-    }
-
-    settlingAnimationFrame = requestAnimationFrame(animateSettle);
-  }
 
   dieContainer.setAttribute(
     'aria-label',
     `Rolled ${result} on d${rolledDie}. Click or press Space/Enter to roll again`
   );
-
   announce(`Rolled ${result} on d${rolledDie}`);
 
-  // Clear ramp for next roll (delay if loot hit to let settling effect play)
-  if (result <= currentDie) {
-    gameState = GameState.IDLE;
+  // RAMPED state must go through LOOT_RESOLUTION (never directly to IDLE)
+  if (gameState === GameState.RAMPED) {
+    const isHit = result > currentDie;
+    lootResult = isHit ? 'hit' : 'miss';
+    setState(GameState.LOOT_RESOLUTION);
 
-    // Show loot-miss outcome if we were ramped
-    const wasRamped = isRamped;
-    if (wasRamped) {
-      lootOutcome = 'miss';
-    }
+    if (isHit) {
+      // Loot hit - spawn particles, loot, and settling animation
+      const rect = dieContainer.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      spawnParticles(centerX, centerY, currentDie);
+      spawnLoot(currentDie, centerX, centerY);
 
-    setRamped(false);
+      // Add triple wiggling outlines effect
+      const magentaOutline = dieSvg.cloneNode(true);
+      magentaOutline.classList.add('magenta-outline');
+      magentaOutline.removeAttribute('id');
+      dieSvg.parentElement.appendChild(magentaOutline);
 
-    if (wasRamped) {
-      // Clear outcome after brief display
-      setTimeout(() => {
-        lootOutcome = null;
-        if (energy === 0) {
-          updateEnergyLabel();
+      const whiteOutline = dieSvg.cloneNode(true);
+      whiteOutline.classList.add('white-outline');
+      whiteOutline.removeAttribute('id');
+      dieSvg.parentElement.appendChild(whiteOutline);
+
+      // Animate settling: burst starts strong, gradually settles to rest
+      const duration = 3000;
+      const startTime = performance.now();
+      const startWiggle = 15;
+      const allOutlines = [dieSvg, magentaOutline, whiteOutline];
+
+      function animateSettle(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const wiggle = startWiggle * Math.pow(1 - progress, 2);
+
+        allOutlines.forEach(svg => {
+          svg.style.setProperty('--wiggle-amount', `${wiggle}deg`);
+        });
+
+        if (progress < 1) {
+          settlingAnimationFrame = requestAnimationFrame(animateSettle);
+        } else {
+          clearSettlingState();
         }
-      }, 800);
+      }
+
+      settlingAnimationFrame = requestAnimationFrame(animateSettle);
+    } else {
+      // Loot miss - brief display then return to IDLE
+      setTimeout(() => clearSettlingState(), 800);
     }
+  } else {
+    // Was RAMPING (not ramped) - go directly to IDLE (no loot feedback)
+    rampedMax = null;
+    setState(GameState.IDLE);
   }
 }
 
@@ -673,7 +637,6 @@ document.addEventListener('keyup', handleKeyup);
 window.addEventListener('resize', initIndicator);
 
 initIndicator();
-updateEnergyLabel();
 
 // Start the first roll
 addEnergy(ENERGY_PER_CLICK_MS);
