@@ -321,8 +321,9 @@ function glitchTier(tier) {
 function renderLabel() {
   if (!footerLabel) return;
 
-  // Build discovered tier entries (sorted: trash first, jawesome last)
   const tierOrder = [7, 6, 5, 4, 3, 2, 1];
+
+  // Build discovered tier entries (sorted: trash first, jawesome last)
   const discoveredEntries = tierOrder
     .filter(tier => collectedLoot[tier] > 0)
     .map(tier => {
@@ -330,12 +331,6 @@ function renderLabel() {
       const count = collectedLoot[tier];
       return `<span class="loot-tier" data-tier="${tier}" style="--loot-color: ${tierData.color}">${tierData.name}: ${count}</span>`;
     });
-
-  // Add ??? if any tiers remain undiscovered
-  const undiscoveredCount = tierOrder.filter(tier => !collectedLoot[tier]).length;
-  if (undiscoveredCount > 0) {
-    discoveredEntries.push('<span class="loot-tier undiscovered">???</span>');
-  }
 
   footerLabel.innerHTML = discoveredEntries.join('<span class="loot-separator">|</span>');
 }

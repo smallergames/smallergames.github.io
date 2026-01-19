@@ -37,7 +37,9 @@
         <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
         <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
       </div>
-      <div class="energy-label" data-state="idle" aria-live="polite" aria-atomic="true">idle</div>
+      <div class="energy-label" aria-live="polite" aria-atomic="true">
+        <span class="state-current"></span><span class="state-arrow">→</span><span class="state-next"></span>
+      </div>
     </nav>
 
     <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>

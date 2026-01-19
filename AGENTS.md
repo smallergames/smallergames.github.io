@@ -9,6 +9,7 @@ index.html          # Single-page app markup
 assets/
   app.js            # Main application logic, state, event handlers
   particles.js      # Canvas-based glitch particle effects
+  loot.js           # Loot drop system with pixel trails
   styles.css        # All styles, CSS custom properties, animations
   fonts/            # Self-hosted Outfit font (woff2)
 ```
