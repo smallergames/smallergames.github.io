@@ -187,10 +187,11 @@ function selectDie(selectedButton) {
   if (!DIE_SHAPES[sides]) return;
   if (sides === currentDie) return; // Already selected
 
-  // Transfer boost state to new button if boosted
-  const wasBoosted = isBoosted;
-  if (wasBoosted) {
-    deactivateBoost(); // Remove from old button
+  // Clear boost when switching dice - must ramp up again on new die
+  if (isBoosted) {
+    deactivateBoost();
+    boostedMax = null;
+    updateEnergyLabel();
   }
 
   dieButtons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
@@ -202,11 +203,6 @@ function selectDie(selectedButton) {
   updateDieShape(currentDie);
   clearResult();
   pendingFinish = null; // Cancel any pending result from old die
-
-  // Reactivate boost for new die (without spawning particles again)
-  if (wasBoosted) {
-    activateBoost({ spawnInitialParticles: false });
-  }
   
   announce(`Selected ${currentDie}-sided die`);
 
