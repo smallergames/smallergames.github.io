@@ -215,9 +215,11 @@ function setupPulseInteraction() {
       const horizontalDist = Math.abs(posX - touchX);
       const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 3 : 0;
 
-      // Apply impulse (convert to physics scale)
-      const impulseX = (dx / dist) * radialStrength * 0.035;
-      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.035;
+      // Scale impulse by cube size - larger cubes get more impulse to bounce,
+      // smaller cubes get less so they don't fly at ridiculous speeds
+      const sizeScale = cube.config.size / 16; // Normalize around mid-tier size
+      const impulseX = (dx / dist) * radialStrength * 0.045 * sizeScale;
+      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.045 * sizeScale;
 
       cube.body.applyImpulse({ x: impulseX, y: impulseY }, true);
     });
