@@ -199,11 +199,11 @@ function setupPulseInteraction() {
       // Floor bounce: only if clicking near floor AND cube is near bottom AND horizontally close
       const distFromBottom = bucketBounds.bottom - posY;
       const horizontalDist = Math.abs(posX - touchX);
-      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 5 : 0;
+      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 2 : 0;
 
       // Apply impulse (convert to physics scale)
-      const impulseX = (dx / dist) * radialStrength * 0.1;
-      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.1;
+      const impulseX = (dx / dist) * radialStrength * 0.02;
+      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.02;
 
       cube.body.applyImpulse({ x: impulseX, y: impulseY }, true);
     });
