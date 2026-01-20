@@ -7,14 +7,15 @@
 import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
 
 // Tier definitions with sizes and point values
+// Vaporwave palette: cyan → pink → violet → blue → magenta → cool grays
 const TIER_CONFIG = {
   1: { name: 'JAWESOME', size: 24, points: 100, color: '#00f0ff' },
-  2: { name: 'SHEESH', size: 20, points: 50, color: '#fb923c' },
-  3: { name: 'BASED', size: 18, points: 25, color: '#c084fc' },
-  4: { name: 'DOPE', size: 16, points: 10, color: '#60a5fa' },
-  5: { name: 'DECENT', size: 14, points: 5, color: '#4ade80' },
-  6: { name: 'ZZZ', size: 12, points: 2, color: '#aaaaaa' },
-  7: { name: 'TRASH', size: 10, points: 1, color: '#888888' }
+  2: { name: 'SHEESH', size: 20, points: 50, color: '#ff3366' },
+  3: { name: 'BASED', size: 18, points: 25, color: '#bf5fff' },
+  4: { name: 'DOPE', size: 16, points: 10, color: '#00bfff' },
+  5: { name: 'DECENT', size: 14, points: 5, color: '#e040fb' },
+  6: { name: 'ZZZ', size: 12, points: 2, color: '#5a5a6a' },
+  7: { name: 'TRASH', size: 10, points: 1, color: '#4a4a5a' }
 };
 
 // Constants
@@ -323,18 +324,21 @@ function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
 
-  // Draw impact marks - 1px thin lines spreading from impact
+  // Draw impact marks - 1px thin lines spreading from impact with glow
   const floorY = bucketBounds.bottom;
   impacts.forEach(imp => {
-    ctx.globalAlpha = imp.alpha * 0.6;
+    ctx.globalAlpha = imp.alpha * 0.7;
+    ctx.shadowColor = imp.color;
+    ctx.shadowBlur = 6;
     ctx.fillStyle = imp.color;
     ctx.fillRect(imp.x - imp.width / 2, floorY - 1, imp.width, 1);
   });
+  ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
 
-  // Draw cubes
+  // Draw cubes with glow
   cubes.forEach(cube => {
-    const { body, config, alpha, scale } = cube;
+    const { body, config, alpha, scale, tier } = cube;
     const pos = body.translation();
     const angle = body.rotation();
 
@@ -346,8 +350,23 @@ function render() {
     const halfSize = size / 2;
 
     ctx.globalAlpha = alpha;
+
+    // Glow intensity based on tier (rarer = more glow)
+    const glowIntensity = tier <= 3 ? 12 : tier <= 5 ? 8 : 4;
+    ctx.shadowColor = config.color;
+    ctx.shadowBlur = glowIntensity;
+
+    // Slightly transparent fill for holographic feel
+    ctx.globalAlpha = alpha * (tier <= 5 ? 0.9 : 0.75);
     ctx.fillStyle = config.color;
     ctx.fillRect(-halfSize, -halfSize, size, size);
+
+    // Subtle lighter border for definition
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = alpha * 0.6;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(-halfSize, -halfSize, size, size);
 
     ctx.restore();
   });
