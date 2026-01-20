@@ -1,15 +1,18 @@
 # smallergames.com
 
-A simple dice roller for tabletop gaming, hosted on GitHub Pages.
+A dice fidget toy with physics-based loot mechanics, hosted on GitHub Pages.
 
 ## Structure
 
 ```
-├── index.html              # Page structure
+├── index.html              # Single-page app markup
 ├── assets/
-│   ├── styles.css          # All styling
-│   ├── app.js              # Dice logic and interactions
-│   └── fonts/              # Self-hosted web fonts
+│   ├── app.js              # Main application logic, state machine, events
+│   ├── particles.js        # Canvas glitch effects (pixel bursts, scanlines)
+│   ├── loot.js             # Loot tier logic and drop spawning
+│   ├── physics.js          # Rapier WASM physics for loot cubes
+│   ├── styles.css          # Styling and animations
+│   └── fonts/              # Self-hosted Outfit font (woff2)
 ├── AGENTS.md               # Development guidelines for AI assistants
 ├── CNAME                   # Custom domain config
 └── README.md
@@ -17,10 +20,11 @@ A simple dice roller for tabletop gaming, hosted on GitHub Pages.
 
 ## How It Works
 
-1. User selects a die type (d4, d6, d8, d10, d12, d20, d100)
-2. Clicking the die or pressing Space/Enter triggers a roll
-3. The die shape rotates during the roll animation
-4. Result appears with a scale-in animation
+1. Select a die type (d4, d6, d8, d10, d12, d20, d100)
+2. Click/tap or hold to build energy - the die rolls continuously
+3. Fill the energy bar to "ramp" the die (+1 to max)
+4. Release while ramped to resolve - beat the normal max for loot
+5. Loot cubes fall with physics, stack up, and can be scattered by clicking
 
 ## Development
 

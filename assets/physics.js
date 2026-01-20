@@ -56,7 +56,7 @@ export async function initPhysics() {
   }
 
   // Initialize Rapier WASM
-  await RAPIER.init();
+  await RAPIER.init({});
 
   // Create physics world with gravity
   const gravity = { x: 0.0, y: 9.81 * 0.8 }; // Slightly reduced gravity
@@ -351,11 +351,4 @@ function render() {
 
     ctx.restore();
   });
-}
-
-/**
- * Get the current cube count (for external checks)
- */
-export function getCubeCount() {
-  return cubes.length;
 }

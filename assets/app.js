@@ -681,7 +681,10 @@ function initIndicator() {
 
 initDieButtons();
 initParticles();
-await initPhysics();
+const physicsReady = await initPhysics();
+if (!physicsReady) {
+  console.warn('[app] Physics failed to initialize - loot cubes will not appear');
+}
 initLoot();
 
 dieContainer.addEventListener('pointerdown', handlePointerDown);
