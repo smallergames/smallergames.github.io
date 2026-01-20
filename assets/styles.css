@@ -89,6 +89,11 @@ body::before {
   50% { opacity: 0.5; }
 }
 
+@keyframes idleBreathe {
+  0%, 100% { transform: rotate(-2.1deg); }
+  50% { transform: rotate(2.1deg); }
+}
+
 /* ==========================================================================
    Particle Canvas
    ========================================================================== */
@@ -546,6 +551,11 @@ main {
 /* ==========================================================================
    Animations
    ========================================================================== */
+
+/* Idle breathe - subtle invitation to interact */
+.die-shape svg {
+  animation: idleBreathe 5s ease-in-out infinite;
+}
 
 .die-container.ramping .die-shape svg {
   animation: dieRoll 0.5s linear infinite;
