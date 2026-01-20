@@ -114,11 +114,11 @@ function processLootDrop(dieSize, rollResult, originX, originY) {
   // Plus 1 guaranteed trash
   drops.push(TIER_TRASH);
 
-  // Pity upgrade: if all loot is tier 6-7, upgrade the best one by 1
+  // Pity upgrade: if all loot is tier 6-7, guarantee at least one DECENT (tier 5)
   const allTrash = drops.every(tier => tier >= TIER_ZZZ);
   if (allTrash) {
     const bestIndex = drops.indexOf(Math.min(...drops));
-    drops[bestIndex] = drops[bestIndex] - 1;
+    drops[bestIndex] = 5;
   }
 
   processDrops(drops, originX, originY);
