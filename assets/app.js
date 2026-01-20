@@ -37,7 +37,6 @@ motionWarningDismiss.addEventListener('click', () => {
     // localStorage may be unavailable (private browsing, quota exceeded, etc.)
   }
   motionWarning.close();
-  addEnergy(ENERGY_PER_CLICK_MS);
 });
 
 
