@@ -6,7 +6,7 @@
 
 
 // Matter.js aliases
-const { Engine, World, Bodies, Body, Events, Composite, Sleeping } = Matter;
+const { Engine, World, Bodies, Body, Events, Composite } = Matter;
 
 // Tier definitions with sizes and point values
 const TIER_CONFIG = {
@@ -53,9 +53,8 @@ export function initPhysics() {
   }
 
 
-  // Create Matter.js engine with sleeping enabled for stability
+  // Create Matter.js engine with higher iterations for stability
   engine = Engine.create({
-    enableSleeping: true,
     positionIterations: 10,
     velocityIterations: 10
   });
@@ -223,9 +222,6 @@ function setupPulseInteraction() {
       const distFromBottom = bucketBounds.bottom - pos.y;
       const horizontalDist = Math.abs(pos.x - touchX);
       const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 5 : 0;
-
-      // Wake sleeping bodies so they respond to pulse
-      Sleeping.set(cube.body, false);
 
       Body.setVelocity(cube.body, {
         x: vel.x + (dx / dist) * radialStrength,
