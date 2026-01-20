@@ -1,12 +1,10 @@
 /**
  * Physics Loot System
  *
- * Matter.js physics engine for cube loot that collects on screen.
+ * Rapier physics engine for cube loot that collects on screen.
  */
 
-
-// Matter.js aliases
-const { Engine, World, Bodies, Body, Events, Composite } = Matter;
+import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
 
 // Tier definitions with sizes and point values
 const TIER_CONFIG = {
@@ -21,25 +19,30 @@ const TIER_CONFIG = {
 
 // Constants
 const WALL_THICKNESS = 20;
+const PIXELS_PER_METER = 50; // Scale factor for physics
 
 // State
-let engine = null;
 let world = null;
+let floorCollider = null;
+let floorHandle = null;
 let canvas = null;
 let ctx = null;
 let cubes = []; // Track our cube bodies with metadata
-let walls = [];
 let bucketBounds = { left: 0, right: 0, bottom: 0, centerX: 0 };
 let animationId = null;
+let eventQueue = null;
 
 // Impact marks - thin lines that spread from impact
 let impacts = []; // { x, width, alpha, color }
 
+// Convert pixels to physics units
+function toPhysics(px) { return px / PIXELS_PER_METER; }
+function toPixels(m) { return m * PIXELS_PER_METER; }
 
 /**
  * Initialize the physics system
  */
-export function initPhysics() {
+export async function initPhysics() {
   canvas = document.getElementById('physicsCanvas');
   if (!canvas) {
     console.warn('[physics] Canvas not found');
@@ -52,26 +55,22 @@ export function initPhysics() {
     return false;
   }
 
+  // Initialize Rapier WASM
+  await RAPIER.init();
 
-  // Create Matter.js engine with higher iterations for stability
-  engine = Engine.create({
-    positionIterations: 10,
-    velocityIterations: 10
-  });
-  world = engine.world;
+  // Create physics world with gravity
+  const gravity = { x: 0.0, y: 9.81 * 0.8 }; // Slightly reduced gravity
+  world = new RAPIER.World(gravity);
 
-  // Reduce gravity slightly for more floaty feel
-  engine.world.gravity.y = 0.8;
+  // Create event queue for collision detection
+  eventQueue = new RAPIER.EventQueue(true);
 
   // Setup canvas size
   resize();
   window.addEventListener('resize', resize);
 
-  // Create bucket walls
-  createBucket();
-
-  // Setup collision detection for forcefield effect
-  setupCollisionDetection();
+  // Create floor
+  createFloor();
 
   // Setup click/touch pulse interaction
   setupPulseInteraction();
@@ -83,29 +82,6 @@ export function initPhysics() {
   return true;
 }
 
-function setupCollisionDetection() {
-  // Detect collisions with floor
-  Events.on(engine, 'collisionStart', (event) => {
-    event.pairs.forEach(pair => {
-      const { bodyA, bodyB } = pair;
-
-      // Check if one body is the floor (walls[0])
-      const isFloorCollision = bodyA === walls[0] || bodyB === walls[0];
-      if (!isFloorCollision) return;
-
-      // Get the cube body and find its data
-      const cubeBody = bodyA === walls[0] ? bodyB : bodyA;
-      const cube = cubes.find(c => c.body === cubeBody);
-      if (!cube) return;
-
-      // Add impact mark - width based on impact velocity
-      const velocity = Math.abs(cubeBody.velocity.y) + Math.abs(cubeBody.velocity.x) * 0.5;
-      const baseWidth = 4 + velocity * 3;
-      impacts.push({ x: cubeBody.position.x, width: baseWidth, alpha: 1, color: cube.config.color });
-    });
-  });
-}
-
 function containCubes() {
   const margin = 10;
   const screenLeft = margin;
@@ -114,25 +90,27 @@ function containCubes() {
 
   cubes.forEach(cube => {
     const { body } = cube;
-    const pos = body.position;
-    const vel = body.velocity;
+    const pos = body.translation();
+    const vel = body.linvel();
+    const posX = toPixels(pos.x);
+    const posY = toPixels(pos.y);
 
     // Bounce off left edge
-    if (pos.x < screenLeft && vel.x < 0) {
-      Body.setPosition(body, { x: screenLeft, y: pos.y });
-      Body.setVelocity(body, { x: Math.abs(vel.x) * 0.7, y: vel.y });
+    if (posX < screenLeft && vel.x < 0) {
+      body.setTranslation({ x: toPhysics(screenLeft), y: pos.y }, true);
+      body.setLinvel({ x: Math.abs(vel.x) * 0.7, y: vel.y }, true);
     }
 
     // Bounce off right edge
-    if (pos.x > screenRight && vel.x > 0) {
-      Body.setPosition(body, { x: screenRight, y: pos.y });
-      Body.setVelocity(body, { x: -Math.abs(vel.x) * 0.7, y: vel.y });
+    if (posX > screenRight && vel.x > 0) {
+      body.setTranslation({ x: toPhysics(screenRight), y: pos.y }, true);
+      body.setLinvel({ x: -Math.abs(vel.x) * 0.7, y: vel.y }, true);
     }
 
     // Bounce off top edge
-    if (pos.y < screenTop && vel.y < 0) {
-      Body.setPosition(body, { x: pos.x, y: screenTop });
-      Body.setVelocity(body, { x: vel.x, y: Math.abs(vel.y) * 0.7 });
+    if (posY < screenTop && vel.y < 0) {
+      body.setTranslation({ x: pos.x, y: toPhysics(screenTop) }, true);
+      body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * 0.7 }, true);
     }
   });
 }
@@ -147,16 +125,18 @@ function resize() {
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
 
-  // Recreate bucket on resize
+  // Recreate floor on resize
   if (world) {
-    createBucket();
+    createFloor();
   }
 }
 
-function createBucket() {
-  // Remove old walls
-  walls.forEach(wall => Composite.remove(world, wall));
-  walls = [];
+function createFloor() {
+  // Remove old floor if exists
+  if (floorCollider !== null) {
+    world.removeCollider(floorCollider, true);
+    floorCollider = null;
+  }
 
   // Get actual bucket container position from DOM
   const bucketContainer = document.getElementById('bucketContainer');
@@ -174,25 +154,21 @@ function createBucket() {
     height: rect.height
   };
 
-  // Only create floor - walls handled by screen edge bounce
-  const wallOptions = {
-    isStatic: true,
-    friction: 0.3,
-    restitution: 0.4,
-    render: { visible: false }
-  };
+  // Create floor as a fixed collider (no rigid body needed for static geometry)
+  const floorDesc = RAPIER.ColliderDesc.cuboid(
+    toPhysics(window.innerWidth),
+    toPhysics(WALL_THICKNESS / 2)
+  )
+    .setTranslation(
+      toPhysics(window.innerWidth / 2),
+      toPhysics(bucketBounds.bottom + WALL_THICKNESS / 2)
+    )
+    .setRestitution(0.4)
+    .setFriction(0.3)
+    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
-  // Bottom wall (floor) - spans full screen width
-  const bottomWall = Bodies.rectangle(
-    window.innerWidth / 2,
-    bucketBounds.bottom + WALL_THICKNESS / 2,
-    window.innerWidth * 2,
-    WALL_THICKNESS,
-    wallOptions
-  );
-
-  walls = [bottomWall];
-  Composite.add(world, walls);
+  floorCollider = world.createCollider(floorDesc);
+  floorHandle = floorCollider.handle;
 }
 
 function setupPulseInteraction() {
@@ -209,24 +185,27 @@ function setupPulseInteraction() {
     const clickNearFloor = touchY > bucketBounds.bottom - 80;
 
     cubes.forEach(cube => {
-      const pos = cube.body.position;
-      const vel = cube.body.velocity;
+      const pos = cube.body.translation();
+      const vel = cube.body.linvel();
+      const posX = toPixels(pos.x);
+      const posY = toPixels(pos.y);
 
       // Radial pulse from touch point - always applies
-      const dx = pos.x - touchX;
-      const dy = pos.y - touchY;
+      const dx = posX - touchX;
+      const dy = posY - touchY;
       const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
       const radialStrength = Math.max(0, 8 - dist / 30);
 
       // Floor bounce: only if clicking near floor AND cube is near bottom AND horizontally close
-      const distFromBottom = bucketBounds.bottom - pos.y;
-      const horizontalDist = Math.abs(pos.x - touchX);
-      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 5 : 0;
+      const distFromBottom = bucketBounds.bottom - posY;
+      const horizontalDist = Math.abs(posX - touchX);
+      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 3 : 0;
 
-      Body.setVelocity(cube.body, {
-        x: vel.x + (dx / dist) * radialStrength,
-        y: vel.y + (dy / dist) * radialStrength - floorBoost
-      });
+      // Apply impulse (convert to physics scale)
+      const impulseX = (dx / dist) * radialStrength * 0.035;
+      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.035;
+
+      cube.body.applyImpulse({ x: impulseX, y: impulseY }, true);
     });
   });
 }
@@ -246,32 +225,39 @@ export function spawnCube(tier, originX, originY) {
   const startX = originX + (Math.random() - 0.5) * 20;
   const startY = originY + (Math.random() - 0.5) * 20;
 
-  // Create physics body
-  const body = Bodies.rectangle(startX, startY, config.size, config.size, {
-    friction: 0.2,
-    frictionAir: 0.02,
-    restitution: 0.3,
-    density: 0.001,
-    slop: 0.05,
-    angle: Math.random() * Math.PI * 2,
-    chamfer: { radius: 2 }
-  });
+  // Create rigid body
+  const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+    .setTranslation(toPhysics(startX), toPhysics(startY))
+    .setRotation(Math.random() * Math.PI * 2)
+    .setLinearDamping(0.5)
+    .setAngularDamping(0.5);
+
+  const body = world.createRigidBody(bodyDesc);
+
+  // Create collider (the shape)
+  const halfSize = toPhysics(config.size / 2);
+  const colliderDesc = RAPIER.ColliderDesc.cuboid(halfSize, halfSize)
+    .setRestitution(0.3)
+    .setFriction(0.2)
+    .setDensity(1.0)
+    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+
+  const collider = world.createCollider(colliderDesc, body);
 
   // Spray outward with random velocity
   const angle = Math.random() * Math.PI * 2;
   const speed = 2 + Math.random() * 3;
-  Body.setVelocity(body, {
-    x: Math.cos(angle) * speed,
-    y: Math.sin(angle) * speed + 1 // slight downward bias
-  });
+  body.setLinvel({
+    x: Math.cos(angle) * speed * 0.15,
+    y: (Math.sin(angle) * speed + 1) * 0.15
+  }, true);
 
   // Add spin
-  Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.2);
-
-  Composite.add(world, body);
+  body.setAngvel((Math.random() - 0.5) * 2, true);
 
   cubes.push({
     body,
+    collider,
     tier,
     config,
     alpha: 1,
@@ -286,8 +272,34 @@ function animate() {
   const delta = Math.min(now - lastTime, 50); // Cap delta for tab switching
   lastTime = now;
 
-  // Update physics
-  Engine.update(engine, delta);
+  // Step physics world
+  world.step(eventQueue);
+
+  // Handle collision events for impact marks
+  eventQueue.drainCollisionEvents((handle1, handle2, started) => {
+    if (!started) return;
+
+    // Check if one of the colliders is the floor
+    const isFloorCollision = handle1 === floorHandle || handle2 === floorHandle;
+    if (!isFloorCollision) return;
+
+    // Find the cube that collided
+    const cubeHandle = handle1 === floorHandle ? handle2 : handle1;
+    const cube = cubes.find(c => c.collider.handle === cubeHandle);
+    if (!cube) return;
+
+    // Add impact mark
+    const pos = cube.body.translation();
+    const vel = cube.body.linvel();
+    const velocity = Math.abs(vel.y) + Math.abs(vel.x) * 0.5;
+    const baseWidth = 4 + velocity * 20;
+    impacts.push({
+      x: toPixels(pos.x),
+      width: baseWidth,
+      alpha: 1,
+      color: cube.config.color
+    });
+  });
 
   // Contain cubes - prevent escape from bucket top
   containCubes();
@@ -298,7 +310,6 @@ function animate() {
     imp.alpha -= delta * 0.004;
     return imp.alpha > 0;
   });
-
 
   // Render
   render();
@@ -324,10 +335,11 @@ function render() {
   // Draw cubes
   cubes.forEach(cube => {
     const { body, config, alpha, scale } = cube;
-    const { position, angle } = body;
+    const pos = body.translation();
+    const angle = body.rotation();
 
     ctx.save();
-    ctx.translate(position.x, position.y);
+    ctx.translate(toPixels(pos.x), toPixels(pos.y));
     ctx.rotate(angle);
 
     const size = config.size * scale;
@@ -347,4 +359,3 @@ function render() {
 export function getCubeCount() {
   return cubes.length;
 }
-

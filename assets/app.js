@@ -681,7 +681,7 @@ function initIndicator() {
 
 initDieButtons();
 initParticles();
-initPhysics();
+await initPhysics();
 initLoot();
 
 dieContainer.addEventListener('pointerdown', handlePointerDown);
