@@ -12,54 +12,60 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
+
   <dialog id="motionWarning" class="motion-warning">
     <p>you've got reduced motion enabled.<br>we've got glitch effects and rapid animations.<br>proceed with caution, etc.</p>
     <button type="button" id="motionWarningDismiss" autofocus>…carefully proceed</button>
   </dialog>
 
   <main>
-    <button
-      type="button"
-      class="die-container d4"
-      id="dieContainer"
-      aria-label="Click or press Space/Enter to roll the die"
-    >
-      <div class="die-shape" id="dieShape" aria-hidden="true">
-        <svg viewBox="-50 -50 100 100" id="dieSvg" focusable="false">
-          <polygon points="0,-50 -45,25 45,25" />
-        </svg>
-      </div>
-      <span class="die-result" id="result"></span>
-    </button>
+    <div class="game-column" id="gameColumn">
+      <button
+        type="button"
+        class="die-container d4"
+        id="dieContainer"
+        aria-label="Click or press Space/Enter to roll the die"
+      >
+        <div class="die-shape" id="dieShape" aria-hidden="true">
+          <svg viewBox="-50 -50 100 100" id="dieSvg" focusable="false">
+            <polygon points="0,-50 -45,25 45,25" />
+          </svg>
+        </div>
+        <span class="die-result" id="result"></span>
+      </button>
 
-    <nav aria-label="Dice selection">
-      <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
-        <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
-        <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
-        <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
-        <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
-        <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
-        <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
-        <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
-      </div>
+      <nav aria-label="Dice selection">
+        <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
+          <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
+          <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
+          <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
+          <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
+          <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
+          <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
+          <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
+        </div>
+      </nav>
+
       <div class="energy-label" aria-live="polite" aria-atomic="true">
         <span class="state-item" data-state="idle">idle</span><span class="state-arrow">→</span><span class="state-item" data-state="ramping">ramping</span><span class="state-arrow">→</span><span class="state-item" data-state="ramped">ramped</span><span class="state-item state-outcome" data-state="loot-hit">loot!</span><span class="state-item state-outcome" data-state="loot-miss">try again.</span>
       </div>
-    </nav>
+
+      <div class="bucket-container" id="bucketContainer">
+        <div class="bucket-visual"></div>
+      </div>
+    </div>
 
     <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
 
-  <footer>
-    <div class="footer-label" id="footerLabel"></div>
-  </footer>
-
   <canvas id="particleCanvas"></canvas>
+  <canvas id="physicsCanvas"></canvas>
   <script>
     document.fonts.ready.then(() => {
       document.documentElement.classList.remove('fonts-loading');
     });
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <script type="module" src="assets/app.js"></script>
 </body>
 </html>

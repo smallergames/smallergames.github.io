@@ -7,6 +7,7 @@
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
 import { initLoot, spawnLoot, spawnConsolationLoot, TIER_TRASH, TIER_ZZZ } from './loot.js';
+import { initPhysics } from './physics.js';
 
 // Motion warning for users with prefers-reduced-motion
 const MOTION_WARNING_KEY = 'motion-warning-dismissed';
@@ -521,7 +522,7 @@ function finishRoll() {
 }
 
 // Orchestrates the win sequence after a loot hit
-function runWinSequence(centerX, centerY, die) {
+function runWinSequence(centerX, centerY, die, rollResult) {
   const stateGuard = () => gameState === GameState.LOOT_RESOLUTION && lootResult === 'hit';
 
   // Immediate: Selector + die effects together
@@ -549,7 +550,7 @@ function runWinSequence(centerX, centerY, die) {
   // Delayed: Loot flies to inventory
   setTimeout(() => {
     if (!stateGuard()) return;
-    spawnLoot(die, centerX, centerY);
+    spawnLoot(die, rollResult, centerX, centerY);
   }, WIN_LOOT_DELAY_MS);
 }
 
@@ -573,7 +574,7 @@ function completeRollFinish({ result, rolledDie }) {
       const rect = dieContainer.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      runWinSequence(centerX, centerY, currentDie);
+      runWinSequence(centerX, centerY, currentDie, result);
     } else {
       // Loot miss - consolation trash then return to IDLE
       const rect = dieContainer.getBoundingClientRect();
@@ -705,6 +706,7 @@ function initIndicator() {
 
 initDieButtons();
 initParticles();
+initPhysics();
 initLoot();
 
 dieContainer.addEventListener('pointerdown', handlePointerDown);
