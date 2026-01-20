@@ -101,9 +101,12 @@ let currentDie = 4;
 let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
 
-const MAX_ENERGY_MS = 2000;
-const ENERGY_PER_CLICK_MS = 450;
-const ENERGY_FILL_RATE_MS = 50;
+// Energy system constants
+const MAX_ENERGY_MS = 2000;           // Full charge threshold (triggers ramp)
+const ENERGY_PER_CLICK_MS = 450;      // Energy added per click/tap
+const HOLD_DRAIN_RATE = 0.1;          // Drain per ms while holding (slow - sustains charge)
+const RELEASE_DRAIN_RATE = 1.5;       // Drain per ms after release (fast - forces decision)
+
 // Win sequence timing
 const WIN_SELECTOR_DURATION_MS = 400;  // How long selector stays highlighted before reverting
 const WIN_LOOT_DELAY_MS = 950;         // Delay before loot flies to inventory
@@ -416,31 +419,6 @@ function announce(message) {
   }, 1000);
 }
 
-function stopEnergySystem() {
-  if (energyDrainFrame) {
-    cancelAnimationFrame(energyDrainFrame);
-    energyDrainFrame = null;
-  }
-  if (holdInterval) {
-    clearInterval(holdInterval);
-    holdInterval = null;
-  }
-  pendingFinish = null;
-  isHolding = false;
-  energy = 0;
-  rampedMax = null;
-  lootResult = null;
-
-  clearOutlineEffects();
-  updateEnergyLevel();
-  stopSparkles();
-
-  // Force reset to IDLE (bypasses transition validation)
-  const prevState = gameState;
-  gameState = GameState.IDLE;
-  updateVisuals(prevState, GameState.IDLE);
-}
-
 function updateEnergyLevel() {
   const level = energy / MAX_ENERGY_MS;
   diceSelection.style.setProperty('--energy-level', level);
@@ -481,9 +459,6 @@ function addEnergy(amount) {
     }
   }
 }
-
-const HOLD_DRAIN_RATE = 0.1;
-const RELEASE_DRAIN_RATE = 1.5;
 
 function startEnergyDrain() {
   let lastTime = performance.now();

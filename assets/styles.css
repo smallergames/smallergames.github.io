@@ -106,18 +106,22 @@ body::before {
    Dice Selection Nav
    ========================================================================== */
 
-nav {
+/* Unified dice control container */
+.dice-control {
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .energy-label {
   font-size: 0.55rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-top: 0.4rem;
-  width: 100%;
+  padding: 0.35rem 0.5rem 0.4rem;
   text-align: left;
+  border-top: 1px solid rgba(0, 240, 255, 0.08);
 }
 
 /* Base: everything dim */
@@ -230,7 +234,7 @@ nav {
   position: relative;
   background: transparent;
   border: none;
-  padding: 4px;
+  padding: 6px 4px;
   --indicator-left: 0px;
   --indicator-width: 0px;
   --energy-level: 0;
@@ -246,8 +250,8 @@ nav {
 .dice-selection::before {
   content: '';
   position: absolute;
-  top: 4px;
-  bottom: 4px;
+  top: 6px;
+  bottom: 6px;
   left: calc(4px + var(--indicator-left));
   width: var(--indicator-width);
   background: var(--accent-dim);
@@ -270,24 +274,23 @@ nav {
     inset 0 0 8px var(--accent-dim);
 }
 
-/* Energy bar along bottom edge - width shows progress, glow only when ramped */
+/* Energy bar along bottom edge */
 .dice-selection::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
+  height: 2px;
   width: calc(100% * var(--energy-level));
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
-  border-radius: 0 0 4px 4px;
+  box-shadow: 0 0 6px var(--accent-glow);
   pointer-events: none;
   z-index: 1;
 }
 
 /* Intense glow only when ramped */
 .dice-selection.ramped::after {
-  box-shadow: 0 0 20px var(--accent-glow);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 /* Edge bump feedback for arrow key navigation */
@@ -312,18 +315,6 @@ nav {
 /* Loot resolution state - input blocked during loot hit animation */
 .dice-selection.loot-resolution {
   pointer-events: none;
-  animation: lootResolutionPulse 0.8s ease-in-out infinite;
-}
-
-@keyframes lootResolutionPulse {
-  0%, 100% {
-    border-color: var(--magenta);
-    box-shadow: 0 0 8px var(--magenta-glow);
-  }
-  50% {
-    border-color: var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow);
-  }
 }
 
 .die-btn {
@@ -627,10 +618,6 @@ main {
   position: relative;
 }
 
-.game-column nav {
-  margin-top: 0;
-}
-
 /* ==========================================================================
    Bucket Container (integrated into game column)
    ========================================================================== */
@@ -747,23 +734,28 @@ main {
   }
 
   .dice-selection {
-    padding: 3px;
+    padding: 5px 3px;
   }
 
   .dice-selection::before {
-    top: 3px;
-    bottom: 3px;
+    top: 5px;
+    bottom: 5px;
     left: calc(3px + var(--indicator-left));
   }
 
   .die-btn {
-    padding: 1rem 0;
-    min-width: 3rem;
-    font-size: 0.75rem;
+    padding: 0.85rem 0;
+    min-width: 2.75rem;
+    font-size: 0.7rem;
   }
 
   .die-btn[data-die="100"] {
-    min-width: 3.5rem;
+    min-width: 3.25rem;
+  }
+
+  .energy-label {
+    font-size: 0.5rem;
+    padding: 0.3rem 0.4rem 0.35rem;
   }
 }
 
@@ -777,10 +769,6 @@ main {
     --text: #ffffff;
     --text-dim: rgba(255, 255, 255, 0.85);
     --text-muted: rgba(255, 255, 255, 0.7);
-  }
-
-  .dice-selection {
-    border-width: 2px;
   }
 
   .dice-selection::before {
