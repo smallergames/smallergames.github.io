@@ -248,7 +248,8 @@ export function spawnCube(tier, originX, originY) {
 
   // Create physics body
   const body = Bodies.rectangle(startX, startY, config.size, config.size, {
-    friction: 0.5,
+    friction: 0.2,
+    frictionAir: 0.02,
     restitution: 0.3,
     density: 0.001,
     slop: 0.05,
