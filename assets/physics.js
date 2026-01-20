@@ -22,6 +22,10 @@ const TIER_CONFIG = {
 const WALL_THICKNESS = 20;
 const PIXELS_PER_METER = 50; // Scale factor for physics
 
+// Mobile detection for performance tuning
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 1);
+
 // Darken a hex color by a factor (0 = black, 1 = original)
 function darkenColor(hex, factor) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -94,48 +98,46 @@ export async function initPhysics() {
   return true;
 }
 
-function containCubes() {
-  const margin = 10;
-  const screenLeft = margin;
-  const screenRight = window.innerWidth - margin;
-  const screenTop = margin;
+// Screen boundary constants for containment (updated on resize)
+let screenBounds = { left: 10, right: 0, top: 10 };
 
-  cubes.forEach(cube => {
-    const { body } = cube;
-    const pos = body.translation();
-    const vel = body.linvel();
-    const posX = toPixels(pos.x);
-    const posY = toPixels(pos.y);
+function updateScreenBounds() {
+  screenBounds.left = 10;
+  screenBounds.right = window.innerWidth - 10;
+  screenBounds.top = 10;
+}
 
-    // Bounce off left edge
-    if (posX < screenLeft && vel.x < 0) {
-      body.setTranslation({ x: toPhysics(screenLeft), y: pos.y }, true);
-      body.setLinvel({ x: Math.abs(vel.x) * 0.7, y: vel.y }, true);
-    }
-
-    // Bounce off right edge
-    if (posX > screenRight && vel.x > 0) {
-      body.setTranslation({ x: toPhysics(screenRight), y: pos.y }, true);
-      body.setLinvel({ x: -Math.abs(vel.x) * 0.7, y: vel.y }, true);
-    }
-
-    // Bounce off top edge
-    if (posY < screenTop && vel.y < 0) {
-      body.setTranslation({ x: pos.x, y: toPhysics(screenTop) }, true);
-      body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * 0.7 }, true);
-    }
-  });
+function containCube(body, pxX, pxY, physPos, vel) {
+  // pxX/pxY are pixel coords, physPos is raw physics position
+  // Bounce off left edge
+  if (pxX < screenBounds.left && vel.x < 0) {
+    body.setTranslation({ x: toPhysics(screenBounds.left), y: physPos.y }, true);
+    body.setLinvel({ x: Math.abs(vel.x) * 0.7, y: vel.y }, true);
+  }
+  // Bounce off right edge
+  else if (pxX > screenBounds.right && vel.x > 0) {
+    body.setTranslation({ x: toPhysics(screenBounds.right), y: physPos.y }, true);
+    body.setLinvel({ x: -Math.abs(vel.x) * 0.7, y: vel.y }, true);
+  }
+  // Bounce off top edge
+  if (pxY < screenBounds.top && vel.y < 0) {
+    body.setTranslation({ x: physPos.x, y: toPhysics(screenBounds.top) }, true);
+    body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * 0.7 }, true);
+  }
 }
 
 
 let lastTime = 0;
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio, 2);
+  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
+
+  // Update screen bounds for containment
+  updateScreenBounds();
 
   // Recreate floor on resize
   if (world) {
@@ -247,12 +249,12 @@ export function spawnCube(tier, originX, originY) {
   const body = world.createRigidBody(bodyDesc);
 
   // Create collider (the shape)
+  // Note: collision events only on floor collider - cubes don't need them
   const halfSize = toPhysics(config.size / 2);
   const colliderDesc = RAPIER.ColliderDesc.cuboid(halfSize, halfSize)
     .setRestitution(0.3)
     .setFriction(0.2)
-    .setDensity(1.0)
-    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+    .setDensity(1.0);
 
   const collider = world.createCollider(colliderDesc, body);
 
@@ -313,9 +315,6 @@ function animate() {
     });
   });
 
-  // Contain cubes - prevent escape from bucket top
-  containCubes();
-
   // Grow and fade impacts
   impacts = impacts.filter(imp => {
     imp.width += delta * 0.3;
@@ -330,55 +329,56 @@ function animate() {
 }
 
 function render() {
-  const dpr = Math.min(window.devicePixelRatio, 2);
+  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
 
-  // Draw impact marks - 1px thin lines spreading from impact with glow
   const floorY = bucketBounds.bottom;
-  impacts.forEach(imp => {
+  const cubeCount = cubes.length;
+
+  // Draw impact marks - thin lines spreading from impact
+  for (let i = 0; i < impacts.length; i++) {
+    const imp = impacts[i];
     ctx.globalAlpha = imp.alpha * 0.7;
-    ctx.shadowColor = imp.color;
-    ctx.shadowBlur = 6;
     ctx.fillStyle = imp.color;
-    ctx.fillRect(imp.x - imp.width / 2, floorY - 1, imp.width, 1);
-  });
-  ctx.shadowBlur = 0;
+    ctx.fillRect(imp.x - imp.width / 2, floorY - 1, imp.width, 2);
+  }
   ctx.globalAlpha = 1;
 
-  // Draw cubes with glow
-  cubes.forEach(cube => {
-    const { body, config, alpha, scale, tier } = cube;
+  // Draw cubes and apply containment in single pass
+  for (let i = 0; i < cubeCount; i++) {
+    const cube = cubes[i];
+    const { body, config, alpha, scale } = cube;
     const pos = body.translation();
+    const vel = body.linvel();
     const angle = body.rotation();
 
+    // Convert to pixels once
+    const posX = toPixels(pos.x);
+    const posY = toPixels(pos.y);
+
+    // Containment check (merged from containCubes)
+    containCube(body, posX, posY, pos, vel);
+
     ctx.save();
-    ctx.translate(toPixels(pos.x), toPixels(pos.y));
+    ctx.translate(posX, posY);
     ctx.rotate(angle);
 
     const size = config.size * scale;
     const halfSize = size / 2;
 
-    ctx.globalAlpha = alpha;
-
-    // Glow intensity based on tier (rarer = more glow)
-    const glowIntensity = tier <= 3 ? 12 : tier <= 5 ? 8 : 4;
-    ctx.shadowColor = config.color;
-    ctx.shadowBlur = glowIntensity;
-
-    // Slightly transparent fill for holographic feel
-    ctx.globalAlpha = alpha * (tier <= 5 ? 0.9 : 0.75);
+    // Fill with slight transparency for holographic feel
+    ctx.globalAlpha = alpha * 0.9;
     ctx.fillStyle = config.color;
     ctx.fillRect(-halfSize, -halfSize, size, size);
 
-    // Darker border of same hue for definition
-    ctx.shadowBlur = 0;
+    // Darker border for definition
     ctx.globalAlpha = alpha * 0.8;
     ctx.strokeStyle = darkenColor(config.color, 0.4);
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-halfSize, -halfSize, size, size);
 
     ctx.restore();
-  });
+  }
 }
