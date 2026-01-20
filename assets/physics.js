@@ -60,7 +60,7 @@ export async function initPhysics() {
   await RAPIER.init({});
 
   // Create physics world with gravity
-  const gravity = { x: 0.0, y: 9.81 * 0.8 }; // Slightly reduced gravity
+  const gravity = { x: 0.0, y: 9.81 * 1.2 }; // Snappier gravity
   world = new RAPIER.World(gravity);
 
   // Create event queue for collision detection
@@ -230,8 +230,8 @@ export function spawnCube(tier, originX, originY) {
   const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
     .setTranslation(toPhysics(startX), toPhysics(startY))
     .setRotation(Math.random() * Math.PI * 2)
-    .setLinearDamping(0.5)
-    .setAngularDamping(0.5);
+    .setLinearDamping(0.15)
+    .setAngularDamping(0.3);
 
   const body = world.createRigidBody(bodyDesc);
 
