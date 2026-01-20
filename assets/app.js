@@ -703,8 +703,6 @@ window.addEventListener('resize', initIndicator);
 
 initIndicator();
 
-// Start the first roll (unless motion warning is shown)
-if (!checkMotionWarning()) {
-  addEnergy(ENERGY_PER_CLICK_MS);
-}
+// Check motion warning on load (no auto-roll - user initiates first interaction)
+checkMotionWarning();
 
