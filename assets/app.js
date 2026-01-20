@@ -676,6 +676,7 @@ function initIndicator() {
   const selected = getSelectedDie();
   if (selected) {
     updateIndicator(selected);
+    diceSelection.classList.add('indicator-ready');
   }
 }
 
