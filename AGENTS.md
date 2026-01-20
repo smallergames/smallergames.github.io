@@ -9,7 +9,8 @@ index.html          # Single-page app markup
 assets/
   app.js            # Main application logic, state, event handlers
   particles.js      # Canvas-based glitch particle effects
-  loot.js           # Loot drop system with pixel trails
+  loot.js           # Loot tier logic and drop spawning
+  physics.js        # Matter.js physics for loot cubes
   styles.css        # All styles, CSS custom properties, animations
   fonts/            # Self-hosted Outfit font (woff2)
 ```
@@ -111,25 +112,28 @@ const GameState = {
   - RAMPED → RAMPING (die changed, loses +1) or LOOT_RESOLUTION (roll completes)
   - LOOT_RESOLUTION → IDLE (settles) or RAMPING (miss interrupted by new input)
 
-### Game Mechanics
+### Energy System
 
-**Boost:** Double-tap/click the roll area to activate boost mode. The selected die rolls one value higher than normal (d6 becomes d7, d20 becomes d21). Visual feedback includes sparkle particles and a `.boosted` class on the button. State tracked via `isBoosted` and `boostedMax`.
+The energy bar is rendered as a CSS pseudo-element on `.dice-selection`, sized via `--energy-level` (0-1). Energy mechanics:
 
-**Overload:** When a roll result exceeds the die's normal maximum (only possible when boosted), it triggers the overload effect—a glitch particle explosion. The threshold is `currentDie + 1`. This creates dramatic feedback for "impossible" rolls.
+- **Charging:** Each click/tap adds `ENERGY_PER_CLICK_MS` (450ms). Holding continues adding energy every 500ms.
+- **Draining:** Energy drains continuously via `requestAnimationFrame`. Slow drain while holding (`HOLD_DRAIN_RATE`), fast drain on release (`RELEASE_DRAIN_RATE`).
+- **Ramp:** When energy reaches `MAX_ENERGY_MS` (2000ms), the die "ramps" to +1 max (d6→d7). Visual feedback includes sparkle particles and `.ramped` class. State tracked via `rampedMax`.
+- **Loot:** Rolling while ramped triggers loot resolution. A result > normal max = hit (loot drops), otherwise = miss (consolation drop).
 
 ### Particle System
 
-- `particles.js` handles glitch burst effects for max rolls and overload results
+- `particles.js` handles glitch burst effects for ramp activation and loot hits
 - Effect uses consistent intensity across all dice via `DIE_MAGNITUDE` config (standardized to d8 values)
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
-- `spawnParticles(x, y)` for explosions, `spawnSparkles(x, y)` for boost ambient effect
+- `spawnParticles(x, y)` for explosions, `spawnSparkles(x, y)` for ramp ambient effect
 - Spawned from the selected die button's position, not the die shape
 - **Object pooling**: Particles and scanlines are recycled via `acquireParticle()`/`releaseParticle()` to minimize GC pressure
 - **Swap-and-pop removal**: Dead particles are removed in O(1) instead of O(n) splice operations
 
 ### Loot System
 
-- `loot.js` handles loot drops with pixel trails to the footer inventory
-- Loot is queued if drops are already in flight (no loot is lost on rapid overcharges)
-- Win celebration triggers particle bursts and glowing text when all 7 tiers collected
-- `spawnLoot(dieSize, originX, originY)` queues internally, safe to call anytime
+- `loot.js` determines loot tier from die size, then spawns physics cubes via `physics.js`
+- `physics.js` runs Matter.js simulation - cubes fall and stack up infinitely on the floor
+- Cubes can be pulsed/scattered by clicking anywhere on screen
+- `spawnLoot(dieSize, rollResult, originX, originY)` - rollResult determines drop count

@@ -34,7 +34,7 @@
         <span class="die-result" id="result"></span>
       </button>
 
-      <nav aria-label="Dice selection">
+      <nav class="dice-control" aria-label="Dice selection">
         <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
           <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
           <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
@@ -44,11 +44,10 @@
           <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
           <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
         </div>
+        <div class="energy-label" aria-live="polite" aria-atomic="true">
+          <span class="state-item" data-state="idle">idle</span><span class="state-arrow">→</span><span class="state-item" data-state="ramping">ramping</span><span class="state-arrow">→</span><span class="state-item" data-state="ramped">ramped</span><span class="state-item state-outcome" data-state="loot-hit">loot!</span><span class="state-item state-outcome" data-state="loot-miss">try again.</span>
+        </div>
       </nav>
-
-      <div class="energy-label" aria-live="polite" aria-atomic="true">
-        <span class="state-item" data-state="idle">idle</span><span class="state-arrow">→</span><span class="state-item" data-state="ramping">ramping</span><span class="state-arrow">→</span><span class="state-item" data-state="ramped">ramped</span><span class="state-item state-outcome" data-state="loot-hit">loot!</span><span class="state-item state-outcome" data-state="loot-miss">try again.</span>
-      </div>
 
       <div class="bucket-container" id="bucketContainer">
         <div class="bucket-visual"></div>
