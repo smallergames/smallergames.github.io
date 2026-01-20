@@ -10,7 +10,7 @@ assets/
   app.js            # Main application logic, state, event handlers
   particles.js      # Canvas-based glitch particle effects
   loot.js           # Loot tier logic and drop spawning
-  physics.js        # Matter.js physics for loot cubes
+  physics.js        # Rapier WASM physics for loot cubes
   styles.css        # All styles, CSS custom properties, animations
   fonts/            # Self-hosted Outfit font (woff2)
 ```
@@ -134,6 +134,6 @@ The energy bar is rendered as a CSS pseudo-element on `.dice-selection`, sized v
 ### Loot System
 
 - `loot.js` determines loot tier from die size, then spawns physics cubes via `physics.js`
-- `physics.js` runs Matter.js simulation - cubes fall and stack up infinitely on the floor
+- `physics.js` runs Rapier WASM simulation - cubes fall and stack up infinitely on the floor
 - Cubes can be pulsed/scattered by clicking anywhere on screen
 - `spawnLoot(dieSize, rollResult, originX, originY)` - rollResult determines drop count
