@@ -202,19 +202,23 @@ function setupPulseInteraction() {
     const touchX = e.clientX;
     const touchY = e.clientY;
 
+    // Only trigger floor bounce if clicking near the floor
+    const clickNearFloor = touchY > bucketBounds.bottom - 80;
+
     cubes.forEach(cube => {
       const pos = cube.body.position;
       const vel = cube.body.velocity;
 
-      // Radial pulse from touch point
+      // Radial pulse from touch point - always applies
       const dx = pos.x - touchX;
       const dy = pos.y - touchY;
       const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
       const radialStrength = Math.max(0, 8 - dist / 30);
 
-      // Floor bounce: if cube is near bottom, give it an upward kick
+      // Floor bounce: only if clicking near floor AND cube is near bottom AND horizontally close
       const distFromBottom = bucketBounds.bottom - pos.y;
-      const floorBoost = distFromBottom < 60 ? 5 : 0;
+      const horizontalDist = Math.abs(pos.x - touchX);
+      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 5 : 0;
 
       Body.setVelocity(cube.body, {
         x: vel.x + (dx / dist) * radialStrength,
