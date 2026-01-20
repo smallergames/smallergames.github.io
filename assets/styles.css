@@ -236,7 +236,7 @@ body::before {
   border: none;
   padding: 6px 4px;
   --indicator-left: 0px;
-  --indicator-width: 0px;
+  --indicator-width: 3.5rem;
   --energy-level: 0;
   cursor: grab;
   touch-action: none;
@@ -260,11 +260,15 @@ body::before {
   box-shadow:
     0 0 8px var(--accent-glow),
     inset 0 0 8px var(--accent-dim);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Enable transitions only after JS has set correct initial values */
+.dice-selection.indicator-ready::before {
   transition:
     left 0.25s var(--transition-smooth),
     width 0.25s var(--transition-smooth);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Enhanced indicator glow when ramped */
@@ -735,6 +739,7 @@ main {
 
   .dice-selection {
     padding: 5px 3px;
+    --indicator-width: 2.75rem;
   }
 
   .dice-selection::before {
