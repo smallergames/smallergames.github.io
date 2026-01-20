@@ -4,7 +4,7 @@
  * Rapier physics engine for cube loot that collects on screen.
  */
 
-import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier2d-compat/+esm';
+import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier2d-compat@0.14.0/+esm';
 
 // Tier definitions with sizes and point values
 // Vaporwave palette: cyan → pink → violet → blue → magenta → cool grays
