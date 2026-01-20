@@ -11,16 +11,27 @@ import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
 const TIER_CONFIG = {
   1: { name: 'JAWESOME', size: 24, points: 100, color: '#00f0ff' },
   2: { name: 'SHEESH', size: 20, points: 50, color: '#ff3366' },
-  3: { name: 'BASED', size: 18, points: 25, color: '#bf5fff' },
-  4: { name: 'DOPE', size: 16, points: 10, color: '#00bfff' },
-  5: { name: 'DECENT', size: 14, points: 5, color: '#e040fb' },
-  6: { name: 'ZZZ', size: 12, points: 2, color: '#5a5a6a' },
-  7: { name: 'TRASH', size: 10, points: 1, color: '#4a4a5a' }
+  3: { name: 'BASED', size: 18, points: 25, color: '#ff00ff' },
+  4: { name: 'DOPE', size: 16, points: 10, color: '#ff6b2b' },
+  5: { name: 'DECENT', size: 14, points: 5, color: '#4d6bff' },
+  6: { name: 'ZZZ', size: 12, points: 2, color: '#5a5a70' },
+  7: { name: 'TRASH', size: 10, points: 1, color: '#3a3a4a' }
 };
 
 // Constants
 const WALL_THICKNESS = 20;
 const PIXELS_PER_METER = 50; // Scale factor for physics
+
+// Darken a hex color by a factor (0 = black, 1 = original)
+function darkenColor(hex, factor) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const dr = Math.round(r * factor);
+  const dg = Math.round(g * factor);
+  const db = Math.round(b * factor);
+  return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
+}
 
 // State
 let world = null;
@@ -361,11 +372,11 @@ function render() {
     ctx.fillStyle = config.color;
     ctx.fillRect(-halfSize, -halfSize, size, size);
 
-    // Subtle lighter border for definition
+    // Darker border of same hue for definition
     ctx.shadowBlur = 0;
-    ctx.globalAlpha = alpha * 0.6;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 0.5;
+    ctx.globalAlpha = alpha * 0.8;
+    ctx.strokeStyle = darkenColor(config.color, 0.4);
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(-halfSize, -halfSize, size, size);
 
     ctx.restore();
