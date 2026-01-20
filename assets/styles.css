@@ -65,6 +65,8 @@ body {
   padding: 2rem;
   position: relative;
   overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Subtle grid background - slow pulse for calm idle state */
