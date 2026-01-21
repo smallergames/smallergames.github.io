@@ -148,9 +148,12 @@ function resize() {
   cubes.forEach(cube => {
     const pos = cube.body.translation();
     const pxX = toPixels(pos.x);
+    const pxY = toPixels(pos.y);
     let newX = pos.x;
+    let newY = pos.y;
     let clamped = false;
 
+    // Clamp X axis
     if (pxX < screenBounds.left) {
       newX = toPhysics(screenBounds.left + 20);
       clamped = true;
@@ -159,8 +162,17 @@ function resize() {
       clamped = true;
     }
 
+    // Clamp Y axis
+    if (pxY < screenBounds.top) {
+      newY = toPhysics(screenBounds.top + 20);
+      clamped = true;
+    } else if (pxY > bucketBounds.bottom) {
+      newY = toPhysics(bucketBounds.bottom - 20);
+      clamped = true;
+    }
+
     if (clamped) {
-      cube.body.setTranslation({ x: newX, y: pos.y }, true);
+      cube.body.setTranslation({ x: newX, y: newY }, true);
       cube.body.setLinvel({ x: 0, y: 0 }, true);
     }
   });
