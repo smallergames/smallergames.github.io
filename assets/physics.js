@@ -143,6 +143,27 @@ function resize() {
   if (world) {
     createFloor();
   }
+
+  // Clamp existing cubes to new bounds to prevent launch on resize
+  cubes.forEach(cube => {
+    const pos = cube.body.translation();
+    const pxX = toPixels(pos.x);
+    let newX = pos.x;
+    let clamped = false;
+
+    if (pxX < screenBounds.left) {
+      newX = toPhysics(screenBounds.left + 20);
+      clamped = true;
+    } else if (pxX > screenBounds.right) {
+      newX = toPhysics(screenBounds.right - 20);
+      clamped = true;
+    }
+
+    if (clamped) {
+      cube.body.setTranslation({ x: newX, y: pos.y }, true);
+      cube.body.setLinvel({ x: 0, y: 0 }, true);
+    }
+  });
 }
 
 function createFloor() {
