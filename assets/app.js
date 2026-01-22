@@ -26,8 +26,12 @@ function checkMotionWarning() {
 
   if (prefersReducedMotion && !alreadyDismissed) {
     motionWarning.showModal();
+    // Reveal content now that modal is blocking - backdrop covers the flash
+    document.documentElement.classList.add('motion-resolved');
     return true;
   }
+  // No modal needed - reveal content immediately
+  document.documentElement.classList.add('motion-resolved');
   return false;
 }
 
