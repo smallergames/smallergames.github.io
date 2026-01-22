@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme: dark" class="fonts-loading">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shhhh. Don't tell anyone you found us. We're building a gigantic incremental game with server authoritative loot and trading. Or at least that's the longterm ambition. We're also making loads of smaller weirder incremental games. What's better than picking up loot and watching numbers go up?">
+  <meta name="theme-color" content="#030305">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <title>one | smaller games</title>
+  <link rel="preload" href="../assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+
+  <nav class="site-nav"><a href="/" aria-label="Back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a></nav>
+
+  <dialog id="motionWarning" class="motion-warning">
+    <p>you've got reduced motion enabled.<br>we've got glitch effects and rapid animations.<br>proceed with caution, etc.</p>
+    <button type="button" id="motionWarningDismiss" autofocus>…carefully proceed</button>
+  </dialog>
+
+  <main>
+    <div class="game-column" id="gameColumn">
+      <button
+        type="button"
+        class="die-container d4"
+        id="dieContainer"
+        aria-label="Click or press Space/Enter to roll the die"
+      >
+        <div class="die-shape" id="dieShape" aria-hidden="true">
+          <svg viewBox="-50 -50 100 100" id="dieSvg" focusable="false">
+            <polygon points="0,-50 -45,25 45,25" />
+          </svg>
+        </div>
+        <span class="die-result show" id="result">4</span>
+      </button>
+
+      <nav class="dice-control" aria-label="Dice selection">
+        <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
+          <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
+          <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
+          <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
+          <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
+          <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
+          <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
+          <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
+        </div>
+        <div class="energy-label" aria-live="polite" aria-atomic="true">
+          <span class="state-item" data-state="idle">idle</span><span class="state-arrow">→</span><span class="state-item" data-state="ramping">ramping</span><span class="state-arrow">→</span><span class="state-item" data-state="ramped">ramped</span><span class="state-item state-outcome" data-state="loot-hit">loot!</span><span class="state-item state-outcome" data-state="loot-miss">try again.</span>
+        </div>
+      </nav>
+
+      <div class="bucket-container" id="bucketContainer">
+        <div class="bucket-visual"></div>
+      </div>
+    </div>
+
+    <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  </main>
+
+  <canvas id="particleCanvas"></canvas>
+  <canvas id="physicsCanvas"></canvas>
+  <script>
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.remove('fonts-loading');
+    });
+  </script>
+  <script type="module" src="../assets/app.js"></script>
+</body>
+</html>

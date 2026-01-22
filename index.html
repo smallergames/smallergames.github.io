@@ -3,67 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shhhh. Don't tell anyone you found us. We're building a gigantic incremental game with server authoritative loot and trading. Or at least that's the longterm ambition. We're also making loads of smaller weirder incremental games. What's better than picking up loot and watching numbers go up?">
+  <meta name="description" content="smaller weirder incremental games.">
   <meta name="theme-color" content="#030305">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>smaller games | building smaller weirder incremental games.</title>
+  <title>smaller games</title>
   <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css">
+  <style>
+    @font-face {
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url('assets/fonts/outfit-regular.woff2') format('woff2');
+    }
+    .fonts-loading { visibility: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --cyan: #00f0ff;
+      --cyan-mid: rgba(0, 240, 255, 0.5);
+      --cyan-dim: rgba(0, 240, 255, 0.25);
+    }
+    html, body {
+      background: #030305;
+      color: #e0e0e8;
+      font-family: 'Outfit', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    main {
+      padding: min(35vh, 200px) 1.5rem 1.5rem;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    header h2 {
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      color: var(--cyan-mid);
+      text-transform: lowercase;
+      flex-shrink: 0;
+    }
+    header::before,
+    header::after {
+      content: '';
+      height: 1px;
+      background: var(--cyan-dim);
+    }
+    header::before {
+      width: 2rem;
+    }
+    header::after {
+      flex: 1;
+    }
+    ul {
+      list-style: none;
+    }
+    li + li {
+      margin-top: 0.5rem;
+    }
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-size: clamp(3rem, 15vw, 8rem);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      display: block;
+    }
+    a:focus-visible {
+      outline: 1px solid var(--cyan-mid);
+      outline-offset: 0.25rem;
+    }
+    a:active {
+      opacity: 0.8;
+    }
+    @media (max-width: 480px) {
+      main {
+        padding: min(35vh, 150px) 1rem 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
-
-  <dialog id="motionWarning" class="motion-warning">
-    <p>you've got reduced motion enabled.<br>we've got glitch effects and rapid animations.<br>proceed with caution, etc.</p>
-    <button type="button" id="motionWarningDismiss" autofocus>…carefully proceed</button>
-  </dialog>
-
   <main>
-    <div class="game-column" id="gameColumn">
-      <button
-        type="button"
-        class="die-container d4"
-        id="dieContainer"
-        aria-label="Click or press Space/Enter to roll the die"
-      >
-        <div class="die-shape" id="dieShape" aria-hidden="true">
-          <svg viewBox="-50 -50 100 100" id="dieSvg" focusable="false">
-            <polygon points="0,-50 -45,25 45,25" />
-          </svg>
-        </div>
-        <span class="die-result show" id="result">4</span>
-      </button>
-
-      <nav class="dice-control" aria-label="Dice selection">
-        <div class="dice-selection" role="radiogroup" aria-label="Choose die type">
-          <button class="die-btn" role="radio" data-die="4" aria-checked="true" aria-label="4-sided die">d4</button>
-          <button class="die-btn" role="radio" data-die="6" aria-checked="false" aria-label="6-sided die">d6</button>
-          <button class="die-btn" role="radio" data-die="8" aria-checked="false" aria-label="8-sided die">d8</button>
-          <button class="die-btn" role="radio" data-die="10" aria-checked="false" aria-label="10-sided die">d10</button>
-          <button class="die-btn" role="radio" data-die="12" aria-checked="false" aria-label="12-sided die">d12</button>
-          <button class="die-btn" role="radio" data-die="20" aria-checked="false" aria-label="20-sided die">d20</button>
-          <button class="die-btn" role="radio" data-die="100" aria-checked="false" aria-label="100-sided die">d100</button>
-        </div>
-        <div class="energy-label" aria-live="polite" aria-atomic="true">
-          <span class="state-item" data-state="idle">idle</span><span class="state-arrow">→</span><span class="state-item" data-state="ramping">ramping</span><span class="state-arrow">→</span><span class="state-item" data-state="ramped">ramped</span><span class="state-item state-outcome" data-state="loot-hit">loot!</span><span class="state-item state-outcome" data-state="loot-miss">try again.</span>
-        </div>
-      </nav>
-
-      <div class="bucket-container" id="bucketContainer">
-        <div class="bucket-visual"></div>
-      </div>
-    </div>
-
-    <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <section>
+      <header>
+        <h2>fidgets</h2>
+      </header>
+      <ul>
+        <li><a href="/one">one</a></li>
+      </ul>
+    </section>
   </main>
-
-  <canvas id="particleCanvas"></canvas>
-  <canvas id="physicsCanvas"></canvas>
   <script>
     document.fonts.ready.then(() => {
       document.documentElement.classList.remove('fonts-loading');
     });
   </script>
-  <script type="module" src="assets/app.js"></script>
 </body>
 </html>

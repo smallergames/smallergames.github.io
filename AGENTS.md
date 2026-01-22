@@ -5,23 +5,36 @@
 ## File Structure
 
 ```
-index.html          # Single-page app markup
+index.html          # Gallery landing page (minimal, lists all fidgets/games)
+one/
+  index.html        # Dice fidget toy
 assets/
-  app.js            # Main application logic, state, event handlers
-  particles.js      # Canvas-based glitch particle effects
-  loot.js           # Loot tier logic and drop spawning
-  physics.js        # Rapier WASM physics for loot cubes
-  styles.css        # All styles, CSS custom properties, animations
+  app.js            # Dice fidget: main logic, state, event handlers
+  particles.js      # Dice fidget: canvas-based glitch particle effects
+  loot.js           # Dice fidget: loot tier logic and drop spawning
+  physics.js        # Dice fidget: Rapier WASM physics for loot cubes
+  styles.css        # Dice fidget: styles, CSS custom properties, animations
   fonts/            # Self-hosted Outfit font (woff2)
 ```
 
+## Routing
+
+Static file routing via directory structure (no client-side router). Each page is a standalone HTML file:
+
+- `/` → `index.html` (gallery)
+- `/one` → `one/index.html` (dice fidget)
+
+Future pages follow the same pattern: `/two/index.html`, etc. Each subpage includes a back arrow nav linking to `/`.
+
 ## Development
 
-Static site with no build step. Open `index.html` directly or use a local server:
+Static site with no build step. Use a local server for proper routing:
 
 ```bash
 python3 -m http.server 8000
 ```
+
+Then visit `localhost:8000` for the gallery, `localhost:8000/one` for the dice fidget.
 
 ## Typography
 
@@ -38,6 +51,15 @@ This is a small static site with no build step, bundler, or test framework. Keep
 - **No setTimeout ID tracking** — Since the site never tears down (no SPA routing, no cleanup lifecycle), storing timeout IDs for cancellation is unnecessary.
 - **No minification/bundling** — Files are small enough that build tooling adds more complexity than value.
 - **No loot persistence** — This is a fidget toy, not a balanced game. Persisting loot would require a reset UI, adding clutter for minimal benefit. Refresh to start fresh. Note: this may change if more gamelike mechanics are added in the future.
+
+### Gallery Page
+
+The landing page (`index.html`) is intentionally minimal:
+
+- **No hover effects** — Mobile and desktop experiences should be identical. Hover states create divergence.
+- **Self-contained styles** — Inline `<style>` block, doesn't load `styles.css`. Uses CSS variables for cyan color consistency.
+- **Section structure** — Each category (fidgets, games, etc.) is a `<section>` with a header. Header uses flexbox with `::before`/`::after` pseudo-elements for the line decoration.
+- **Giant links** — Game links use `clamp(3rem, 15vw, 8rem)` for responsive scaling.
 
 ### prefers-reduced-motion
 
@@ -81,6 +103,7 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 - Mobile breakpoint is 480px
 - Energy bar level controlled via `--energy-level` custom property
 - Sliding indicator position controlled via `--indicator-left` and `--indicator-width`
+- `.site-nav` provides back arrow navigation for subpages (fixed top-left)
 
 ### JavaScript Patterns
 
