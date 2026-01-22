@@ -8,6 +8,7 @@
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
 import { initLoot, spawnLoot, spawnConsolationLoot, TIER_TRASH, TIER_ZZZ } from './loot.js';
 import { initPhysics } from './physics.js';
+import { initShared, announce } from './shared.js';
 
 // Motion warning for users with prefers-reduced-motion
 const MOTION_WARNING_KEY = 'motion-warning-dismissed';
@@ -55,7 +56,6 @@ const dieButtons = document.querySelectorAll('[data-die]');
 const dieContainer = document.getElementById('dieContainer');
 const dieSvg = document.getElementById('dieSvg');
 const resultDisplay = document.getElementById('result');
-const announcements = document.getElementById('announcements');
 const energyLabel = document.querySelector('.energy-label');
 const missLabel = document.querySelector('.state-item[data-state="loot-miss"]');
 
@@ -97,7 +97,6 @@ function setState(newState) {
   return true;
 }
 let currentDie = 4;
-let announceTimeout = null;
 let pendingFinish = null; // stores {result, rolledDie} when waiting for animation cycle to end
 
 // Energy system constants
@@ -145,7 +144,9 @@ function updateVisuals(prevState, newState) {
   diceSelection.classList.toggle('ramped', showRampedEffects);
   if (selectedBtn) {
     selectedBtn.classList.toggle('ramped', showRampedEffects);
-    selectedBtn.textContent = showRampedEffects ? `d${rampedMax}` : `d${currentDie}`;
+    const displayValue = showRampedEffects ? rampedMax : currentDie;
+    selectedBtn.textContent = `d${displayValue}`;
+    selectedBtn.setAttribute('aria-label', `${displayValue}-sided die`);
   }
 
   if (showRampedEffects) {
@@ -405,17 +406,6 @@ function clearSettlingState() {
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function announce(message) {
-  if (announceTimeout) {
-    clearTimeout(announceTimeout);
-  }
-  announcements.textContent = message;
-  announceTimeout = setTimeout(() => { 
-    announcements.textContent = ''; 
-    announceTimeout = null;
-  }, 1000);
 }
 
 function updateEnergyLevel() {
@@ -679,6 +669,7 @@ function initIndicator() {
   }
 }
 
+initShared();
 initDieButtons();
 initParticles();
 const physicsReady = await initPhysics();

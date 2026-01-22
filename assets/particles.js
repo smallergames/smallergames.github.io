@@ -139,7 +139,6 @@ export function spawnSparkles(x, y) {
  * Spawn a glitch burst from a screen position
  * @param {number} x - Screen X coordinate
  * @param {number} y - Screen Y coordinate
- * @param {number} dieSize - The die size (4, 6, 8, 10, 12, 20, 100)
  */
 export function spawnParticles(x, y) {
   if (!isEnabled || !ctx) return;

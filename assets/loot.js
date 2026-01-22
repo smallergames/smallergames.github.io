@@ -5,6 +5,7 @@
  */
 
 import { spawnCube } from './physics.js';
+import { announce } from './shared.js';
 
 // Tier definitions - tier number determines rarity (1 = rarest, 7 = most common)
 const TIER_TRASH = 7;
@@ -42,21 +43,8 @@ const MIN_DROP_INTERVAL_MS = 30;
 let dropsInFlight = 0; // Counter for animations in progress
 let lootQueue = []; // Queue for pending loot drops { dieSize, originX, originY }
 
-// DOM elements
-let announcements = null;
-
 export function initLoot() {
-  announcements = document.getElementById('announcements');
-}
-
-function announce(message) {
-  if (!announcements) return;
-  announcements.textContent = message;
-  setTimeout(() => {
-    if (announcements.textContent === message) {
-      announcements.textContent = '';
-    }
-  }, 1000);
+  // Reserved for future initialization needs
 }
 
 function rollTier(dieSize) {
