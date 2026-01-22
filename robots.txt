@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://smallergames.com/sitemap.xml
