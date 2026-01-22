@@ -730,8 +730,23 @@ main {
   z-index: 2000;
 }
 
+.motion-warning[open] {
+  animation: dialogFadeIn 0.3s ease-out;
+}
+
 .motion-warning::backdrop {
   background: rgba(3, 3, 5, 0.95);
+  animation: backdropFadeIn 0.3s ease-out;
+}
+
+@keyframes dialogFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .motion-warning p {
