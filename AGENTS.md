@@ -10,6 +10,7 @@ one/
   index.html        # Dice fidget toy
 assets/
   app.js            # Dice fidget: main logic, state, event handlers
+  shared.js         # Shared utilities (announce function)
   particles.js      # Dice fidget: canvas-based glitch particle effects
   loot.js           # Dice fidget: loot tier logic and drop spawning
   physics.js        # Dice fidget: Rapier WASM physics for loot cubes
@@ -108,11 +109,13 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 ### JavaScript Patterns
 
 - Uses ES modules (`import`/`export`) with `type="module"` on the script tag
+- Shared utilities live in `shared.js` to avoid circular dependencies
 - State variables are declared at module level with descriptive names
 - Core functions: `selectDie()`, `updateDieShape()`, `addEnergy()`, `startEnergyDrain()`, `finishRoll()`
 - Energy system: Click/hold adds energy, die rolls continuously while energy > 0, drains faster on release
 - Drag-to-select: Users can drag across dice buttons to change selection
 - Uses `requestAnimationFrame` for smooth energy drain animation
+- Magic numbers should be named constants at the top of each file for easy tuning
 
 ### Game State Machine
 
@@ -147,12 +150,13 @@ The energy bar is rendered as a CSS pseudo-element on `.dice-selection`, sized v
 ### Particle System
 
 - `particles.js` handles glitch burst effects for ramp activation and loot hits
-- Effect uses consistent intensity across all dice via `DIE_MAGNITUDE` config (standardized to d8 values)
+- Effect uses consistent intensity across all dice via `PARTICLE_MAGNITUDE` config
 - Canvas-based renderer with pixel fragments, scanlines, and RGB color splits
 - `spawnParticles(x, y)` for explosions, `spawnSparkles(x, y)` for ramp ambient effect
 - Spawned from the selected die button's position, not the die shape
 - **Object pooling**: Particles and scanlines are recycled via `acquireParticle()`/`releaseParticle()` to minimize GC pressure
 - **Swap-and-pop removal**: Dead particles are removed in O(1) instead of O(n) splice operations
+- **Resize debounce**: 100ms debounce on window resize to prevent excessive recalculation
 
 ### Loot System
 
@@ -160,3 +164,24 @@ The energy bar is rendered as a CSS pseudo-element on `.dice-selection`, sized v
 - `physics.js` runs Rapier WASM simulation - cubes fall and stack up infinitely on the floor
 - Cubes can be pulsed/scattered by clicking anywhere on screen
 - `spawnLoot(dieSize, rollResult, originX, originY)` - rollResult determines drop count
+
+### Physics System
+
+- `physics.js` contains all physics constants at the top of the file for easy tuning
+- **Resize debounce**: 100ms debounce on window resize to prevent jank
+- **Impact marks**: Capped at `MAX_IMPACTS` (50) to prevent unbounded array growth
+- **Named constants**: All magic numbers are named constants (e.g., `PULSE_BASE_STRENGTH`, `FLOOR_BOOST_STRENGTH`, `BOUNCE_DAMPING`)
+- **Delta capping**: Physics step capped at `DELTA_CAP_MS` (50ms) to handle tab backgrounding gracefully
+
+### Shared Utilities
+
+- `shared.js` contains utilities shared across modules
+- `announce(message)` - Screen reader announcements via the #announcements element
+- Initialize with `initShared()` from `app.js` before other modules
+
+### Accessibility
+
+- ARIA labels on die buttons update dynamically during ramped state (e.g., "5-sided die" when d4 is ramped)
+- Screen reader announcements via `aria-live="polite"` region
+- Focus-visible outlines for keyboard navigation
+- High contrast mode support via `prefers-contrast: high` media query

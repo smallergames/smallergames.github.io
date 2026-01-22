@@ -18,13 +18,40 @@ const TIER_CONFIG = {
   7: { name: 'TRASH', size: 10, points: 1, color: '#3a3a4a' }
 };
 
-// Constants
+// Physics constants
 const WALL_THICKNESS = 20;
-const PIXELS_PER_METER = 50; // Scale factor for physics
+const PIXELS_PER_METER = 50;           // Scale factor for physics
+const GRAVITY_MULTIPLIER = 1.2;        // Snappier feel than default 9.81
+const DELTA_CAP_MS = 50;               // Max physics step to handle tab backgrounding
+
+// Pulse interaction constants
+const PULSE_BASE_STRENGTH = 8;         // Base radial pulse strength
+const PULSE_FALLOFF_DIVISOR = 30;      // Distance divisor for pulse falloff
+const PULSE_IMPULSE_SCALE = 0.045;     // Impulse multiplier
+const PULSE_SIZE_NORMALIZE = 16;       // Mid-tier cube size for impulse scaling
+const FLOOR_CLICK_THRESHOLD = 80;      // Max pixels from floor to trigger floor boost
+const FLOOR_BOOST_DISTANCE = 60;       // Max cube distance from floor for boost
+const FLOOR_BOOST_HORIZONTAL = 80;     // Max horizontal distance for floor boost
+const FLOOR_BOOST_STRENGTH = 3;        // Extra upward impulse when clicking near floor
+
+// Containment constants
+const SCREEN_EDGE_PADDING = 10;        // Padding from screen edges
+const BOUNCE_DAMPING = 0.7;            // Velocity retention on edge bounce
+
+// Impact mark constants
+const MAX_IMPACTS = 50;                // Maximum concurrent impact marks
+const IMPACT_BASE_WIDTH = 4;           // Base width of impact mark
+const IMPACT_VELOCITY_SCALE = 20;      // Width scaling based on impact velocity
+const IMPACT_GROWTH_RATE = 0.3;        // How fast impacts expand per ms
+const IMPACT_FADE_RATE = 0.004;        // How fast impacts fade per ms
 
 // Mobile detection for performance tuning
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   || (navigator.maxTouchPoints > 1);
+
+// Resize debounce
+let resizeTimeout = null;
+const RESIZE_DEBOUNCE_MS = 100;
 
 // Darken a hex color by a factor (0 = black, 1 = original)
 function darkenColor(hex, factor) {
@@ -75,7 +102,7 @@ export async function initPhysics() {
   await RAPIER.init();
 
   // Create physics world with gravity
-  const gravity = { x: 0.0, y: 9.81 * 1.2 }; // Snappier gravity
+  const gravity = { x: 0.0, y: 9.81 * GRAVITY_MULTIPLIER };
   world = new RAPIER.World(gravity);
 
   // Create event queue for collision detection
@@ -83,7 +110,10 @@ export async function initPhysics() {
 
   // Setup canvas size
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resize, RESIZE_DEBOUNCE_MS);
+  });
 
   // Create floor
   createFloor();
@@ -99,12 +129,12 @@ export async function initPhysics() {
 }
 
 // Screen boundary constants for containment (updated on resize)
-let screenBounds = { left: 10, right: 0, top: 10 };
+let screenBounds = { left: SCREEN_EDGE_PADDING, right: 0, top: SCREEN_EDGE_PADDING };
 
 function updateScreenBounds() {
-  screenBounds.left = 10;
-  screenBounds.right = window.innerWidth - 10;
-  screenBounds.top = 10;
+  screenBounds.left = SCREEN_EDGE_PADDING;
+  screenBounds.right = window.innerWidth - SCREEN_EDGE_PADDING;
+  screenBounds.top = SCREEN_EDGE_PADDING;
 }
 
 function containCube(body, pxX, pxY, physPos, vel) {
@@ -112,17 +142,17 @@ function containCube(body, pxX, pxY, physPos, vel) {
   // Bounce off left edge
   if (pxX < screenBounds.left && vel.x < 0) {
     body.setTranslation({ x: toPhysics(screenBounds.left), y: physPos.y }, true);
-    body.setLinvel({ x: Math.abs(vel.x) * 0.7, y: vel.y }, true);
+    body.setLinvel({ x: Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
   // Bounce off right edge
   else if (pxX > screenBounds.right && vel.x > 0) {
     body.setTranslation({ x: toPhysics(screenBounds.right), y: physPos.y }, true);
-    body.setLinvel({ x: -Math.abs(vel.x) * 0.7, y: vel.y }, true);
+    body.setLinvel({ x: -Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
   // Bounce off top edge
   if (pxY < screenBounds.top && vel.y < 0) {
     body.setTranslation({ x: physPos.x, y: toPhysics(screenBounds.top) }, true);
-    body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * 0.7 }, true);
+    body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * BOUNCE_DAMPING }, true);
   }
 }
 
@@ -229,7 +259,7 @@ function setupPulseInteraction() {
     const touchY = e.clientY;
 
     // Only trigger floor bounce if clicking near the floor
-    const clickNearFloor = touchY > bucketBounds.bottom - 80;
+    const clickNearFloor = touchY > bucketBounds.bottom - FLOOR_CLICK_THRESHOLD;
 
     cubes.forEach(cube => {
       const pos = cube.body.translation();
@@ -241,18 +271,20 @@ function setupPulseInteraction() {
       const dx = posX - touchX;
       const dy = posY - touchY;
       const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-      const radialStrength = Math.max(0, 8 - dist / 30);
+      const radialStrength = Math.max(0, PULSE_BASE_STRENGTH - dist / PULSE_FALLOFF_DIVISOR);
 
       // Floor bounce: only if clicking near floor AND cube is near bottom AND horizontally close
       const distFromBottom = bucketBounds.bottom - posY;
       const horizontalDist = Math.abs(posX - touchX);
-      const floorBoost = (clickNearFloor && distFromBottom < 60 && horizontalDist < 80) ? 3 : 0;
+      const floorBoost = (clickNearFloor && distFromBottom < FLOOR_BOOST_DISTANCE && horizontalDist < FLOOR_BOOST_HORIZONTAL)
+        ? FLOOR_BOOST_STRENGTH
+        : 0;
 
       // Scale impulse by cube size - larger cubes get more impulse to bounce,
       // smaller cubes get less so they don't fly at ridiculous speeds
-      const sizeScale = cube.config.size / 16; // Normalize around mid-tier size
-      const impulseX = (dx / dist) * radialStrength * 0.045 * sizeScale;
-      const impulseY = ((dy / dist) * radialStrength - floorBoost) * 0.045 * sizeScale;
+      const sizeScale = cube.config.size / PULSE_SIZE_NORMALIZE;
+      const impulseX = (dx / dist) * radialStrength * PULSE_IMPULSE_SCALE * sizeScale;
+      const impulseY = ((dy / dist) * radialStrength - floorBoost) * PULSE_IMPULSE_SCALE * sizeScale;
 
       cube.body.applyImpulse({ x: impulseX, y: impulseY }, true);
     });
@@ -266,7 +298,10 @@ function setupPulseInteraction() {
  * @param {number} originY - Starting Y position
  */
 export function spawnCube(tier, originX, originY) {
-  if (!world) return;
+  if (!world) {
+    console.warn('[physics] spawnCube called before physics initialized');
+    return;
+  }
 
   const config = TIER_CONFIG[tier] || TIER_CONFIG[7];
 
@@ -318,7 +353,7 @@ export function spawnCube(tier, originX, originY) {
 
 function animate() {
   const now = performance.now();
-  const delta = Math.min(now - lastTime, 50); // Cap delta for tab switching
+  const delta = Math.min(now - lastTime, DELTA_CAP_MS);
   lastTime = now;
 
   // Step physics world
@@ -337,23 +372,25 @@ function animate() {
     const cube = cubes.find(c => c.collider.handle === cubeHandle);
     if (!cube) return;
 
-    // Add impact mark
-    const pos = cube.body.translation();
-    const vel = cube.body.linvel();
-    const velocity = Math.abs(vel.y) + Math.abs(vel.x) * 0.5;
-    const baseWidth = 4 + velocity * 20;
-    impacts.push({
-      x: toPixels(pos.x),
-      width: baseWidth,
-      alpha: 1,
-      color: cube.config.color
-    });
+    // Add impact mark (cap array size to prevent unbounded growth)
+    if (impacts.length < MAX_IMPACTS) {
+      const pos = cube.body.translation();
+      const vel = cube.body.linvel();
+      const velocity = Math.abs(vel.y) + Math.abs(vel.x) * 0.5;
+      const baseWidth = IMPACT_BASE_WIDTH + velocity * IMPACT_VELOCITY_SCALE;
+      impacts.push({
+        x: toPixels(pos.x),
+        width: baseWidth,
+        alpha: 1,
+        color: cube.config.color
+      });
+    }
   });
 
   // Grow and fade impacts
   impacts = impacts.filter(imp => {
-    imp.width += delta * 0.3;
-    imp.alpha -= delta * 0.004;
+    imp.width += delta * IMPACT_GROWTH_RATE;
+    imp.alpha -= delta * IMPACT_FADE_RATE;
     return imp.alpha > 0;
   });
 
