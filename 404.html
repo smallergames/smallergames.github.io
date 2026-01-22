@@ -72,6 +72,12 @@
       line-height: 1;
       color: var(--cyan);
     }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: clamp(6rem, 35vw, 12rem);
+        font-weight: 700;
+      }
+    }
     .site-nav {
       position: fixed;
       top: 1rem;
@@ -93,6 +99,12 @@
     }
     .site-nav svg {
       display: block;
+    }
+    @media (max-width: 480px) {
+      .site-nav svg {
+        width: 28px;
+        height: 28px;
+      }
     }
   </style>
 </head>
