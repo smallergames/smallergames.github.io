@@ -6,6 +6,7 @@
 
 ```
 index.html          # Gallery landing page (minimal, lists all fidgets/games)
+404.html            # Not found page (GitHub Pages serves this for missing URLs)
 one/
   index.html        # Dice fidget toy
 assets/
@@ -24,8 +25,9 @@ Static file routing via directory structure (no client-side router). Each page i
 
 - `/` → `index.html` (gallery)
 - `/one` → `one/index.html` (dice fidget)
+- `/*` (not found) → `404.html` (GitHub Pages serves this automatically)
 
-Future pages follow the same pattern: `/two/index.html`, etc. Each subpage includes a back arrow nav linking to `/`.
+Future pages follow the same pattern: `/two/index.html`, etc. Each subpage (including 404) includes a back arrow nav linking to `/`.
 
 ## Development
 

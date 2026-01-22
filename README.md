@@ -6,6 +6,7 @@ A collection of smaller weirder incremental games, hosted on GitHub Pages.
 
 ```
 ├── index.html              # Gallery landing page
+├── 404.html                # Not found page
 ├── one/
 │   └── index.html          # Dice fidget toy
 ├── assets/
