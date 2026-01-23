@@ -25,16 +25,23 @@
       --accent-mid: #B06A60;
       --accent-dim: #3D2825;
     }
-    html {
+    html, body {
       height: 100%;
+      margin: 0;
+    }
+    body {
       color: #EDE7E1;
       font-family: 'Outfit', system-ui, sans-serif;
     }
-    body {
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
       background: #080607;
-      min-height: 100%;
+      z-index: -1;
     }
     main {
+      background: transparent;
       padding: min(35vh, 200px) 1.5rem 1.5rem;
     }
     @media (max-width: 480px) {
