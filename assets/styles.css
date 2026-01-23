@@ -716,6 +716,13 @@ main {
   to { opacity: 1; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .motion-warning[open],
+  .motion-warning::backdrop {
+    animation: none;
+  }
+}
+
 .motion-warning p {
   margin-bottom: 1.25rem;
   line-height: 1.7;
@@ -730,16 +737,13 @@ main {
   border: 1px solid var(--accent);
   border-radius: 4px;
   color: var(--accent);
-  text-shadow: 0 0 4px var(--accent-glow);
   cursor: pointer;
-  transition: text-shadow var(--transition-speed) var(--transition-smooth),
-              filter var(--transition-speed) var(--transition-smooth);
+  transition: background var(--transition-speed) var(--transition-smooth);
 }
 
 .motion-warning button:hover,
 .motion-warning button:focus-visible {
-  text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
-  filter: brightness(1.2);
+  background: rgba(125, 180, 176, 0.1);
   outline: none;
 }
 
