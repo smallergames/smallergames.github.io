@@ -24,7 +24,7 @@
       src: url('assets/fonts/outfit-regular.woff2') format('woff2');
     }
     .fonts-loading { visibility: hidden; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
       --accent: #E45B5B;
       --accent-mid: #B06A60;
@@ -91,6 +91,9 @@
       letter-spacing: -0.02em;
       line-height: 0.55;
       display: block;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     a:focus-visible {
       outline: 1px solid var(--accent-mid);
@@ -119,7 +122,7 @@
         padding: min(35vh, 150px) 1rem 1rem;
       }
       header {
-        margin-bottom: -1.5rem;
+        margin-bottom: 0;
       }
     }
   </style>
