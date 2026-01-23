@@ -113,7 +113,7 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 - `html, body { height: 100%; margin: 0; }` - no background here
 - `body::before { content: ''; position: fixed; inset: 0; background: var(--void); z-index: -1; }` - the actual background
-- `main` has no background property
+- `main { background: transparent; }` - explicitly transparent to avoid any browser defaults
 
 ### Color Palette
 
