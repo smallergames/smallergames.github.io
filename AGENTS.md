@@ -85,8 +85,11 @@ Use `transform` and `opacity` for animations—avoid animating layout properties
 
 ### Text Stability
 
-**NEVER move, shake, or transform text elements.** Result text must remain stationary. For glitch effects on text, use only:
-- `text-shadow` (RGB splits, glow changes)
+**NEVER move, shake, or transform text elements.** Result text must remain stationary.
+
+**NO glows, shadows, or shaking on text.** Do not use `text-shadow`, `box-shadow`, or any shimmer/glow effects on text elements. Keep text clean and static.
+
+For glitch effects on the die (not text), use only:
 - `filter` (brightness, saturate)
 - `opacity`
 
