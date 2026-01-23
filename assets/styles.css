@@ -47,6 +47,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -60,8 +61,8 @@ html, body {
 
 .site-nav {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: 1.5rem;
+  left: 1.5rem;
   z-index: 100;
 }
 
@@ -69,8 +70,7 @@ html, body {
   display: block;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 0.5rem;
-  margin: -0.5rem;
+  line-height: 0.7;
 }
 
 .site-nav a:hover {
@@ -339,7 +339,6 @@ body {
   color: var(--text-dim);
   cursor: pointer;
   transition: color var(--transition-speed) var(--transition-smooth);
-  -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   touch-action: manipulation;
@@ -396,7 +395,6 @@ main {
   justify-content: center;
   position: relative;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
   touch-action: none;
   background: transparent;
@@ -419,7 +417,6 @@ main {
 .die-shape {
   position: absolute;
   inset: 0;
-  -webkit-tap-highlight-color: transparent;
   pointer-events: none;
   overflow: visible;
 }
@@ -431,7 +428,6 @@ main {
   stroke: var(--accent);
   stroke-width: 1;
   transition: filter var(--transition-speed) var(--transition-smooth);
-  -webkit-tap-highlight-color: transparent;
   transform-origin: 50% 50%;
   overflow: visible;
   filter: drop-shadow(0 0 8px var(--accent-glow));
@@ -513,7 +509,6 @@ main {
   opacity: 0;
   transform: scale(0.5);
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
   text-shadow: 
     0 0 20px var(--accent-glow),
     0 0 40px var(--accent-glow);
