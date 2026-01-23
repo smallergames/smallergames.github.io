@@ -105,6 +105,14 @@ When JavaScript needs to act at a specific point in a CSS animation cycle, use a
 
 CSS animations and transitions can conflict. If an element has both a `transition` on `transform` and an `animation` that transforms it, removing the animation class will trigger the transition to animate back to the rest state. The fix is architectural: don't transition properties that are also animated. The die SVG only transitions `filter` (for glow effects), not `transform`.
 
+### Background Colors
+
+**Set background on both `html` AND `body`, never on `main`.** The `color-scheme: dark` attribute causes browsers to apply default backgrounds, which can show through if not explicitly overridden on both elements. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
+
+- `html, body { background: var(--void); }` in styles.css
+- `html, body { background: #080607; }` in inline styles for index.html and 404.html
+- `main` has no background property
+
 ### Color Palette
 
 Warm charcoal + soft teal theme, designed for high contrast readability while being easy on the eyes:

@@ -49,7 +49,8 @@
   box-sizing: border-box;
 }
 
-html {
+html, body {
+  background: var(--void);
 }
 
 /* ==========================================================================
@@ -81,7 +82,6 @@ html {
 
 body {
   font-family: var(--font-family);
-  background: var(--void);
   color: var(--text);
   min-height: 100vh;
   display: flex;
@@ -378,7 +378,6 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 0;
-  background: var(--void);
 }
 
 .die-container {
