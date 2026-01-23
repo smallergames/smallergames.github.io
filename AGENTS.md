@@ -107,11 +107,11 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 ### Background Colors
 
-**Set the color background ONLY on `html`, never on `body` or `main`.** Setting a color background on multiple elements causes visible layering artifacts on some displays. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
+**Set the same background on both `html` and `body`, never on `main`.** Using `transparent` on body causes color rendering differences on calibrated monitors. Setting the same solid color on both elements with `min-height: 100vh` ensures consistent rendering. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
 
-- `html { background: var(--void); color-scheme: dark; }` in styles.css
-- `html { background: #080607; }` in inline styles for index.html and 404.html (with `style="color-scheme: dark"` on the html element)
-- `body { background: transparent; }` in both styles.css and inline styles - explicitly set to prevent browser canvas color interference on calibrated monitors
+- `html, body { background: var(--void); min-height: 100vh; }` in styles.css
+- `html, body { background: #080607; min-height: 100vh; }` in inline styles for index.html and 404.html
+- `html` also gets `color-scheme: dark` (in styles.css) or `style="color-scheme: dark"` attribute (in inline styles)
 - `main` has no background property
 
 ### Color Palette

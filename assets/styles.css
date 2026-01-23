@@ -49,8 +49,12 @@
   box-sizing: border-box;
 }
 
-html {
+html, body {
   background: var(--void);
+  min-height: 100vh;
+}
+
+html {
   color-scheme: dark;
 }
 
@@ -82,10 +86,8 @@ html {
 }
 
 body {
-  background: transparent;
   font-family: var(--font-family);
   color: var(--text);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
