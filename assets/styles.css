@@ -50,6 +50,7 @@
 }
 
 html {
+  height: 100%;
   color-scheme: dark;
 }
 
@@ -84,7 +85,7 @@ body {
   background: var(--void);
   font-family: var(--font-family);
   color: var(--text);
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
