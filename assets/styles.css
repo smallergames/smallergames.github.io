@@ -85,7 +85,6 @@ body {
   font-family: var(--font-family);
   color: var(--text);
   min-height: 100%;
-  color-scheme: dark;
   display: flex;
   flex-direction: column;
   align-items: center;

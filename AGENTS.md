@@ -109,12 +109,11 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 **Set background ONLY on `body`, never on `html` or `main`.** Setting background on html causes color rendering artifacts on calibrated monitors due to compositor layering. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
 
-**CRITICAL: `color-scheme: dark` must be on `body`, not `html`.** When set on html, the browser applies its own dark "canvas" background color (not #080607) which bleeds through and causes a visible horizontal line where body doesn't perfectly cover.
+**Do NOT use `color-scheme: dark`.** It causes the browser to apply its own dark canvas background color (not #080607) which bleeds through and creates visible color banding. We style everything dark manually so it's not needed.
 
-- `html { height: 100%; }` - ensures html fills viewport so body can inherit, NO color-scheme here
-- `body { background: var(--void); min-height: 100%; color-scheme: dark; }` in styles.css
-- `body { background: #080607; min-height: 100%; color-scheme: dark; }` in inline styles for index.html and 404.html
-- `html` element must NOT have `style="color-scheme: dark"` attribute
+- `html { height: 100%; }` - ensures html fills viewport so body can inherit
+- `body { background: var(--void); min-height: 100%; }` in styles.css
+- `body { background: #080607; min-height: 100%; }` in inline styles for index.html and 404.html
 - `main` has no background property
 
 ### Color Palette
