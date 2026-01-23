@@ -63,7 +63,8 @@ The landing page (`index.html`) is intentionally minimal:
 - **Self-contained styles** — Inline `<style>` block, doesn't load `styles.css`. Uses CSS variables for accent color consistency.
 - **Section structure** — Each category (fidgets, games, etc.) is a `<section>` with a header. Header uses flexbox with `::before`/`::after` pseudo-elements for the line decoration.
 - **Giant links** — Game links use fixed `11rem` bold text with jumbled letter rotation (5–11°, first/last letters rotate opposite directions).
-- **Tight header spacing** — Headers use negative margin (`-1.5rem`) to tuck close to the giant link text below.
+- **Tight header spacing** — Headers use negative margin on desktop, neutral on mobile for better spacing.
+- **Touch interaction suppression** — Links use `-webkit-tap-highlight-color: transparent` (via `*` selector), `-webkit-touch-callout: none`, and `user-select: none` to prevent browser highlight artifacts on tap.
 - **Warm color palette** — Gold (#F5C66A) for section headers and "always WIP." emphasis, coral (#E45B5B) for interactive links. Gold = context/labels, coral = actions.
 - **Per-link identity (future)** — Each fidget may get its own color and font. Explored amethyst (#B58CFF) + Playfair Display serif for contrast.
 
