@@ -60,9 +60,10 @@ This is a small static site with no build step, bundler, or test framework. Keep
 The landing page (`index.html`) is intentionally minimal:
 
 - **No hover effects** — Mobile and desktop experiences should be identical. Hover states create divergence.
-- **Self-contained styles** — Inline `<style>` block, doesn't load `styles.css`. Uses CSS variables for cyan color consistency.
+- **Self-contained styles** — Inline `<style>` block, doesn't load `styles.css`. Uses CSS variables for accent color consistency.
 - **Section structure** — Each category (fidgets, games, etc.) is a `<section>` with a header. Header uses flexbox with `::before`/`::after` pseudo-elements for the line decoration.
-- **Giant links** — Game links use `clamp(3rem, 15vw, 8rem)` for responsive scaling.
+- **Giant links** — Game links use fixed `11rem` bold text.
+- **Tight header spacing** — Headers use negative margin (`-1.5rem`) to tuck close to the giant link text below.
 
 ### prefers-reduced-motion
 
@@ -99,10 +100,42 @@ When JavaScript needs to act at a specific point in a CSS animation cycle, use a
 
 CSS animations and transitions can conflict. If an element has both a `transition` on `transform` and an `animation` that transforms it, removing the animation class will trigger the transition to animate back to the rest state. The fix is architectural: don't transition properties that are also animated. The die SVG only transitions `filter` (for glow effects), not `transform`.
 
+### Color Palette
+
+Warm charcoal + soft teal theme, designed for high contrast readability while being easy on the eyes:
+
+**Core neutrals:**
+- `--void`: `#080607` (warm near-black background)
+- `--surface`: `#141113` (warm charcoal for panels)
+
+**Text hierarchy:**
+- `--text`: `#EDE7E1` (warm off-white, primary)
+- `--text-dim`: `#C7BDB4` (secondary text)
+- `--text-muted`: `#8E857D` (tertiary/disabled)
+
+**Brand accents:**
+- `--accent`: `#67D6C2` (soft teal-mint)
+- `--accent-glow`: `#9FF0E2` (light teal for glows)
+- `--accent-dim`: `#1F3D37` (dark teal for borders/subtle UI)
+- `--secondary`: `#B58CFF` (amethyst)
+- `--secondary-glow`: `#D7C2FF` (light amethyst for glows)
+
+**Status:**
+- `--danger`: `#E45B5B` (muted coral-red)
+
+**Loot tiers (tier 1 = best, tier 7 = trash):**
+1. `#F5C66A` (soft gold)
+2. `#B58CFF` (amethyst)
+3. `#5FA8FF` (azure)
+4. `#62D49A` (mint)
+5. `#A7B0BA` (silver)
+6. `#B88B5A` (bronze)
+7. `#4E4A46` (ash)
+
 ### CSS Architecture
 
 - Theme tokens are in `:root` at the top of `styles.css`
-- Use existing CSS custom properties (e.g., `--accent`, `--accent-glow`, `--transition-smooth`)
+- Use existing CSS custom properties (e.g., `--accent`, `--accent-glow`, `--secondary`, `--transition-smooth`)
 - Mobile breakpoint is 480px
 - Energy bar level controlled via `--energy-level` custom property
 - Sliding indicator position controlled via `--indicator-left` and `--indicator-width`

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="smaller weirder games.">
-  <meta name="theme-color" content="#030305">
+  <meta name="theme-color" content="#080607">
   <link rel="canonical" href="https://smallergames.com/">
   <meta property="og:title" content="smaller games">
   <meta property="og:description" content="smaller weirder games.">
@@ -26,13 +26,13 @@
     .fonts-loading { visibility: hidden; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --cyan: #00f0ff;
-      --cyan-mid: rgba(0, 240, 255, 0.5);
-      --cyan-dim: rgba(0, 240, 255, 0.25);
+      --accent: #67D6C2;
+      --accent-mid: #4A9E8F;
+      --accent-dim: #1F3D37;
     }
     html, body {
-      background: #030305;
-      color: #e0e0e8;
+      background: #080607;
+      color: #EDE7E1;
       font-family: 'Outfit', system-ui, sans-serif;
       min-height: 100vh;
     }
@@ -43,13 +43,15 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: -1.5rem;
+      position: relative;
+      z-index: 1;
     }
     header h2 {
-      font-size: 0.65rem;
+      font-size: 1rem;
       font-weight: 400;
       letter-spacing: 0.15em;
-      color: var(--cyan-mid);
+      color: var(--accent-mid);
       text-transform: lowercase;
       flex-shrink: 0;
     }
@@ -57,7 +59,7 @@
     header::after {
       content: '';
       height: 1px;
-      background: var(--cyan-dim);
+      background: var(--accent-dim);
     }
     header::before {
       width: 2rem;
@@ -72,15 +74,16 @@
       margin-top: 0.5rem;
     }
     a {
-      color: var(--cyan);
+      color: var(--accent);
       text-decoration: none;
-      font-size: clamp(3rem, 15vw, 8rem);
+      font-size: 11rem;
+      font-weight: 700;
       letter-spacing: -0.02em;
       line-height: 1;
       display: block;
     }
     a:focus-visible {
-      outline: 1px solid var(--cyan-mid);
+      outline: 1px solid var(--accent-mid);
       outline-offset: 0.25rem;
     }
     a:active {
@@ -90,9 +93,8 @@
       main {
         padding: min(35vh, 150px) 1rem 1rem;
       }
-      a {
-        font-size: clamp(6rem, 35vw, 12rem);
-        font-weight: 700;
+      header {
+        margin-bottom: -1.5rem;
       }
     }
   </style>

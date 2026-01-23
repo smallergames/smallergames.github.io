@@ -55,7 +55,7 @@ function releaseScanline(s) {
 // Particle burst configuration (standardized across all dice)
 const PARTICLE_MAGNITUDE = { count: 20, speed: 120, spread: 50, scanlines: 2, lifetime: 0.65 };
 
-const COLORS = ['#00f0ff', '#ff00ff', '#ffffff', '#ff3366'];
+const COLORS = ['#67D6C2', '#B58CFF', '#EDE7E1', '#E45B5B'];
 
 /**
  * Initialize the canvas renderer
@@ -176,7 +176,7 @@ export function spawnParticles(x, y) {
     s.width = mag.spread + Math.random() * mag.spread * 2;
     s.height = 1 + Math.random() * 3;
     s.vx = (Math.random() > 0.5 ? 1 : -1) * (mag.speed + Math.random() * mag.speed);
-    s.color = Math.random() > 0.7 ? '#ff00ff' : '#00f0ff';
+    s.color = Math.random() > 0.7 ? '#B58CFF' : '#67D6C2';
     s.life = 0.4 * mag.lifetime * (0.5 + Math.random() * 0.5);
     s.maxLife = 0.4 * mag.lifetime;
     s.flickerRate = 0.05 + Math.random() * 0.1;

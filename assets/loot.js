@@ -12,13 +12,13 @@ const TIER_TRASH = 7;
 const TIER_ZZZ = 6;
 
 const LOOT_TIERS = {
-  [TIER_TRASH]: { name: 'TRASH', color: '#3a3a4a' },
-  [TIER_ZZZ]: { name: 'ZZZ', color: '#5a5a70' },
-  5: { name: 'DECENT', color: '#4d6bff' },
-  4: { name: 'DOPE', color: '#ff6b2b' },
-  3: { name: 'BASED', color: '#ff00ff' },
-  2: { name: 'SHEESH', color: '#ff3366' },
-  1: { name: 'JAWESOME', color: '#00f0ff' }
+  [TIER_TRASH]: { name: 'TRASH', color: '#4E4A46' },
+  [TIER_ZZZ]: { name: 'ZZZ', color: '#B88B5A' },
+  5: { name: 'DECENT', color: '#A7B0BA' },
+  4: { name: 'DOPE', color: '#62D49A' },
+  3: { name: 'BASED', color: '#5FA8FF' },
+  2: { name: 'SHEESH', color: '#B58CFF' },
+  1: { name: 'JAWESOME', color: '#F5C66A' }
 };
 
 export { TIER_TRASH, TIER_ZZZ };

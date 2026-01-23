@@ -7,15 +7,15 @@
 import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier2d-compat@0.14.0/+esm';
 
 // Tier definitions with sizes and point values
-// Vaporwave palette: cyan → pink → violet → blue → magenta → cool grays
+// Warm palette: gold → amethyst → azure → mint → silver → bronze → ash
 const TIER_CONFIG = {
-  1: { name: 'JAWESOME', size: 24, points: 100, color: '#00f0ff' },
-  2: { name: 'SHEESH', size: 20, points: 50, color: '#ff3366' },
-  3: { name: 'BASED', size: 18, points: 25, color: '#ff00ff' },
-  4: { name: 'DOPE', size: 16, points: 10, color: '#ff6b2b' },
-  5: { name: 'DECENT', size: 14, points: 5, color: '#4d6bff' },
-  6: { name: 'ZZZ', size: 12, points: 2, color: '#5a5a70' },
-  7: { name: 'TRASH', size: 10, points: 1, color: '#3a3a4a' }
+  1: { name: 'JAWESOME', size: 24, points: 100, color: '#F5C66A' },
+  2: { name: 'SHEESH', size: 20, points: 50, color: '#B58CFF' },
+  3: { name: 'BASED', size: 18, points: 25, color: '#5FA8FF' },
+  4: { name: 'DOPE', size: 16, points: 10, color: '#62D49A' },
+  5: { name: 'DECENT', size: 14, points: 5, color: '#A7B0BA' },
+  6: { name: 'ZZZ', size: 12, points: 2, color: '#B88B5A' },
+  7: { name: 'TRASH', size: 10, points: 1, color: '#4E4A46' }
 };
 
 // Physics constants

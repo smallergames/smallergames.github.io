@@ -22,19 +22,19 @@
 
 :root {
   --font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --void: #030305;
-  --surface: #0a0a0f;
-  --text: #e0e0e8;
-  --text-dim: rgba(224, 224, 232, 0.55);
-  --text-muted: rgba(224, 224, 232, 0.4);
-  --accent: #00f0ff;
-  --accent-glow: rgba(0, 240, 255, 0.3);
-  --accent-dim: rgba(0, 240, 255, 0.08);
-  --magenta: #ff00ff;
-  --magenta-glow: rgba(255, 0, 255, 0.3);
-  --white: #ffffff;
-  --white-glow: rgba(255, 255, 255, 0.3);
-  --danger: rgba(255, 45, 106, 0.7);
+  --void: #080607;
+  --surface: #141113;
+  --text: #EDE7E1;
+  --text-dim: #C7BDB4;
+  --text-muted: #8E857D;
+  --accent: #67D6C2;
+  --accent-glow: #9FF0E2;
+  --accent-dim: #1F3D37;
+  --secondary: #B58CFF;
+  --secondary-glow: #D7C2FF;
+  --white: #EDE7E1;
+  --white-glow: #EDE7E1;
+  --danger: #E45B5B;
   --transition-speed: 0.2s;
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -96,26 +96,6 @@ body {
   user-select: none;
 }
 
-/* Subtle grid background - slow pulse for calm idle state */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(var(--accent-dim) 1px, transparent 1px),
-    linear-gradient(90deg, var(--accent-dim) 1px, transparent 1px);
-  background-size: 60px 60px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
-  pointer-events: none;
-  animation: gridPulse 24s ease-in-out infinite;
-}
-
-@keyframes gridPulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 0.5; }
-}
-
 @keyframes idleBreathe {
   0%, 100% { transform: rotate(-2.1deg); }
   50% { transform: rotate(2.1deg); }
@@ -153,7 +133,7 @@ body::before {
   text-transform: uppercase;
   padding: 0.35rem 0.5rem 0.4rem;
   text-align: left;
-  border-top: 1px solid rgba(0, 240, 255, 0.08);
+  border-top: 1px solid #1F3D37;
 }
 
 /* Base: everything dim */
@@ -166,39 +146,31 @@ body::before {
   margin: 0 0.25em;
 }
 
-/* IDLE: "idle" glows */
+/* IDLE: static dim */
 .energy-label[data-state="idle"] [data-state="idle"] {
-  color: #aaa;
-  animation: idlePulse 2.5s ease-in-out infinite;
+  color: var(--text-muted);
 }
 
-@keyframes idlePulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* RAMPING: "ramping" glows cyan */
+/* RAMPING: accent color */
 .energy-label[data-state="ramping"] [data-state="ramping"] {
   color: var(--accent);
-  text-shadow: 0 0 6px var(--accent-glow);
   animation: rampingPulse 0.8s ease-in-out infinite;
 }
 
 @keyframes rampingPulse {
-  0%, 100% { opacity: 0.7; text-shadow: 0 0 4px var(--accent-glow); }
-  50% { opacity: 1; text-shadow: 0 0 10px var(--accent-glow); }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
-/* RAMPED: "ramped" glows bright */
+/* RAMPED: bright white */
 .energy-label[data-state="ramped"] [data-state="ramped"] {
-  color: #fff;
-  text-shadow: 0 0 6px #fff, 0 0 12px var(--accent), 0 0 20px var(--magenta-glow);
-  animation: rampedGlow 0.6s ease-in-out infinite;
+  color: var(--white);
+  animation: rampedPulse 0.6s ease-in-out infinite;
 }
 
-@keyframes rampedGlow {
-  0%, 100% { text-shadow: 0 0 4px #fff, 0 0 10px var(--accent), 0 0 18px var(--magenta-glow); }
-  50% { text-shadow: 0 0 8px #fff, 0 0 16px var(--accent), 0 0 28px var(--magenta-glow); }
+@keyframes rampedPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
 }
 
 /* Outcome states - hide the flow, show only the outcome */
@@ -214,11 +186,7 @@ body::before {
 
 .energy-label[data-state="loot-hit"] [data-state="loot-hit"] {
   display: inline;
-  color: #fff;
-  text-shadow:
-    0 0 8px var(--accent),
-    0 0 16px var(--accent),
-    0 0 24px #fff;
+  color: var(--accent);
   animation: lootHitBurst 0.5s ease-out;
 }
 
@@ -226,7 +194,6 @@ body::before {
   0% {
     opacity: 0;
     transform: scale(1.4);
-    text-shadow: 0 0 20px #fff, 0 0 40px var(--accent);
   }
   40% {
     opacity: 1;
@@ -235,7 +202,6 @@ body::before {
   100% {
     opacity: 1;
     transform: scale(1);
-    text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent), 0 0 24px #fff;
   }
 }
 
@@ -466,11 +432,11 @@ main {
 }
 
 /* Additional outlines for loot hit results */
-.die-shape svg.magenta-outline {
+.die-shape svg.secondary-outline {
   position: absolute;
   inset: 0;
-  stroke: var(--magenta);
-  filter: drop-shadow(0 0 8px var(--magenta-glow));
+  stroke: var(--secondary);
+  filter: drop-shadow(0 0 8px var(--secondary-glow));
 }
 
 .die-shape svg.white-outline {
@@ -481,12 +447,12 @@ main {
 }
 
 /* Loot resolution state - triple wiggling outlines that settle */
-.die-container.loot-resolution .die-shape svg:not(.magenta-outline):not(.white-outline) {
+.die-container.loot-resolution .die-shape svg:not(.secondary-outline):not(.white-outline) {
   animation: lootResolutionWiggle 0.8s ease-in-out infinite;
   --wiggle-amount: 12deg;
 }
 
-.die-container.loot-resolution .die-shape svg.magenta-outline {
+.die-container.loot-resolution .die-shape svg.secondary-outline {
   animation: lootResolutionWiggle 0.9s ease-in-out infinite reverse;
   --wiggle-amount: 12deg;
 }
@@ -502,11 +468,11 @@ main {
 }
 
 /* d100 needs more rotation due to its rounder shape */
-.die-container.d100.loot-resolution .die-shape svg:not(.magenta-outline):not(.white-outline) {
+.die-container.d100.loot-resolution .die-shape svg:not(.secondary-outline):not(.white-outline) {
   --wiggle-amount: 20deg;
 }
 
-.die-container.d100.loot-resolution .die-shape svg.magenta-outline {
+.die-container.d100.loot-resolution .die-shape svg.secondary-outline {
   --wiggle-amount: 20deg;
 }
 
@@ -736,7 +702,7 @@ main {
 }
 
 .motion-warning::backdrop {
-  background: rgba(3, 3, 5, 0.95);
+  background: #080607;
   animation: backdropFadeIn 0.3s ease-out;
 }
 
@@ -823,10 +789,10 @@ main {
 
 @media (prefers-contrast: high) {
   :root {
-    --accent: #00ffff;
-    --text: #ffffff;
-    --text-dim: rgba(255, 255, 255, 0.85);
-    --text-muted: rgba(255, 255, 255, 0.7);
+    --accent: #7EECD8;
+    --text: #FFFFFF;
+    --text-dim: #E0D8D2;
+    --text-muted: #B5ADA6;
   }
 
   .dice-selection::before {

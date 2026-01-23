@@ -366,9 +366,9 @@ function clearOutlineEffects() {
     cancelAnimationFrame(settlingAnimationFrame);
     settlingAnimationFrame = null;
   }
-  const magentaOutline = document.querySelector('.die-shape svg.magenta-outline');
+  const secondaryOutline = document.querySelector('.die-shape svg.secondary-outline');
   const whiteOutline = document.querySelector('.die-shape svg.white-outline');
-  if (magentaOutline) magentaOutline.remove();
+  if (secondaryOutline) secondaryOutline.remove();
   if (whiteOutline) whiteOutline.remove();
 }
 
@@ -498,17 +498,17 @@ function runWinSequence(centerX, centerY, die, rollResult) {
   dieContainer.classList.add('loot-resolution');
   spawnParticles(centerX, centerY);
 
-  const magentaOutline = dieSvg.cloneNode(true);
-  magentaOutline.classList.add('magenta-outline');
-  magentaOutline.removeAttribute('id');
-  dieSvg.parentElement.appendChild(magentaOutline);
+  const secondaryOutline = dieSvg.cloneNode(true);
+  secondaryOutline.classList.add('secondary-outline');
+  secondaryOutline.removeAttribute('id');
+  dieSvg.parentElement.appendChild(secondaryOutline);
 
   const whiteOutline = dieSvg.cloneNode(true);
   whiteOutline.classList.add('white-outline');
   whiteOutline.removeAttribute('id');
   dieSvg.parentElement.appendChild(whiteOutline);
 
-  startSettlingAnimation([dieSvg, magentaOutline, whiteOutline]);
+  startSettlingAnimation([dieSvg, secondaryOutline, whiteOutline]);
 
   // Selector reverts quickly so focus shifts to die
   setTimeout(() => {
