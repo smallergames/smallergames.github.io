@@ -51,6 +51,7 @@
 
 html {
   background: var(--void);
+  color-scheme: dark;
 }
 
 /* ==========================================================================
@@ -81,6 +82,7 @@ html {
 }
 
 body {
+  background: transparent;
   font-family: var(--font-family);
   color: var(--text);
   min-height: 100vh;

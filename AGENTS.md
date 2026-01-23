@@ -109,9 +109,10 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 **Set background ONLY on `html`, never on `body` or `main`.** Setting background on multiple elements causes visible layering artifacts on some displays. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
 
-- `html { background: var(--void); }` in styles.css
-- `html { background: #080607; }` in inline styles for index.html and 404.html
-- `body` and `main` have no background property
+- `html { background: var(--void); color-scheme: dark; }` in styles.css
+- `html { background: #080607; }` in inline styles for index.html and 404.html (with `style="color-scheme: dark"` on the html element)
+- `body { background: transparent; }` - explicitly set to prevent browser canvas color interference on calibrated monitors
+- `main` has no background property
 
 ### Color Palette
 
