@@ -107,11 +107,11 @@ CSS animations and transitions can conflict. If an element has both a `transitio
 
 ### Background Colors
 
-**Set background on both `html` AND `body`, never on `main`.** The `color-scheme: dark` attribute causes browsers to apply default backgrounds, which can show through if not explicitly overridden on both elements. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
+**Set background ONLY on `html`, never on `body` or `main`.** Setting background on multiple elements causes visible layering artifacts on some displays. The `main` element must remain transparent so the physics canvas (loot cubes) shows behind it on `/one`.
 
-- `html, body { background: var(--void); }` in styles.css
-- `html, body { background: #080607; }` in inline styles for index.html and 404.html
-- `main` has no background property
+- `html { background: var(--void); }` in styles.css
+- `html { background: #080607; }` in inline styles for index.html and 404.html
+- `body` and `main` have no background property
 
 ### Color Palette
 
