@@ -40,13 +40,3 @@ Visit `localhost:8000` for the gallery, `localhost:8000/one` for the dice fidget
 3. Fill the energy bar to "ramp" the die (+1 to max)
 4. Release while ramped to resolve - beat the normal max for loot
 5. Loot cubes fall with physics, stack up, and can be scattered by clicking
-
-## Notes
-
-### On prefers-reduced-motion
-
-The dice fidget does not support `prefers-reduced-motion`. A warning modal appears instead.
-
-### Fonts
-
-Self-hosted Outfit font with `<link rel="preload">` and a `fonts-loading` class that hides content until the font is ready.
