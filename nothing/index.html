@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" class="fonts-loading">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="nothing here | smaller weirder games.">
+  <meta name="theme-color" content="#080607">
+  <link rel="canonical" href="https://smallergames.com/nothing">
+  <meta property="og:title" content="nothing | smaller games">
+  <meta property="og:description" content="nothing here | smaller weirder games.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://smallergames.com/nothing">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <title>nothing | smaller games</title>
+  <link rel="preload" href="../assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url('../assets/fonts/outfit-regular.woff2') format('woff2');
+    }
+    .fonts-loading { visibility: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --void: #080607;
+      --text: #EDE7E1;
+      --muted: #8E857D;
+      --azure: #5FA8FF;
+    }
+    html, body { height: 100%; }
+    body {
+      color: var(--text);
+      font-family: 'Outfit', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--void);
+      z-index: -1;
+    }
+    .site-nav {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      z-index: 100;
+    }
+    .site-nav a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      line-height: 0.7;
+    }
+    .site-nav a:hover { color: var(--text); }
+    .site-nav svg { display: block; }
+    .wip {
+      font-size: clamp(4rem, 15vw, 8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: lowercase;
+      color: var(--azure);
+    }
+    @media (max-width: 480px) {
+      body { padding: 1.5rem; }
+      .site-nav { top: 1rem; left: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav"><a href="/" aria-label="Back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a></nav>
+
+  <main>
+    <span class="wip">wip</span>
+  </main>
+
+  <script>
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.remove('fonts-loading');
+    });
+  </script>
+</body>
+</html>

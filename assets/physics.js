@@ -28,11 +28,120 @@ const DELTA_CAP_MS = 50;               // Max physics step to handle tab backgro
 const PULSE_BASE_STRENGTH = 8;         // Base radial pulse strength
 const PULSE_FALLOFF_DIVISOR = 30;      // Distance divisor for pulse falloff
 const PULSE_IMPULSE_SCALE = 0.045;     // Impulse multiplier
+const FORMATION_BURST_MULTIPLIER = 5;  // Extra burst power when shattering formation
 const PULSE_SIZE_NORMALIZE = 16;       // Mid-tier cube size for impulse scaling
 const FLOOR_CLICK_THRESHOLD = 80;      // Max pixels from floor to trigger floor boost
 const FLOOR_BOOST_DISTANCE = 60;       // Max cube distance from floor for boost
 const FLOOR_BOOST_HORIZONTAL = 80;     // Max horizontal distance for floor boost
 const FLOOR_BOOST_STRENGTH = 3;        // Extra upward impulse when clicking near floor
+
+// Formation constants
+const FORMATION_IDLE_TIMEOUT = 5000;   // Ms of no interaction before reforming
+const FORMATION_DRIFT_STRENGTH = 0.08; // Gentle force toward home position
+const FORMATION_ARRIVE_THRESHOLD = 5;  // Pixels - considered "home" when this close
+const FORMATION_DAMPING = 0.92;        // Velocity damping when drifting home
+
+// Hover effect constants
+const HOVER_BRIGHTNESS_BOOST = 0.15;   // Extra alpha when hovering formation
+
+// Lewis Chessmen Rook (the shield-biter) formation
+// Grid spacing for the figure
+const ROOK_GRID = 7; // Pixels between cube centers (smaller = more detail)
+
+// Lewis Rook color palette - aged ivory/walrus tusk tones
+const ROOK_COLORS = {
+  h: { color: '#F5EDE6', size: 6 },    // highlight - brightest
+  i: { color: '#EDE7E1', size: 6 },    // ivory - main body
+  c: { color: '#D4CCC4', size: 6 },    // cream - mid tone
+  s: { color: '#B8AEA4', size: 6 },    // shadow - darker details
+  d: { color: '#4E4A46', size: 6 },    // dark - eyes, outlines
+};
+
+// Bitmap of the Lewis Rook - the famous shield-biting berserker
+// Legend: h=highlight, i=ivory, c=cream, s=shadow, d=dark, .=empty
+// 26 columns x 38 rows - detailed version based on pixel art reference
+const ROOK_BITMAP = [
+  // Helmet point (rows 0-3)
+  '...........ii...........',
+  '..........ihhi..........',
+  '.........ihhhi..........',
+  '........ihhhhi..........',
+  // Helmet dome with bands (rows 4-8)
+  '.......dssssssd.........',
+  '......dciiiiiiicd.......',
+  '.....dcsssssssscd.......',
+  '....dciiiiiiiiiiicd.....',
+  '...dcsssssssssssscd.....',
+  // Helmet rim (row 9)
+  '..dddddddddddddddddd....',
+  // Upper face (rows 10-11)
+  '..dciiiiiiiiiiiiiiicd...',
+  '..dciiiiiicciiiiiicd....',
+  // Eyes row - the famous crazy stare (rows 12-14)
+  '..dciidddciccidddicd....',
+  '..dciidhhdciicdhhicd....',
+  '..dciidddciccidddicd....',
+  // Below eyes / cheeks (rows 15-16)
+  '..dciiiiiicciiiiiiicd...',
+  '..dciiiiiicciiiiiicd....',
+  // Mouth with teeth biting shield (rows 17-18)
+  '..dciiihhhhhhhhiiicd....',
+  '..dcssdhdhdhdhdhsscd....',
+  // Hands gripping shield top (rows 19-20)
+  '.diiicdssssssssssdciiid.',
+  '.dhhhcdssssssssssdchhhd.',
+  // Shield body - kite shape (rows 21-29)
+  'dsssscdsssssssssssdcsssd',
+  'dsdsscdssssccssssdcsdsd.',
+  'dsssscdssssccsssssdcsssd',
+  'dsdsscdssssccssssdcsdsd.',
+  'dsssscdssssccsssssdcsssd',
+  '.dssscdssssccsssssdcssd.',
+  '.dsdscdssssccsssssdcdsd.',
+  '..dsscdssssccsssssdcsd..',
+  '...dscdssssccsssssdcd...',
+  // Lower shield point (rows 30-32)
+  '....dcdssssccssssdcd....',
+  '.....dcdsssssssdcd......',
+  '......dddsssssddd.......',
+  // Knees/legs (rows 33-34)
+  '.diid......dd.....diid..',
+  '.diid..............diid.',
+  // Base/pedestal (rows 35-37)
+  'dddddd............dddddd',
+  'dssssssssssssssssssssssd',
+  'dddddddddddddddddddddddd',
+];
+
+// Build the Lewis Rook from bitmap
+// Positions relative to base (0,0 = bottom center, sitting on floor)
+function buildRookFormation() {
+  const positions = [];
+  const g = ROOK_GRID;
+  const rows = ROOK_BITMAP.length;
+  const cols = ROOK_BITMAP[0].length;
+
+  // Center horizontally, build from bottom up
+  const centerCol = Math.floor(cols / 2);
+
+  for (let row = 0; row < rows; row++) {
+    const line = ROOK_BITMAP[row];
+    for (let col = 0; col < line.length; col++) {
+      const char = line[col];
+      if (char !== '.') {
+        positions.push({
+          x: (col - centerCol) * g,
+          y: -(rows - row) * g,  // Negative Y = upward from base
+          part: char
+        });
+      }
+    }
+  }
+
+  return positions;
+}
+
+let currentFormation = buildRookFormation();
 
 // Containment constants
 const SCREEN_EDGE_PADDING = 10;        // Padding from screen edges
@@ -74,6 +183,13 @@ let cubes = []; // Track our cube bodies with metadata
 let bucketBounds = { left: 0, right: 0, bottom: 0, centerX: 0 };
 let animationId = null;
 let eventQueue = null;
+
+// Formation state
+let formationCenter = { x: 0, y: 0 };
+let lastPulseTime = 0;
+let formationShattered = false;
+let formationHitbox = null;           // Invisible div for hover detection
+let isHoveringFormation = false;
 
 // Impact marks - thin lines that spread from impact
 let impacts = []; // { x, width, alpha, color }
@@ -123,6 +239,7 @@ export async function initPhysics() {
 
   // Start render loop
   lastTime = performance.now();
+  lastPulseTime = lastTime; // Don't drift immediately
   animate();
 
   return true;
@@ -258,8 +375,25 @@ function setupPulseInteraction() {
     const touchX = e.clientX;
     const touchY = e.clientY;
 
+    // Mark formation as shattered and reset idle timer
+    const wasShattered = formationShattered;
+    formationShattered = true;
+    lastPulseTime = performance.now();
+
+    // Enable gravity on first shatter
+    if (!wasShattered) {
+      cubes.forEach(cube => {
+        if (cube.homeX !== null) {
+          cube.body.setGravityScale(1, true);
+        }
+      });
+    }
+
     // Only trigger floor bounce if clicking near the floor
     const clickNearFloor = touchY > bucketBounds.bottom - FLOOR_CLICK_THRESHOLD;
+
+    // Big burst when shattering formation, normal pulse otherwise
+    const burstMultiplier = wasShattered ? 1 : FORMATION_BURST_MULTIPLIER;
 
     cubes.forEach(cube => {
       const pos = cube.body.translation();
@@ -283,8 +417,8 @@ function setupPulseInteraction() {
       // Scale impulse by cube size - larger cubes get more impulse to bounce,
       // smaller cubes get less so they don't fly at ridiculous speeds
       const sizeScale = cube.config.size / PULSE_SIZE_NORMALIZE;
-      const impulseX = (dx / dist) * radialStrength * PULSE_IMPULSE_SCALE * sizeScale;
-      const impulseY = ((dy / dist) * radialStrength - floorBoost) * PULSE_IMPULSE_SCALE * sizeScale;
+      const impulseX = (dx / dist) * radialStrength * PULSE_IMPULSE_SCALE * sizeScale * burstMultiplier;
+      const impulseY = ((dy / dist) * radialStrength - floorBoost) * PULSE_IMPULSE_SCALE * sizeScale * burstMultiplier;
 
       cube.body.applyImpulse({ x: impulseX, y: impulseY }, true);
     });
@@ -345,16 +479,190 @@ export function spawnCube(tier, originX, originY) {
     tier,
     config,
     alpha: 1,
-    scale: 1
+    scale: 1,
+    homeX: null,
+    homeY: null
   });
 }
 
+/**
+ * Spawn the Lewis Rook formation planted on the floor
+ * Rook base is positioned at the floor level, horizontally centered
+ */
+export function spawnRook() {
+  if (!world) {
+    console.warn('[physics] spawnRook called before physics initialized');
+    return;
+  }
 
+  // Position rook base on the floor, horizontally centered
+  const baseX = window.innerWidth / 2;
+  const baseY = bucketBounds.bottom; // Floor level
+
+  formationCenter = { x: baseX, y: baseY };
+  formationShattered = false;
+
+  // Create invisible hitbox for hover/cursor detection
+  createFormationHitbox(baseX, baseY);
+
+  currentFormation.forEach((pos, i) => {
+    const homeX = baseX + pos.x;
+    const homeY = baseY + pos.y;
+
+    // Get color based on rook part
+    const colorConfig = ROOK_COLORS[pos.part];
+
+    // Create rigid body at home position - no gravity until shattered
+    const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(toPhysics(homeX), toPhysics(homeY))
+      .setRotation(0) // Start aligned
+      .setLinearDamping(0.15)
+      .setAngularDamping(0.3)
+      .setGravityScale(0); // No gravity until first click
+
+    const body = world.createRigidBody(bodyDesc);
+
+    // Create collider
+    const halfSize = toPhysics(colorConfig.size / 2);
+    const colliderDesc = RAPIER.ColliderDesc.cuboid(halfSize, halfSize)
+      .setRestitution(0.3)
+      .setFriction(0.2)
+      .setDensity(1.0);
+
+    const collider = world.createCollider(colliderDesc, body);
+
+    cubes.push({
+      body,
+      collider,
+      tier: 0, // No tier - homepage mode
+      config: colorConfig,
+      alpha: 1,
+      scale: 1,
+      homeX,
+      homeY
+    });
+  });
+}
+
+/**
+ * Create invisible hitbox over formation for hover detection
+ */
+function createFormationHitbox(centerX, centerY) {
+  // Remove existing hitbox if any
+  if (formationHitbox) {
+    formationHitbox.remove();
+  }
+
+  // Calculate formation bounds from currentFormation
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  currentFormation.forEach(pos => {
+    minX = Math.min(minX, pos.x);
+    maxX = Math.max(maxX, pos.x);
+    minY = Math.min(minY, pos.y);
+    maxY = Math.max(maxY, pos.y);
+  });
+
+  // Add padding for cube size
+  const padding = 20;
+  const cubeSize = ROOK_COLORS.i.size;
+  const width = (maxX - minX) + cubeSize + padding * 2;
+  const height = (maxY - minY) + cubeSize + padding * 2;
+
+  formationHitbox = document.createElement('div');
+  formationHitbox.style.cssText = `
+    position: fixed;
+    left: ${centerX + minX - padding}px;
+    top: ${centerY + minY - padding}px;
+    width: ${width}px;
+    height: ${height}px;
+    cursor: pointer;
+    z-index: 5;
+  `;
+
+  formationHitbox.addEventListener('mouseenter', () => {
+    isHoveringFormation = true;
+  });
+  formationHitbox.addEventListener('mouseleave', () => {
+    isHoveringFormation = false;
+  });
+
+  document.body.appendChild(formationHitbox);
+}
+
+/**
+ * Update hitbox position (call on resize)
+ */
+function updateFormationHitbox() {
+  if (!formationHitbox) return;
+
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  currentFormation.forEach(pos => {
+    minX = Math.min(minX, pos.x);
+    maxX = Math.max(maxX, pos.x);
+    minY = Math.min(minY, pos.y);
+    maxY = Math.max(maxY, pos.y);
+  });
+
+  const padding = 20;
+  formationHitbox.style.left = `${formationCenter.x + minX - padding}px`;
+  formationHitbox.style.top = `${formationCenter.y + minY - padding}px`;
+}
 
 function animate() {
   const now = performance.now();
   const delta = Math.min(now - lastTime, DELTA_CAP_MS);
   lastTime = now;
+
+  // Check if we should drift cubes home
+  const shouldDrift = formationShattered && (now - lastPulseTime > FORMATION_IDLE_TIMEOUT);
+
+  if (shouldDrift) {
+    let allHome = true;
+
+    cubes.forEach(cube => {
+      if (cube.homeX === null) return; // No home position
+
+      const pos = cube.body.translation();
+      const posX = toPixels(pos.x);
+      const posY = toPixels(pos.y);
+
+      const dx = cube.homeX - posX;
+      const dy = cube.homeY - posY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > FORMATION_ARRIVE_THRESHOLD) {
+        allHome = false;
+
+        // Disable gravity while homing
+        cube.body.setGravityScale(0, true);
+
+        // Direct position lerp - bypasses physics for smooth, collision-free homing
+        const lerpFactor = FORMATION_DRIFT_STRENGTH;
+        const newX = posX + dx * lerpFactor;
+        const newY = posY + dy * lerpFactor;
+
+        // Set position directly and zero out velocity
+        cube.body.setTranslation({ x: toPhysics(newX), y: toPhysics(newY) }, true);
+        cube.body.setLinvel({ x: 0, y: 0 }, true);
+
+        // Lerp rotation toward 0
+        const currentRot = cube.body.rotation();
+        cube.body.setRotation(currentRot * FORMATION_DAMPING, true);
+        cube.body.setAngvel(0, true);
+      } else {
+        // Snap to home when close enough
+        cube.body.setTranslation({ x: toPhysics(cube.homeX), y: toPhysics(cube.homeY) }, true);
+        cube.body.setLinvel({ x: 0, y: 0 }, true);
+        cube.body.setAngvel(0, true);
+        cube.body.setRotation(0, true);
+      }
+    });
+
+    // If all cubes are home, formation is intact again
+    if (allHome) {
+      formationShattered = false;
+    }
+  }
 
   // Step physics world
   world.step(eventQueue);
@@ -408,6 +716,7 @@ function render() {
 
   const floorY = bucketBounds.bottom;
   const cubeCount = cubes.length;
+  const now = performance.now();
 
   // Draw impact marks - thin lines spreading from impact
   for (let i = 0; i < impacts.length; i++) {
@@ -419,9 +728,10 @@ function render() {
   ctx.globalAlpha = 1;
 
   // Draw cubes and apply containment in single pass
+  const formationIntact = !formationShattered && cubes.some(c => c.homeX !== null);
   for (let i = 0; i < cubeCount; i++) {
     const cube = cubes[i];
-    const { body, config, alpha, scale } = cube;
+    const { body, config, alpha, scale, homeX } = cube;
     const pos = body.translation();
     const vel = body.linvel();
     const angle = body.rotation();
@@ -440,8 +750,12 @@ function render() {
     const size = config.size * scale;
     const halfSize = size / 2;
 
+    // Brightness boost on hover when formation intact
+    const isInFormation = homeX !== null && formationIntact;
+    const hoverBoost = (isInFormation && isHoveringFormation) ? HOVER_BRIGHTNESS_BOOST : 0;
+
     // Fill with slight transparency for holographic feel
-    ctx.globalAlpha = alpha * 0.9;
+    ctx.globalAlpha = Math.min(1, alpha * 0.9 + hoverBoost);
     ctx.fillStyle = config.color;
     ctx.fillRect(-halfSize, -halfSize, size, size);
 
