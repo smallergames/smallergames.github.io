@@ -7,7 +7,8 @@ Experimental games and fidgets.
 ## Pages
 
 - [Home](https://smallergames.com/): Gallery landing page listing all available games and fidgets
-- [One](https://smallergames.com/one): "Dice Fidget" - an interactive dice roller with physics-based loot. Roll polyhedral dice (d4, d6, d8, d10, d12, d20, d100), build up energy, and collect loot cubes that drop into a bucket with realistic physics.
+- [One](https://smallergames.com/one): "Dice Fidget" - a dice-based physics fidget. Roll polyhedral dice (d4, d6, d8, d10, d12, d20, d100), build up energy, and earn loot cubes that drop with realistic physics.
+- [Nothing](https://smallergames.com/nothing): Placeholder page
 
 ## Technical Details
 
@@ -15,7 +16,7 @@ Experimental games and fidgets.
 - No frameworks - pure HTML, CSS, and vanilla JavaScript
 - Uses Rapier physics engine (WASM) for loot cube physics
 - Accessibility-focused with ARIA labels and screen reader support
-- Respects `prefers-reduced-motion` with a warning for users who have it enabled
+- Does not honor `prefers-reduced-motion` (animations are the functionality); shows a warning modal instead
 
 ## Contact
 

@@ -1,7 +1,7 @@
 /**
  * Glitch Particle Effects System
  *
- * Lightweight 2D canvas implementation for digital glitch effects on max dice rolls.
+ * Lightweight 2D canvas implementation for digital glitch effects on ramp activation.
  * Features scanlines, pixel fragments, RGB splits, and data corruption aesthetics.
  * Uses object pooling to minimize GC pressure during animation.
  */

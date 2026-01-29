@@ -1,12 +1,12 @@
 /**
- * Dice Roller Application
+ * Dice Fidget
  *
- * A simple tabletop dice roller supporting d4, d6, d8, d10, d12, d20, and d100.
- * Features an energy bar system where clicks add energy and the die rolls until depleted.
+ * A dice-based physics fidget with energy ramping and loot drops.
+ * Click/hold to build energy and roll the die. Fill the bar to ramp, release for loot.
  */
 
 import { initParticles, spawnParticles, spawnSparkles } from './particles.js';
-import { initLoot, spawnLoot, spawnConsolationLoot, TIER_TRASH, TIER_ZZZ } from './loot.js';
+import { spawnLoot, spawnConsolationLoot, TIER_TRASH, TIER_ZZZ } from './loot.js';
 import { initPhysics } from './physics.js';
 import { initShared, announce } from './shared.js';
 
@@ -680,7 +680,6 @@ const physicsReady = await initPhysics();
 if (!physicsReady) {
   console.warn('[app] Physics failed to initialize - loot cubes will not appear');
 }
-initLoot();
 
 dieContainer.addEventListener('pointerdown', handlePointerDown);
 dieContainer.addEventListener('pointerup', handlePointerUp);

@@ -77,7 +77,7 @@ body::before { content: ''; position: fixed; inset: 0; background: var(--void); 
 1. `#F5C66A` gold  2. `#B58CFF` amethyst  3. `#5FA8FF` azure  4. `#62D49A` mint
 5. `#A7B0BA` silver  6. `#B88B5A` bronze  7. `#4E4A46` ash
 
-**Gallery colors:** Gold (#F5C66A) for headers, coral (#E45B5B) for links.
+**Gallery colors:** Gold (#F5C66A) for headers, coral (#E45B5B) for free links, azure (#5FA8FF) for paid links.
 
 ## Architecture
 

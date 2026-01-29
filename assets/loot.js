@@ -43,10 +43,6 @@ const MIN_DROP_INTERVAL_MS = 30;
 let dropsInFlight = 0; // Counter for animations in progress
 let lootQueue = []; // Queue for pending loot drops { dieSize, originX, originY }
 
-export function initLoot() {
-  // Reserved for future initialization needs
-}
-
 function rollTier(dieSize) {
   const weights = RARITY_WEIGHTS[dieSize] || RARITY_WEIGHTS[20];
   const roll = Math.random() * 100;

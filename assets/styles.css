@@ -360,7 +360,7 @@ body {
   color: var(--accent);
 }
 
-/* d100 needs extra width to accommodate "d151" when ramped */
+/* d100 needs extra width to accommodate "d101" when ramped */
 .die-btn[data-die="100"] {
   min-width: 4rem;
 }
@@ -480,22 +480,6 @@ main {
 
 .die-container.d100.loot-resolution .die-shape svg.white-outline {
   --wiggle-amount: 20deg;
-}
-
-/* Grid effect inside die shape - visible only during roll */
-.die-grid {
-  opacity: 0;
-  transition: opacity 0.2s var(--transition-smooth);
-}
-
-.die-container.ramping .die-grid {
-  opacity: 1;
-  animation: gridPan 0.4s linear infinite;
-}
-
-@keyframes gridPan {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(8px, 8px); }
 }
 
 /* ==========================================================================
