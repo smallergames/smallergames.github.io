@@ -33,17 +33,19 @@
       --coral: #E45B5B;
       --azure: #5FA8FF;
       --bronze: #B88B5A;
-      --space-1: clamp(0.5rem, 1vh, 0.75rem);
-      --space-2: clamp(1rem, 2vh, 1.5rem);
-      --space-3: clamp(1.75rem, 4vh, 2.75rem);
     }
     html, body {
       height: 100%;
       margin: 0;
+      overflow: hidden;
     }
     body {
       color: var(--text);
       font-family: 'Outfit', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      -webkit-user-select: none;
+      user-select: none;
     }
     body::before {
       content: '';
@@ -53,26 +55,52 @@
       z-index: -1;
     }
     main {
-      background: transparent;
-      position: fixed;
-      top: 15%;
-      left: 2.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2.5rem;
+      padding-bottom: 0;
       z-index: 1;
+      position: relative;
     }
     section {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.75rem;
+      gap: 1.5rem;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      width: 100vw;
+      margin-left: -2.5rem;
+    }
+    header::before {
+      content: '';
+      width: 1.5rem;
+      flex-shrink: 0;
+      height: 1px;
+      background: rgba(199, 189, 180, 0.3);
     }
     header h2 {
-      font-size: 0.75rem;
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
       font-weight: 400;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       color: var(--muted);
       text-transform: lowercase;
       opacity: 0.7;
-      margin-bottom: 0.5rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      padding: 0 0.75rem;
+    }
+    header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(199, 189, 180, 0.3);
     }
     header h2 em {
       font-style: normal;
@@ -148,23 +176,51 @@
       opacity: 0.8;
     }
 
-    /* Mobile: stacked layout */
+    /* Physics box at bottom */
+    .bucket-container {
+      width: 100%;
+      height: 1px;
+      flex-shrink: 0;
+      position: relative;
+      pointer-events: none;
+      margin-bottom: clamp(120px, 20vh, 240px);
+    }
+    #physicsCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* Mobile */
     @media (max-width: 768px) {
       main {
-        top: 1.5rem;
-        left: 1.25rem;
+        padding: 1.5rem;
+        padding-bottom: 0;
+      }
+      header {
+        margin-left: -1.5rem;
+      }
+      header::before {
+        width: 0.75rem;
+      }
+      header h2 {
+        font-size: clamp(0.85rem, 3.5vw, 1.2rem);
+        padding: 0 0.5rem;
       }
       .link-stack {
         gap: 0.4rem;
-      }
-      header h2 {
-        font-size: 0.6rem;
       }
       .category .label {
         font-size: 0.65rem;
       }
       .links {
         font-size: clamp(2rem, 8vw, 3rem);
+      }
+      .bucket-container {
+        margin-bottom: clamp(80px, 15vh, 160px);
       }
     }
   </style>
@@ -187,6 +243,8 @@
       </div>
     </section>
   </main>
+  <div class="bucket-container" id="bucketContainer"></div>
+  <canvas id="physicsCanvas"></canvas>
   <script>
     document.fonts.ready.then(() => {
       document.documentElement.classList.remove('fonts-loading');
@@ -203,6 +261,27 @@
       const y = (Math.random() - 0.5) * 0.12;
       span.style.transform = `rotate(${rot}deg) translateY(${y}em)`;
     });
+  </script>
+  <script type="module">
+    import { initPhysics, spawnCube } from './assets/physics.js';
+
+    const ready = await initPhysics();
+    if (ready) {
+      const cy = -30;
+      const drops = [
+        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+        6,6,6,6,6,6,6,6,6,6,
+        5,5,5,5,5,5,5,5,
+        4,4,4,4,4,4,
+        3,3,3,3,
+        2,2,2,
+        1,1,
+        7,7,7
+      ];
+      drops.forEach((tier, i) => {
+        setTimeout(() => spawnCube(tier, Math.random() * window.innerWidth, cy), i * 15);
+      });
+    }
   </script>
 </body>
 </html>

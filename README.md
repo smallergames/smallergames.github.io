@@ -13,7 +13,7 @@ Smaller weirder games, hosted on GitHub Pages.
 │   ├── app.js              # Dice fidget: logic, state machine, events
 │   ├── particles.js        # Dice fidget: canvas glitch effects
 │   ├── loot.js             # Dice fidget: loot tier logic
-│   ├── physics.js          # Dice fidget: Rapier WASM physics
+│   ├── physics.js          # Rapier WASM physics (homepage + dice fidget)
 │   ├── shared.js           # Dice fidget: shared utilities
 │   ├── styles.css          # Dice fidget: styling and animations
 │   └── fonts/              # Self-hosted Outfit font (woff2)

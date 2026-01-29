@@ -13,7 +13,7 @@ assets/
   shared.js         # Shared utilities (announce function)
   particles.js      # Canvas-based glitch particle effects
   loot.js           # Loot tier logic and drop spawning
-  physics.js        # Rapier WASM physics for loot cubes
+  physics.js        # Rapier WASM physics (homepage + dice fidget)
   styles.css        # Styles, CSS custom properties, animations
   fonts/            # Self-hosted Outfit font (woff2)
 ```
@@ -103,7 +103,7 @@ Click/hold adds energy → die rolls while energy > 0 → drains faster on relea
 - Mobile breakpoint: 480px
 - Theme tokens in `:root` at top of `styles.css`
 - Energy bar sized via `--energy-level` (0-1)
-- Gallery page has self-contained inline styles
+- Gallery page has self-contained inline styles and imports `physics.js` for ambient cubes
 
 ### JS Notes
 
