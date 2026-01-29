@@ -170,7 +170,6 @@
   </style>
 </head>
 <body>
-  <canvas id="shieldBiterCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
   <main>
     <section>
       <header>
@@ -204,10 +203,6 @@
       const y = (Math.random() - 0.5) * 0.12;
       span.style.transform = `rotate(${rot}deg) translateY(${y}em)`;
     });
-  </script>
-  <script type="module">
-    import { init } from '/assets/shield-biter.js';
-    init(document.getElementById('shieldBiterCanvas'));
   </script>
 </body>
 </html>
