@@ -21,6 +21,17 @@ export async function init(canvas) {
   const pixels = await extractPixels('/shield-biter.png');
   if (!pixels.length) return;
 
+  // Build a color palette so cubes store an index instead of a string
+  const colorMap = new Map();
+  const colorPalette = [];
+  for (const p of pixels) {
+    if (!colorMap.has(p.color)) {
+      colorMap.set(p.color, colorPalette.length);
+      colorPalette.push(p.color);
+    }
+    p.colorIdx = colorMap.get(p.color);
+  }
+
   // Precompute pixel grid bounds (static, never changes)
   const minCol = pixels.reduce((m, p) => Math.min(m, p.col), Infinity);
   const minRow = pixels.reduce((m, p) => Math.min(m, p.row), Infinity);
@@ -38,6 +49,11 @@ export async function init(canvas) {
   let floorBody = null;
   let wallBodies = [];
   let groundY = 0;
+
+  // Pre-allocate a home image canvas for the static (non-interacted) state
+  let homeCanvas = null;
+  let homeOffsetX = 0;
+  let homeOffsetY = 0;
 
   function resize() {
     width = window.innerWidth;
@@ -108,7 +124,7 @@ export async function init(canvas) {
       world.createCollider(colliderDesc, body);
 
       const cubes = cluster.pixels.map(p => ({
-        color: p.color,
+        colorIdx: p.colorIdx,
         offX: (offsetX + p.adjCol * cubeSize + cubeSize / 2) - cx,
         offY: (offsetY + p.adjRow * cubeSize + cubeSize / 2) - cy,
         size: cubeSize
@@ -116,6 +132,26 @@ export async function init(canvas) {
 
       bodies.push({ body, cubes, homeX: cx, homeY: cy });
     }
+
+    // Pre-render the static home image
+    const hc = document.createElement('canvas');
+    const renderW = imgW * cubeSize;
+    const renderH = imgH * cubeSize;
+    hc.width = Math.ceil(renderW);
+    hc.height = Math.ceil(renderH);
+    const hctx = hc.getContext('2d');
+    for (const b of bodies) {
+      for (const c of b.cubes) {
+        const wx = (b.homeX - offsetX) + c.offX;
+        const wy = (b.homeY - offsetY) + c.offY;
+        const half = c.size / 2;
+        hctx.fillStyle = colorPalette[c.colorIdx];
+        hctx.fillRect(wx - half, wy - half, c.size, c.size);
+      }
+    }
+    homeCanvas = hc;
+    homeOffsetX = offsetX;
+    homeOffsetY = offsetY;
 
     // Floor at ground line
     const fd = RAPIER.RigidBodyDesc.fixed().setTranslation(width / 2, groundY + 10);
@@ -154,6 +190,13 @@ export async function init(canvas) {
   let reforming = false;
 
   document.addEventListener('pointerdown', (e) => {
+    // Prevent text selection from rapid taps on empty areas,
+    // but allow normal selection on text/links
+    const tag = e.target.tagName;
+    if (tag !== 'A' && tag !== 'P' && tag !== 'H1' && tag !== 'H2' && tag !== 'H3' &&
+        tag !== 'SPAN' && tag !== 'LI' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+      e.preventDefault();
+    }
     if (!gravityOn) {
       gravityOn = true;
       world.gravity = { x: 0, y: GRAVITY_Y * 80 };
@@ -233,7 +276,10 @@ export async function init(canvas) {
       }
     }
 
-    world.step();
+    // Skip physics step when nothing is moving
+    if (gravityOn || reforming) {
+      world.step();
+    }
 
     // Reform 5s after last click
     if (!reforming && gravityOn && lastClickTime > 0 && now - lastClickTime > IDLE_TIMEOUT) {
@@ -259,22 +305,29 @@ export async function init(canvas) {
     ctx.lineTo(width, groundY);
     ctx.stroke();
 
-    for (const b of bodies) {
-      const pos = b.body.translation();
-      const rot = b.body.rotation();
-      const cos = Math.cos(rot);
-      const sin = Math.sin(rot);
-      for (const c of b.cubes) {
-        const wx = pos.x + c.offX * cos - c.offY * sin;
-        const wy = pos.y + c.offX * sin + c.offY * cos;
-        const half = c.size / 2;
-        ctx.save();
-        ctx.translate(wx, wy);
-        ctx.rotate(rot);
-        ctx.fillStyle = c.color;
-        ctx.fillRect(-half, -half, c.size, c.size);
-        ctx.restore();
+    // If nothing has been interacted with yet, draw the pre-rendered image
+    if (!gravityOn && !reforming) {
+      ctx.drawImage(homeCanvas, homeOffsetX, homeOffsetY);
+    } else {
+      for (const b of bodies) {
+        const pos = b.body.translation();
+        const rot = b.body.rotation();
+        const cos = Math.cos(rot);
+        const sin = Math.sin(rot);
+        for (const c of b.cubes) {
+          const wx = pos.x + c.offX * cos - c.offY * sin;
+          const wy = pos.y + c.offX * sin + c.offY * cos;
+          const half = c.size / 2;
+          ctx.fillStyle = colorPalette[c.colorIdx];
+          if (rot === 0) {
+            ctx.fillRect(wx - half, wy - half, c.size, c.size);
+          } else {
+            ctx.setTransform(cos, sin, -sin, cos, wx, wy);
+            ctx.fillRect(-half, -half, c.size, c.size);
+          }
+        }
       }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
   }
 
