@@ -269,8 +269,12 @@ function animate() {
     accumulator -= PHYSICS_TIMESTEP;
     steps++;
   }
+  // When substep cap is hit, snap to current position (alpha=1) instead of
+  // rendering behind, which caused floaty/laggy feel on mobile
+  const alpha = (steps > 0 && accumulator < PHYSICS_TIMESTEP)
+    ? accumulator / PHYSICS_TIMESTEP
+    : 1;
   if (accumulator >= PHYSICS_TIMESTEP) accumulator = 0;
-  const alpha = accumulator / PHYSICS_TIMESTEP;
 
   eventQueue.drainCollisionEvents((handle1, handle2, started) => {
     if (!started) return;
