@@ -192,6 +192,17 @@
     .cube-button:active {
       opacity: 0.8;
     }
+    .cube-button-goodbye {
+      right: auto;
+      left: 2.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, border-color 0.2s, color 0.2s;
+    }
+    .cube-button-goodbye.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     /* Mobile */
     @media (max-width: 768px) {
@@ -213,6 +224,10 @@
         right: 1.5rem;
         font-size: 0.9rem;
       }
+      .cube-button-goodbye {
+        left: 1.5rem;
+        right: auto;
+      }
     }
   </style>
 </head>
@@ -231,6 +246,7 @@
   <div class="bucket-container" id="bucketContainer"></div>
   <canvas id="physicsCanvas"></canvas>
   <button class="cube-button" id="cubeButton">i like cubes.</button>
+  <button class="cube-button cube-button-goodbye" id="goodbyeButton">goodbye cubes.</button>
   
   <script>
     document.fonts.ready.then(() => {
@@ -238,17 +254,39 @@
     });
   </script>
   <script type="module">
-    import { initPhysics, spawnCube } from './assets/homepage-physics.js';
+    import { initPhysics, spawnCube, getCubeCount, triggerGoodbye, isGoodbyeActive } from './assets/homepage-physics.js';
+
+    const GOODBYE_THRESHOLD = 121;
 
     const ready = await initPhysics();
     if (ready) {
       const cubeButton = document.getElementById('cubeButton');
+      const goodbyeButton = document.getElementById('goodbyeButton');
       const drops = [7,7,7,7,6,6,6,5,5,4,3];
+
+      function checkGoodbyeVisibility() {
+        if (getCubeCount() >= GOODBYE_THRESHOLD && !goodbyeButton.classList.contains('visible')) {
+          goodbyeButton.classList.add('visible');
+        }
+      }
+
       cubeButton.addEventListener('click', () => {
+        if (isGoodbyeActive()) return;
         const cy = -30;
         drops.forEach((tier, i) => {
-          setTimeout(() => spawnCube(tier, Math.random() * window.innerWidth, cy), i * 15);
+          setTimeout(() => {
+            spawnCube(tier, Math.random() * window.innerWidth, cy);
+            checkGoodbyeVisibility();
+          }, i * 15);
         });
+      });
+
+      goodbyeButton.addEventListener('click', () => {
+        if (isGoodbyeActive()) return;
+
+        if (triggerGoodbye()) {
+          goodbyeButton.classList.remove('visible');
+        }
       });
     }
   </script>

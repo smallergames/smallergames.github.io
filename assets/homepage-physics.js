@@ -47,6 +47,11 @@ const IMPACT_VELOCITY_SCALE = 20;
 const IMPACT_GROWTH_RATE = 0.3;
 const IMPACT_FADE_RATE = 0.004;
 
+// Goodbye pop constants
+const GOODBYE_POP_DELAY = 120;
+const GOODBYE_POP_DURATION = 80;
+const GOODBYE_POP_SCALE = 1.3;
+
 // Mobile detection
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   || (navigator.maxTouchPoints > 1);
@@ -81,6 +86,12 @@ let impacts = [];
 let lastTime = 0;
 let accumulator = 0;
 let screenBounds = { left: SCREEN_EDGE_PADDING, right: 0, top: SCREEN_EDGE_PADDING };
+
+// Goodbye mode state
+let goodbyeMode = false;
+let goodbyeGravityRestored = false;
+let ceilingCollider = null;
+let ceilingHandle = null;
 
 function toPhysics(px) { return px / PIXELS_PER_METER; }
 function toPixels(m) { return m * PIXELS_PER_METER; }
@@ -127,7 +138,8 @@ function containCube(body, pxX, pxY, physPos, vel) {
     body.setTranslation({ x: toPhysics(screenBounds.right), y: physPos.y }, true);
     body.setLinvel({ x: -Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
-  if (pxY < screenBounds.top) {
+  // Skip top containment during goodbye mode - let ceiling collider handle it
+  if (!goodbyeMode && pxY < screenBounds.top) {
     body.setTranslation({ x: physPos.x, y: toPhysics(screenBounds.top) }, true);
     body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * BOUNCE_DAMPING }, true);
   }
@@ -221,8 +233,55 @@ function setupPulseInteraction() {
   });
 }
 
+export function getCubeCount() {
+  return cubes.length;
+}
+
+export function triggerGoodbye() {
+  if (goodbyeMode || cubes.length === 0) return false;
+  goodbyeMode = true;
+  goodbyeGravityRestored = false;
+  
+  // Create ceiling collider for impact detection at top of screen
+  if (ceilingCollider) {
+    world.removeCollider(ceilingCollider, true);
+  }
+  const ceilingY = SCREEN_EDGE_PADDING - WALL_THICKNESS / 2;
+  const ceilingDesc = RAPIER.ColliderDesc.cuboid(toPhysics(window.innerWidth), toPhysics(WALL_THICKNESS / 2))
+    .setTranslation(toPhysics(window.innerWidth / 2), toPhysics(ceilingY))
+    .setRestitution(0.3)
+    .setFriction(0.3)
+    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+  ceilingCollider = world.createCollider(ceilingDesc);
+  ceilingHandle = ceilingCollider.handle;
+  
+  // Reverse gravity
+  world.gravity = { x: 0, y: -9.81 * GRAVITY_MULTIPLIER };
+  
+  return true;
+}
+
+export function isGoodbyeActive() {
+  return goodbyeMode;
+}
+
+function updateGoodbyeMode() {
+  if (!goodbyeMode) return;
+
+  // End goodbye mode when all cubes are gone
+  if (cubes.length === 0) {
+    if (ceilingCollider) {
+      world.removeCollider(ceilingCollider, true);
+      ceilingCollider = null;
+      ceilingHandle = null;
+    }
+    world.gravity = { x: 0, y: 9.81 * GRAVITY_MULTIPLIER };
+    goodbyeMode = false;
+  }
+}
+
 export function spawnCube(tier, originX, originY) {
-  if (!world) return;
+  if (!world || goodbyeMode) return;
 
   const config = TIER_CONFIG[tier] || TIER_CONFIG[7];
   const startX = originX + (Math.random() - 0.5) * 20;
@@ -258,6 +317,8 @@ function animate() {
   const delta = Math.min(now - lastTime, DELTA_CAP_MS);
   lastTime = now;
 
+  updateGoodbyeMode();
+
   accumulator += delta / 1000;
   let steps = 0;
   while (accumulator >= PHYSICS_TIMESTEP && steps < MAX_SUBSTEPS) {
@@ -282,18 +343,35 @@ function animate() {
 
   eventQueue.drainCollisionEvents((handle1, handle2, started) => {
     if (!started) return;
+    
     const isFloorCollision = handle1 === floorHandle || handle2 === floorHandle;
-    if (!isFloorCollision) return;
+    const isCeilingCollision = ceilingHandle && (handle1 === ceilingHandle || handle2 === ceilingHandle);
+    
+    if (!isFloorCollision && !isCeilingCollision) return;
 
-    const cubeHandle = handle1 === floorHandle ? handle2 : handle1;
+    const cubeHandle = (handle1 === floorHandle || handle1 === ceilingHandle) ? handle2 : handle1;
     const cube = cubes.find(c => c.collider.handle === cubeHandle);
     if (!cube) return;
 
+    // Handle goodbye mode collisions
+    if (goodbyeMode) {
+      if (isCeilingCollision && !goodbyeGravityRestored) {
+        // Restore normal gravity on first ceiling hit
+        world.gravity = { x: 0, y: 9.81 * GRAVITY_MULTIPLIER };
+        goodbyeGravityRestored = true;
+      } else if (isFloorCollision && goodbyeGravityRestored && !cube.poppingAt) {
+        // Start pop animation after short delay
+        cube.poppingAt = performance.now() + GOODBYE_POP_DELAY;
+      }
+    }
+
+    // Create impact marks for floor and ceiling hits
     if (impacts.length < MAX_IMPACTS) {
       const pos = cube.body.translation();
       const vel = cube.body.linvel();
       const velocity = Math.abs(vel.y) + Math.abs(vel.x) * 0.5;
-      impacts.push({ x: toPixels(pos.x), width: IMPACT_BASE_WIDTH + velocity * IMPACT_VELOCITY_SCALE, alpha: 1, color: cube.config.color });
+      const impactY = isCeilingCollision ? SCREEN_EDGE_PADDING : bucketBounds.bottom;
+      impacts.push({ x: toPixels(pos.x), y: impactY, width: IMPACT_BASE_WIDTH + velocity * IMPACT_VELOCITY_SCALE, alpha: 1, color: cube.config.color });
     }
   });
 
@@ -303,7 +381,37 @@ function animate() {
     return imp.alpha > 0;
   });
 
+  // Update pop animations
+  cubes.forEach(cube => {
+    if (cube.poppingAt && now >= cube.poppingAt) {
+      const elapsed = now - cube.poppingAt;
+      const progress = Math.min(elapsed / GOODBYE_POP_DURATION, 1);
+      // Quick scale up then down to zero
+      if (progress < 0.3) {
+        cube.scale = 1 + (GOODBYE_POP_SCALE - 1) * (progress / 0.3);
+      } else {
+        cube.scale = GOODBYE_POP_SCALE * (1 - (progress - 0.3) / 0.7);
+      }
+      cube.alpha = 1 - progress * 0.5;
+      if (progress >= 1) {
+        cube.markedForRemoval = true;
+      }
+    }
+  });
+
+  // Filter out marked cubes BEFORE render
+  const toRemove = cubes.filter(c => c.markedForRemoval);
+  if (toRemove.length > 0) {
+    cubes = cubes.filter(c => !c.markedForRemoval);
+  }
+
   render(alpha);
+
+  // Deferred physics body removal (after render to avoid Rapier aliasing errors)
+  if (toRemove.length > 0) {
+    toRemove.forEach(cube => world.removeRigidBody(cube.body));
+  }
+
   requestAnimationFrame(animate);
 }
 
@@ -313,13 +421,11 @@ function render(t) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
 
-  const floorY = bucketBounds.bottom;
-
   for (let i = 0; i < impacts.length; i++) {
     const imp = impacts[i];
     ctx.globalAlpha = imp.alpha * 0.7;
     ctx.fillStyle = imp.color;
-    ctx.fillRect(imp.x - imp.width / 2, floorY - 1, imp.width, 2);
+    ctx.fillRect(imp.x - imp.width / 2, imp.y - 1, imp.width, 2);
   }
   ctx.globalAlpha = 1;
 
