@@ -8,6 +8,7 @@
 index.html          # Gallery landing page
 404.html            # Not found page
 one/index.html      # Dice fidget toy
+nothing/index.html  # Buy nothing for $2.99 (Konami code unlock, Stripe payments)
 assets/
   app.js            # Main logic, state machine, event handlers
   shared.js         # Shared utilities (announce function)
@@ -100,7 +101,7 @@ Click/hold adds energy → die rolls while energy > 0 → drains faster on relea
 
 ### CSS Notes
 
-- Mobile breakpoint: 480px
+- Mobile breakpoint: 480px (dice fidget), 768px (nothing page)
 - Theme tokens in `:root` at top of `styles.css`
 - Energy bar sized via `--energy-level` (0-1)
 - Gallery page has self-contained inline styles and imports `physics.js` for ambient cubes

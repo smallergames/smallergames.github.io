@@ -18,7 +18,7 @@ Smaller weirder games, hosted on GitHub Pages.
 │   ├── styles.css          # Dice fidget: styling and animations
 │   └── fonts/              # Self-hosted Outfit font (woff2)
 ├── nothing/
-│   └── index.html          # Placeholder page
+│   └── index.html          # Buy nothing for $2.99 (Konami code unlock)
 ├── AGENTS.md               # Development guidelines for AI assistants
 ├── CNAME                   # Custom domain config
 └── README.md
@@ -43,3 +43,7 @@ Visit `localhost:8000` for the gallery, `localhost:8000/one` for the dice fidget
 3. Fill the energy bar to "ramp" the die (+1 to max)
 4. Release while ramped to resolve - beat the normal max for loot
 5. Loot cubes drop with physics and can be knocked around by clicking
+
+### nothing
+
+A joke product page where you can buy "nothing" for $2.99 via Stripe. Enter the Konami code (↑↑↓↓←→←→BA) using the on-screen controller or keyboard to unlock the buy button.
