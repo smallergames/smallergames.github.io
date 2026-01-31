@@ -20,11 +20,11 @@ const TIER_CONFIG = {
 
 // Physics constants
 const WALL_THICKNESS = 20;
-const PIXELS_PER_METER = 50;           // Scale factor for physics
-const GRAVITY_MULTIPLIER = 1.2;        // Snappier feel than default 9.81
+const PIXELS_PER_METER = 80;           // Scale factor for physics
+const GRAVITY_MULTIPLIER = 1.8;        // Snappier feel than default 9.81
 const DELTA_CAP_MS = 50;               // Max physics step to handle tab backgrounding
 const PHYSICS_TIMESTEP = 1 / 60;
-const MAX_SUBSTEPS = 3;
+const MAX_SUBSTEPS = 4;
 
 // Pulse interaction constants
 const PULSE_BASE_STRENGTH = 8;         // Base radial pulse strength
@@ -38,7 +38,7 @@ const FLOOR_BOOST_STRENGTH = 3;        // Extra upward impulse when clicking nea
 
 // Containment constants
 const SCREEN_EDGE_PADDING = 10;        // Padding from screen edges
-const BOUNCE_DAMPING = 0.7;            // Velocity retention on edge bounce
+const BOUNCE_DAMPING = 0.5;            // Velocity retention on edge bounce
 
 // Impact mark constants
 const MAX_IMPACTS = 50;                // Maximum concurrent impact marks
@@ -140,19 +140,24 @@ function updateScreenBounds() {
 
 function containCube(body, pxX, pxY, physPos, vel) {
   // Bounce off left edge
-  if (pxX < screenBounds.left && vel.x < 0) {
+  if (pxX < screenBounds.left) {
     body.setTranslation({ x: toPhysics(screenBounds.left), y: physPos.y }, true);
     body.setLinvel({ x: Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
   // Bounce off right edge
-  else if (pxX > screenBounds.right && vel.x > 0) {
+  else if (pxX > screenBounds.right) {
     body.setTranslation({ x: toPhysics(screenBounds.right), y: physPos.y }, true);
     body.setLinvel({ x: -Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
   // Bounce off top edge
-  if (pxY < screenBounds.top && vel.y < 0) {
+  if (pxY < screenBounds.top) {
     body.setTranslation({ x: physPos.x, y: toPhysics(screenBounds.top) }, true);
     body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * BOUNCE_DAMPING }, true);
+  }
+  // Bounce off floor
+  if (pxY > bucketBounds.bottom) {
+    body.setTranslation({ x: physPos.x, y: toPhysics(bucketBounds.bottom) }, true);
+    body.setLinvel({ x: vel.x, y: -Math.abs(vel.y) * BOUNCE_DAMPING }, true);
   }
 }
 
@@ -238,7 +243,7 @@ function createFloor() {
       toPhysics(window.innerWidth / 2),
       toPhysics(bucketBounds.bottom + WALL_THICKNESS / 2)
     )
-    .setRestitution(0.4)
+    .setRestitution(0.2)
     .setFriction(0.3)
     .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
@@ -310,7 +315,7 @@ export function spawnCube(tier, originX, originY) {
   const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
     .setTranslation(toPhysics(startX), toPhysics(startY))
     .setRotation(Math.random() * Math.PI * 2)
-    .setLinearDamping(0.15)
+    .setLinearDamping(0.01)
     .setAngularDamping(0.3);
 
   const body = world.createRigidBody(bodyDesc);
@@ -336,13 +341,17 @@ export function spawnCube(tier, originX, originY) {
   // Add spin
   body.setAngvel((Math.random() - 0.5) * 2, true);
 
+  const initPos = body.translation();
   cubes.push({
     body,
     collider,
     tier,
     config,
     alpha: 1,
-    scale: 1
+    scale: 1,
+    prevX: initPos.x,
+    prevY: initPos.y,
+    prevAngle: body.rotation()
   });
 }
 
@@ -355,11 +364,23 @@ function animate() {
   accumulator += delta / 1000;
   let steps = 0;
   while (accumulator >= PHYSICS_TIMESTEP && steps < MAX_SUBSTEPS) {
+    for (let i = 0; i < cubes.length; i++) {
+      const c = cubes[i];
+      const p = c.body.translation();
+      c.prevX = p.x;
+      c.prevY = p.y;
+      c.prevAngle = c.body.rotation();
+    }
     world.timestep = PHYSICS_TIMESTEP;
     world.step(eventQueue);
     accumulator -= PHYSICS_TIMESTEP;
     steps++;
   }
+  // When substep cap is hit, snap to current position (alpha=1) instead of
+  // rendering behind, which caused floaty/laggy feel on mobile
+  const interpAlpha = (steps > 0 && accumulator < PHYSICS_TIMESTEP)
+    ? accumulator / PHYSICS_TIMESTEP
+    : 1;
   if (accumulator >= PHYSICS_TIMESTEP) accumulator = 0;
 
   // Handle collision events for impact marks
@@ -398,12 +419,12 @@ function animate() {
   });
 
   // Render
-  render();
+  render(interpAlpha);
 
   requestAnimationFrame(animate);
 }
 
-function render() {
+function render(t) {
   const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -424,14 +445,17 @@ function render() {
   // Draw cubes and apply containment in single pass
   for (let i = 0; i < cubeCount; i++) {
     const cube = cubes[i];
-    const { body, config, alpha, scale } = cube;
+    const { body, config, alpha, scale, prevX, prevY, prevAngle } = cube;
     const pos = body.translation();
     const vel = body.linvel();
-    const angle = body.rotation();
+    const curAngle = body.rotation();
+    const lerpX = prevX + (pos.x - prevX) * t;
+    const lerpY = prevY + (pos.y - prevY) * t;
+    const angle = prevAngle + (curAngle - prevAngle) * t;
 
     // Convert to pixels once
-    const posX = toPixels(pos.x);
-    const posY = toPixels(pos.y);
+    const posX = toPixels(lerpX);
+    const posY = toPixels(lerpY);
 
     // Containment check
     containCube(body, posX, posY, pos, vel);

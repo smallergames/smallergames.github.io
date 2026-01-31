@@ -20,11 +20,11 @@ const TIER_CONFIG = {
 
 // Physics constants
 const WALL_THICKNESS = 20;
-const PIXELS_PER_METER = 50;
-const GRAVITY_MULTIPLIER = 1.2;
+const PIXELS_PER_METER = 80;
+const GRAVITY_MULTIPLIER = 1.8;
 const DELTA_CAP_MS = 50;
 const PHYSICS_TIMESTEP = 1 / 60;
-const MAX_SUBSTEPS = 3;
+const MAX_SUBSTEPS = 4;
 
 // Pulse interaction constants
 const PULSE_BASE_STRENGTH = 8;
@@ -38,7 +38,7 @@ const FLOOR_BOOST_STRENGTH = 3;
 
 // Containment constants
 const SCREEN_EDGE_PADDING = 10;
-const BOUNCE_DAMPING = 0.7;
+const BOUNCE_DAMPING = 0.5;
 
 // Impact mark constants
 const MAX_IMPACTS = 50;
@@ -120,16 +120,20 @@ function updateScreenBounds() {
 }
 
 function containCube(body, pxX, pxY, physPos, vel) {
-  if (pxX < screenBounds.left && vel.x < 0) {
+  if (pxX < screenBounds.left) {
     body.setTranslation({ x: toPhysics(screenBounds.left), y: physPos.y }, true);
     body.setLinvel({ x: Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
-  } else if (pxX > screenBounds.right && vel.x > 0) {
+  } else if (pxX > screenBounds.right) {
     body.setTranslation({ x: toPhysics(screenBounds.right), y: physPos.y }, true);
     body.setLinvel({ x: -Math.abs(vel.x) * BOUNCE_DAMPING, y: vel.y }, true);
   }
-  if (pxY < screenBounds.top && vel.y < 0) {
+  if (pxY < screenBounds.top) {
     body.setTranslation({ x: physPos.x, y: toPhysics(screenBounds.top) }, true);
     body.setLinvel({ x: vel.x, y: Math.abs(vel.y) * BOUNCE_DAMPING }, true);
+  }
+  if (pxY > bucketBounds.bottom) {
+    body.setTranslation({ x: physPos.x, y: toPhysics(bucketBounds.bottom) }, true);
+    body.setLinvel({ x: vel.x, y: -Math.abs(vel.y) * BOUNCE_DAMPING }, true);
   }
 }
 
@@ -176,7 +180,7 @@ function createFloor() {
 
   const floorDesc = RAPIER.ColliderDesc.cuboid(toPhysics(window.innerWidth), toPhysics(WALL_THICKNESS / 2))
     .setTranslation(toPhysics(window.innerWidth / 2), toPhysics(bucketBounds.bottom + WALL_THICKNESS / 2))
-    .setRestitution(0.4)
+    .setRestitution(0.2)
     .setFriction(0.3)
     .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
@@ -227,7 +231,7 @@ export function spawnCube(tier, originX, originY) {
   const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
     .setTranslation(toPhysics(startX), toPhysics(startY))
     .setRotation(Math.random() * Math.PI * 2)
-    .setLinearDamping(0.15)
+    .setLinearDamping(0.01)
     .setAngularDamping(0.3);
 
   const body = world.createRigidBody(bodyDesc);
