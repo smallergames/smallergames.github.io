@@ -52,9 +52,6 @@ const GOODBYE_POP_DELAY = 120;
 const GOODBYE_POP_DURATION = 80;
 const GOODBYE_POP_SCALE = 1.3;
 
-// Mobile detection
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  || (navigator.maxTouchPoints > 1);
 
 let resizeTimeout = null;
 const RESIZE_DEBOUNCE_MS = 100;
@@ -153,7 +150,7 @@ function containCube(body, pxX, pxY, physPos, vel) {
 }
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+  const dpr = Math.min(window.devicePixelRatio, 2);
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
   canvas.style.width = window.innerWidth + 'px';
@@ -432,7 +429,7 @@ function animate() {
 }
 
 function render(t) {
-  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+  const dpr = Math.min(window.devicePixelRatio, 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);

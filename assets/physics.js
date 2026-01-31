@@ -47,9 +47,6 @@ const IMPACT_VELOCITY_SCALE = 20;      // Width scaling based on impact velocity
 const IMPACT_GROWTH_RATE = 0.3;        // How fast impacts expand per ms
 const IMPACT_FADE_RATE = 0.004;        // How fast impacts fade per ms
 
-// Mobile detection for performance tuning
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  || (navigator.maxTouchPoints > 1);
 
 // Resize debounce
 let resizeTimeout = null;
@@ -166,7 +163,7 @@ let lastTime = 0;
 let accumulator = 0;
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+  const dpr = Math.min(window.devicePixelRatio, 2);
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
   canvas.style.width = window.innerWidth + 'px';
@@ -425,7 +422,7 @@ function animate() {
 }
 
 function render(t) {
-  const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
+  const dpr = Math.min(window.devicePixelRatio, 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
