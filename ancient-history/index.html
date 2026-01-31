@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="smaller weirder games.">
+  <meta name="description" content="Old, dead, and inactive projects from smaller games.">
   <meta name="theme-color" content="#080607">
-  <link rel="canonical" href="https://smallergames.com/">
-  <meta property="og:title" content="smaller games">
-  <meta property="og:description" content="smaller weirder games.">
+  <link rel="canonical" href="https://smallergames.com/ancient-history/">
+  <meta property="og:title" content="ancient history — smaller games">
+  <meta property="og:description" content="Old, dead, and inactive projects from smaller games.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://smallergames.com/">
+  <meta property="og:url" content="https://smallergames.com/ancient-history/">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>smaller games</title>
-  <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <title>ancient history — smaller games</title>
+  <link rel="preload" href="/assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
   <style>
     @font-face {
       font-family: 'Outfit';
       font-style: normal;
       font-weight: 400;
       font-display: block;
-      src: url('assets/fonts/outfit-regular.woff2') format('woff2');
+      src: url('/assets/fonts/outfit-regular.woff2') format('woff2');
     }
     .fonts-loading { visibility: hidden; }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -109,6 +109,12 @@
       text-transform: none;
       opacity: 1;
     }
+    .description {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 32rem;
+    }
     .cli-list {
       display: flex;
       flex-direction: column;
@@ -146,8 +152,20 @@
     a:active {
       opacity: 0.8;
     }
-
-    /* Physics box at bottom */
+    .site-nav {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      z-index: 100;
+    }
+    .site-nav a {
+      display: block;
+      color: #8E857D;
+      text-decoration: none;
+      line-height: 0.7;
+    }
+    .site-nav a:hover { color: var(--muted); }
+    .site-nav svg { display: block; }
     .bucket-container {
       width: 100%;
       height: 1px;
@@ -155,14 +173,6 @@
       position: relative;
       pointer-events: none;
       margin-bottom: clamp(120px, 20vh, 240px);
-    }
-    #physicsCanvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 50;
     }
 
     /* Mobile */
@@ -181,48 +191,27 @@
       .bucket-container {
         margin-bottom: clamp(80px, 15vh, 160px);
       }
+      .site-nav { top: 1rem; left: 1rem; }
     }
   </style>
 </head>
 <body>
+  <nav class="site-nav"><a href="/" aria-label="Back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a></nav>
   <main>
     <section>
       <header>
-        <h2><em>always WIP.</em> smallergames.com</h2>
+        <h2><em>ancient history.</em> certified bangers, though.</h2>
       </header>
       <ul class="cli-list">
-        <li><a href="/ancient-history/">ancient history</a></li>
-        <li><a href="/nothing">nothing</a></li>
+        <li><a href="/one">one</a></li>
       </ul>
     </section>
   </main>
-  <div class="bucket-container" id="bucketContainer"></div>
-  <canvas id="physicsCanvas"></canvas>
+  <div class="bucket-container"></div>
   <script>
     document.fonts.ready.then(() => {
-    document.documentElement.classList.remove('fonts-loading');
+      document.documentElement.classList.remove('fonts-loading');
     });
-  </script>
-  <script type="module">
-    import { initPhysics, spawnCube } from './assets/physics.js';
-
-    const ready = await initPhysics();
-    if (ready) {
-      const cy = -30;
-      const drops = [
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        6,6,6,6,6,6,6,6,6,6,
-        5,5,5,5,5,5,5,5,
-        4,4,4,4,4,4,
-        3,3,3,3,
-        2,2,2,
-        1,1,
-        7,7,7
-      ];
-      drops.forEach((tier, i) => {
-        setTimeout(() => spawnCube(tier, Math.random() * window.innerWidth, cy), i * 15);
-      });
-    }
   </script>
 </body>
 </html>
