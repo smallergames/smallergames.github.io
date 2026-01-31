@@ -245,7 +245,8 @@ export function spawnCube(tier, originX, originY) {
   body.setLinvel({ x: Math.cos(angle) * speed * 0.15, y: (Math.sin(angle) * speed + 1) * 0.15 }, true);
   body.setAngvel((Math.random() - 0.5) * 2, true);
 
-  cubes.push({ body, collider, tier, config, alpha: 1, scale: 1 });
+  const pos = body.translation();
+  cubes.push({ body, collider, tier, config, alpha: 1, scale: 1, prevX: pos.x, prevY: pos.y, prevAngle: body.rotation() });
 }
 
 function animate() {
@@ -256,12 +257,20 @@ function animate() {
   accumulator += delta / 1000;
   let steps = 0;
   while (accumulator >= PHYSICS_TIMESTEP && steps < MAX_SUBSTEPS) {
+    for (let i = 0; i < cubes.length; i++) {
+      const c = cubes[i];
+      const p = c.body.translation();
+      c.prevX = p.x;
+      c.prevY = p.y;
+      c.prevAngle = c.body.rotation();
+    }
     world.timestep = PHYSICS_TIMESTEP;
     world.step(eventQueue);
     accumulator -= PHYSICS_TIMESTEP;
     steps++;
   }
   if (accumulator >= PHYSICS_TIMESTEP) accumulator = 0;
+  const alpha = accumulator / PHYSICS_TIMESTEP;
 
   eventQueue.drainCollisionEvents((handle1, handle2, started) => {
     if (!started) return;
@@ -286,11 +295,11 @@ function animate() {
     return imp.alpha > 0;
   });
 
-  render();
+  render(alpha);
   requestAnimationFrame(animate);
 }
 
-function render() {
+function render(t) {
   const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -308,12 +317,15 @@ function render() {
 
   for (let i = 0; i < cubes.length; i++) {
     const cube = cubes[i];
-    const { body, config, alpha, scale, tier } = cube;
+    const { body, config, alpha, scale, tier, prevX, prevY, prevAngle } = cube;
     const pos = body.translation();
     const vel = body.linvel();
-    const angle = body.rotation();
-    const posX = toPixels(pos.x);
-    const posY = toPixels(pos.y);
+    const curAngle = body.rotation();
+    const lerpX = prevX + (pos.x - prevX) * t;
+    const lerpY = prevY + (pos.y - prevY) * t;
+    const angle = prevAngle + (curAngle - prevAngle) * t;
+    const posX = toPixels(lerpX);
+    const posY = toPixels(lerpY);
 
     containCube(body, posX, posY, pos, vel);
 
