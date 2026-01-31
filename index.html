@@ -29,9 +29,9 @@
       --void: #080607;
       --text: #EDE7E1;
       --muted: #C7BDB4;
-      --gold: #F5C66A;
-      --coral: #E45B5B;
-      --azure: #5FA8FF;
+      --gold: #D4A84B;
+      --coral: #A65F4D;
+      --azure: #9A8756;
       --bronze: #B88B5A;
     }
     html, body {
@@ -198,13 +198,14 @@
   </main>
   <div class="bucket-container" id="bucketContainer"></div>
   <canvas id="physicsCanvas"></canvas>
+  
   <script>
     document.fonts.ready.then(() => {
-    document.documentElement.classList.remove('fonts-loading');
+      document.documentElement.classList.remove('fonts-loading');
     });
   </script>
   <script type="module">
-    import { initPhysics, spawnCube } from './assets/physics.js';
+    import { initPhysics, spawnCube } from './assets/homepage-physics.js';
 
     const ready = await initPhysics();
     if (ready) {
