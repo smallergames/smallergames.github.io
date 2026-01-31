@@ -23,6 +23,8 @@ const WALL_THICKNESS = 20;
 const PIXELS_PER_METER = 50;
 const GRAVITY_MULTIPLIER = 1.2;
 const DELTA_CAP_MS = 50;
+const PHYSICS_TIMESTEP = 1 / 60;
+const MAX_SUBSTEPS = 3;
 
 // Pulse interaction constants
 const PULSE_BASE_STRENGTH = 8;
@@ -77,6 +79,7 @@ let bucketBounds = { left: 0, right: 0, bottom: 0, centerX: 0 };
 let eventQueue = null;
 let impacts = [];
 let lastTime = 0;
+let accumulator = 0;
 let screenBounds = { left: SCREEN_EDGE_PADDING, right: 0, top: SCREEN_EDGE_PADDING };
 
 function toPhysics(px) { return px / PIXELS_PER_METER; }
@@ -250,7 +253,15 @@ function animate() {
   const delta = Math.min(now - lastTime, DELTA_CAP_MS);
   lastTime = now;
 
-  world.step(eventQueue);
+  accumulator += delta / 1000;
+  let steps = 0;
+  while (accumulator >= PHYSICS_TIMESTEP && steps < MAX_SUBSTEPS) {
+    world.timestep = PHYSICS_TIMESTEP;
+    world.step(eventQueue);
+    accumulator -= PHYSICS_TIMESTEP;
+    steps++;
+  }
+  if (accumulator >= PHYSICS_TIMESTEP) accumulator = 0;
 
   eventQueue.drainCollisionEvents((handle1, handle2, started) => {
     if (!started) return;

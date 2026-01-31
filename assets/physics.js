@@ -23,6 +23,8 @@ const WALL_THICKNESS = 20;
 const PIXELS_PER_METER = 50;           // Scale factor for physics
 const GRAVITY_MULTIPLIER = 1.2;        // Snappier feel than default 9.81
 const DELTA_CAP_MS = 50;               // Max physics step to handle tab backgrounding
+const PHYSICS_TIMESTEP = 1 / 60;
+const MAX_SUBSTEPS = 3;
 
 // Pulse interaction constants
 const PULSE_BASE_STRENGTH = 8;         // Base radial pulse strength
@@ -156,6 +158,7 @@ function containCube(body, pxX, pxY, physPos, vel) {
 
 
 let lastTime = 0;
+let accumulator = 0;
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
@@ -348,8 +351,16 @@ function animate() {
   const delta = Math.min(now - lastTime, DELTA_CAP_MS);
   lastTime = now;
 
-  // Step physics world
-  world.step(eventQueue);
+  // Step physics world with fixed timestep
+  accumulator += delta / 1000;
+  let steps = 0;
+  while (accumulator >= PHYSICS_TIMESTEP && steps < MAX_SUBSTEPS) {
+    world.timestep = PHYSICS_TIMESTEP;
+    world.step(eventQueue);
+    accumulator -= PHYSICS_TIMESTEP;
+    steps++;
+  }
+  if (accumulator >= PHYSICS_TIMESTEP) accumulator = 0;
 
   // Handle collision events for impact marks
   eventQueue.drainCollisionEvents((handle1, handle2, started) => {
