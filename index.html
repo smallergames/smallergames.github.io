@@ -178,7 +178,7 @@
       padding: 0.5rem 1rem;
       cursor: pointer;
       z-index: 100;
-      transition: border-color 0.2s, color 0.2s;
+      transition: opacity 0.3s, border-color 0.2s, color 0.2s;
     }
     .cube-button:hover,
     .cube-button:focus-visible {
@@ -286,6 +286,16 @@
 
         if (triggerGoodbye()) {
           goodbyeButton.classList.remove('visible');
+          cubeButton.style.opacity = '0';
+          cubeButton.style.pointerEvents = 'none';
+
+          const poll = setInterval(() => {
+            if (!isGoodbyeActive()) {
+              clearInterval(poll);
+              cubeButton.style.opacity = '';
+              cubeButton.style.pointerEvents = '';
+            }
+          }, 200);
         }
       });
     }

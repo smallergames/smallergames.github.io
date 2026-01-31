@@ -90,8 +90,11 @@ let screenBounds = { left: SCREEN_EDGE_PADDING, right: 0, top: SCREEN_EDGE_PADDI
 // Goodbye mode state
 let goodbyeMode = false;
 let goodbyeGravityRestored = false;
+let goodbyeGravityRestoredAt = 0;
 let ceilingCollider = null;
 let ceilingHandle = null;
+
+const GOODBYE_SETTLE_VELOCITY = 0.5;
 
 function toPhysics(px) { return px / PIXELS_PER_METER; }
 function toPixels(m) { return m * PIXELS_PER_METER; }
@@ -359,6 +362,7 @@ function animate() {
         // Restore normal gravity on first ceiling hit
         world.gravity = { x: 0, y: 9.81 * GRAVITY_MULTIPLIER };
         goodbyeGravityRestored = true;
+        goodbyeGravityRestoredAt = performance.now();
       } else if (isFloorCollision && goodbyeGravityRestored && !cube.poppingAt) {
         // Start pop animation after short delay
         cube.poppingAt = performance.now() + GOODBYE_POP_DELAY;
@@ -380,6 +384,18 @@ function animate() {
     imp.alpha -= delta * IMPACT_FADE_RATE;
     return imp.alpha > 0;
   });
+
+  // Pop settled cubes that missed their floor collision event
+  if (goodbyeMode && goodbyeGravityRestored) {
+    cubes.forEach(cube => {
+      if (cube.poppingAt) return;
+      const vel = cube.body.linvel();
+      const speed = Math.abs(vel.x) + Math.abs(vel.y);
+      if (speed < GOODBYE_SETTLE_VELOCITY) {
+        cube.poppingAt = now;
+      }
+    });
+  }
 
   // Update pop animations
   cubes.forEach(cube => {
