@@ -5,18 +5,17 @@
 ## File Structure
 
 ```
-index.html          # Gallery landing page
+index.html          # Minimalist landing page (Geist Pixel Square, perspective grid animation)
 404.html            # Not found page
 one/index.html      # Dice fidget toy
-nothing/index.html  # Buy nothing for $2.99 (Konami code unlock, Stripe payments)
 assets/
   app.js            # Main logic, state machine, event handlers
   shared.js         # Shared utilities (announce function)
   particles.js      # Canvas-based glitch particle effects
   loot.js           # Loot tier logic and drop spawning
-  physics.js        # Rapier WASM physics (homepage + dice fidget)
+  physics.js        # Rapier WASM physics (dice fidget)
   styles.css        # Styles, CSS custom properties, animations
-  fonts/            # Self-hosted Outfit font (woff2)
+  fonts/            # Self-hosted fonts (Geist Pixel Square for homepage, Outfit for dice fidget)
 ```
 
 ## Development
@@ -54,9 +53,9 @@ Use animation events (`animationiteration`, `animationend`) instead of `setTimeo
 
 Don't transition properties that are also animated—removing an animation class triggers the transition back to rest state. The die SVG only transitions `filter`, not `transform`.
 
-### Background Colors
+### Background Colors (Dice Fidget)
 
-**Use `body::before` pseudo-element for background, never html/body directly.** Direct backgrounds cause color banding on calibrated monitors. Also avoid `color-scheme: dark`.
+**In styles.css, use `body::before` pseudo-element for background, never html/body directly.** Direct backgrounds cause color banding on calibrated monitors. Also avoid `color-scheme: dark`. The homepage has its own inline styles and uses `body { background: var(--void); }` directly.
 
 ```css
 body::before { content: ''; position: fixed; inset: 0; background: var(--void); z-index: -1; }
@@ -78,7 +77,7 @@ body::before { content: ''; position: fixed; inset: 0; background: var(--void); 
 1. `#F5C66A` gold  2. `#B58CFF` amethyst  3. `#5FA8FF` azure  4. `#62D49A` mint
 5. `#A7B0BA` silver  6. `#B88B5A` bronze  7. `#4E4A46` ash
 
-**Gallery colors:** Gold (#F5C66A) for headers, coral (#E45B5B) for free links, azure (#5FA8FF) for paid links.
+**Homepage:** Text uses --text (#EDE7E1) for emphasis, --text-muted (#8E857D) for body. Colored spans: rats (#ffb568), goblins (#7dcc6f), monsters (#B58CFF).
 
 ## Architecture
 
@@ -101,10 +100,11 @@ Click/hold adds energy → die rolls while energy > 0 → drains faster on relea
 
 ### CSS Notes
 
-- Mobile breakpoint: 480px (dice fidget), 768px (nothing page)
+- Mobile breakpoint: 480px (dice fidget)
 - Theme tokens in `:root` at top of `styles.css`
 - Energy bar sized via `--energy-level` (0-1)
-- Gallery page has self-contained inline styles and imports `physics.js` for ambient cubes
+- Homepage is self-contained inline styles and a font-loading script (no external JS, no canvas)
+- Homepage uses Geist Pixel Square font with colored text spans for rats/goblins/monsters
 
 ### JS Notes
 

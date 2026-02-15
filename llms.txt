@@ -1,14 +1,11 @@
 # Smaller Games
 
-> smaller weirder games.
-
-Experimental games and fidgets.
+> making and publishing smaller video and table top games.
 
 ## Pages
 
-- [Home](https://smallergames.com/): Gallery landing page listing all available games and fidgets
+- [Home](https://smallergames.com/): Landing page — making a smaller game with rats, goblins, and other horrifying monsters. Links to dice.
 - [One](https://smallergames.com/one): "Dice Fidget" - a dice-based physics fidget. Roll polyhedral dice (d4, d6, d8, d10, d12, d20, d100), build up energy, and earn loot cubes that drop with realistic physics.
-- [Nothing](https://smallergames.com/nothing): Placeholder page
 
 ## Technical Details
 

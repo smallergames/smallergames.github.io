@@ -3,303 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="smaller weirder games.">
+  <meta name="description" content="making and publishing smaller video and table top games.">
   <meta name="theme-color" content="#080607">
   <link rel="canonical" href="https://smallergames.com/">
   <meta property="og:title" content="smaller games">
-  <meta property="og:description" content="smaller weirder games.">
+  <meta property="og:description" content="making and publishing smaller video and table top games.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://smallergames.com/">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <title>smaller games</title>
-  <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/geist-pixel-square.woff2" as="font" type="font/woff2" crossorigin>
   <style>
     @font-face {
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 400;
+      font-family: 'GeistPixelSquare';
       font-display: block;
-      src: url('assets/fonts/outfit-regular.woff2') format('woff2');
+      src: url('assets/fonts/geist-pixel-square.woff2') format('woff2');
     }
     .fonts-loading { visibility: hidden; }
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     :root {
       --void: #080607;
       --text: #EDE7E1;
-      --muted: #C7BDB4;
-      --gold: #D4A84B;
-      --coral: #A65F4D;
-      --azure: #9A8756;
-      --bronze: #B88B5A;
+      --text-muted: #8E857D;
     }
+
     html, body {
       height: 100%;
       margin: 0;
-      overflow: hidden;
     }
+
     body {
-      color: var(--text);
-      font-family: 'Outfit', system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
       background: var(--void);
-      z-index: -1;
-    }
-    main {
-      flex: 1;
+      color: var(--text);
+      font-family: 'GeistPixelSquare';
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      padding: min(25vh, 150px) 2.5rem 0;
-      z-index: 1;
-      position: relative;
-    }
-    section {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1.5rem;
-      -webkit-user-select: text;
-      user-select: text;
-    }
-    header {
-      display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 0;
-      width: 100vw;
-      margin-left: -2.5rem;
+      gap: 3rem;
     }
-    header::before {
-      content: '';
-      width: 1.5rem;
-      flex-shrink: 0;
-      height: 1px;
-      background: rgba(199, 189, 180, 0.3);
+
+    p {
+      font-size: 24px;
+      letter-spacing: 0.04em;
+      line-height: 2;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 0 1.5rem;
     }
-    header h2 {
-      font-size: 1.6rem;
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      text-transform: lowercase;
-      opacity: 0.7;
-      line-height: 1.2;
-      white-space: nowrap;
-      padding: 0 0.75rem;
-    }
-    header::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(199, 189, 180, 0.3);
-    }
-    header h2 em {
-      font-style: normal;
-      font-weight: 600;
-      color: var(--gold);
-      text-transform: none;
-      opacity: 1;
-    }
-    .cli-list {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.25rem;
-      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
-      font-size: 1.1rem;
-      letter-spacing: -0.01em;
-    }
-    .cli-list li {
-      list-style: none;
-    }
-    .cli-list a {
+
+    a {
       color: var(--text);
       text-decoration: underline;
     }
-    .cli-list a::after {
-      content: '';
-    }
-    .cli-list a:hover::after,
-    .cli-list a:focus-visible::after {
-      content: ' →';
-    }
-    a {
-      text-decoration: none;
-      display: inline;
-    }
-    a span {
-      display: inline-block;
-    }
-    a:focus-visible {
-      outline: 2px solid var(--muted);
-      outline-offset: 0.25rem;
-    }
-    a:active {
-      opacity: 0.8;
-    }
+    a:hover { opacity: 0.8; }
 
-    /* Physics box at bottom */
-    .bucket-container {
-      width: 100%;
-      height: 1px;
-      flex-shrink: 0;
-      position: relative;
-      pointer-events: none;
-      margin-bottom: clamp(120px, 20vh, 240px);
-    }
-    #physicsCanvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 50;
-    }
-
-    /* Cube button */
-    .cube-button {
-      position: fixed;
-      bottom: clamp(20px, 5vh, 40px);
-      right: 2.5rem;
-      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
-      font-size: 1rem;
-      color: var(--muted);
-      background: transparent;
-      border: 1px solid rgba(199, 189, 180, 0.3);
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      z-index: 100;
-      transition: opacity 0.3s, border-color 0.2s, color 0.2s, transform 0.1s;
-    }
-    .cube-button:hover,
-    .cube-button:focus-visible {
-      color: var(--text);
-      border-color: var(--muted);
-    }
-    .cube-button:focus-visible {
-      outline: 2px solid var(--muted);
-      outline-offset: 0.25rem;
-    }
-    .cube-button:active {
-      opacity: 0.8;
-      transform: scale(0.95);
-    }
-    .cube-button-goodbye {
-      right: auto;
-      left: 2.5rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s, border-color 0.2s, color 0.2s;
-    }
-    .cube-button-goodbye.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Mobile */
-    @media (max-width: 768px) {
-      main {
-        padding: min(25vh, 100px) 1.5rem 0;
-      }
-      header { margin-left: -1.5rem; }
-      header h2 {
-        font-size: 1rem;
-        padding: 0 0.5rem;
-      }
-      .cli-list {
-        font-size: 1rem;
-      }
-      .bucket-container {
-        margin-bottom: clamp(80px, 15vh, 160px);
-      }
-      .cube-button {
-        right: 1.5rem;
-        font-size: 0.9rem;
-      }
-      .cube-button-goodbye {
-        left: 1.5rem;
-        right: auto;
-      }
-    }
+    .rats { color: #ffb568; }
+    .goblins { color: #7dcc6f; }
+    .monsters { color: #B58CFF; }
   </style>
 </head>
 <body>
-  <main>
-    <section>
-      <header>
-        <h2><em>always WIP.</em> smallergames.com</h2>
-      </header>
-      <ul class="cli-list">
-        <li><a href="/ancient-history/">ancient history</a></li>
-        <li><a href="/nothing">nothing</a></li>
-      </ul>
-    </section>
-  </main>
-  <div class="bucket-container" id="bucketContainer"></div>
-  <canvas id="physicsCanvas"></canvas>
-  <button class="cube-button" id="cubeButton">i like cubes.</button>
-  <button class="cube-button cube-button-goodbye" id="goodbyeButton">goodbye cubes.</button>
-  
+  <p>making a smaller game with <span class="rats">rats</span>, <span class="goblins">goblins</span>, and other <span class="monsters">horrifying monsters</span>.<br><a href="/one">dice</a> are neat.</p>
   <script>
     document.fonts.ready.then(() => {
       document.documentElement.classList.remove('fonts-loading');
     });
-  </script>
-  <script type="module">
-    import { initPhysics, spawnCube, getCubeCount, triggerGoodbye, isGoodbyeActive } from './assets/homepage-physics.js';
-
-    const GOODBYE_THRESHOLD = 121;
-
-    const ready = await initPhysics();
-    if (ready) {
-      const cubeButton = document.getElementById('cubeButton');
-      const goodbyeButton = document.getElementById('goodbyeButton');
-      const drops = [7,7,7,7,6,6,6,5,5,4,3];
-
-      function checkGoodbyeVisibility() {
-        if (getCubeCount() >= GOODBYE_THRESHOLD && !goodbyeButton.classList.contains('visible')) {
-          goodbyeButton.classList.add('visible');
-        }
-      }
-
-      cubeButton.addEventListener('click', () => {
-        if (isGoodbyeActive()) return;
-        const cy = -30;
-        drops.forEach((tier, i) => {
-          setTimeout(() => {
-            spawnCube(tier, Math.random() * window.innerWidth, cy);
-            checkGoodbyeVisibility();
-          }, i * 15);
-        });
-      });
-
-      goodbyeButton.addEventListener('click', () => {
-        if (isGoodbyeActive()) return;
-
-        if (triggerGoodbye()) {
-          goodbyeButton.classList.remove('visible');
-          cubeButton.style.opacity = '0';
-          cubeButton.style.pointerEvents = 'none';
-
-          const poll = setInterval(() => {
-            if (!isGoodbyeActive()) {
-              clearInterval(poll);
-              cubeButton.style.opacity = '';
-              cubeButton.style.pointerEvents = '';
-            }
-          }, 200);
-        }
-      });
-    }
   </script>
 </body>
 </html>
