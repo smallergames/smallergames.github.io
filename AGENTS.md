@@ -1,113 +1,59 @@
 # Agents Guide
 
-**Keep this file up to date.** When you change behavior, constants, or architecture, update the relevant section here. This is the source of truth for how the codebase works.
+Keep this file up to date when behavior, constants, or architecture changes.
 
 ## File Structure
 
 ```
-index.html          # Minimalist landing page (Geist Pixel Square, perspective grid animation)
+index.html          # Homepage
 404.html            # Not found page
 one/index.html      # Dice fidget toy
 assets/
-  app.js            # Main logic, state machine, event handlers
+  app.js            # Main game logic, state machine, event handlers
   shared.js         # Shared utilities (announce function)
-  particles.js      # Canvas-based glitch particle effects
+  particles.js      # Canvas particle/glitch effects
   loot.js           # Loot tier logic and drop spawning
-  physics.js        # Rapier WASM physics (dice fidget)
-  styles.css        # Styles, CSS custom properties, animations
-  fonts/            # Self-hosted fonts (Geist Pixel Square for homepage, Outfit for dice fidget)
+  physics.js        # Rapier WASM physics for dice fidget loot cubes
+  styles.css        # Dice fidget styles, tokens, and animations
+  fonts/            # Self-hosted Geist Pixel Square + Outfit fonts
 ```
 
 ## Development
 
-Static site, no build step. Run `python3 -m http.server 8000` and visit `localhost:8000`.
+Static site, no build step:
 
-## Typography
-
-- Use proper ellipsis `…` not `...`
-- Use curly quotes `"` `"` and apostrophes `'` not straight `"` `'`
+```bash
+python3 -m http.server 8000
+```
 
 ## Constraints
 
-### No Build Tooling
+- No build tooling, bundler, minification, or test harness.
+- No loot persistence. Refresh starts fresh.
+- `prefers-reduced-motion` is intentionally not honored. Show the warning modal on first visit and store dismissal in `localStorage`.
+- For dice page background (`assets/styles.css`), use `body::before`; do not set background directly on `html` or `body`.
+- Do not add `color-scheme: dark`.
+- Prefer animation events (`animationiteration`, `animationend`) over timers when syncing JS with CSS animation boundaries.
+- Avoid transitioning properties that are also actively animated.
 
-No tests, no bundler, no minification. The project is too small to justify the overhead.
-
-### No Loot Persistence
-
-Refresh to start fresh. Persisting loot would require a reset UI—clutter for minimal benefit.
-
-### prefers-reduced-motion
-
-**The site does NOT honor prefers-reduced-motion.** Animations ARE the functionality. A warning modal appears on first visit; dismissal stored in localStorage. This is intentional—don't change it.
-
-### Text Stability
-
-**NEVER move, shake, or transform text.** No `text-shadow`, `box-shadow`, or glow effects on text. For glitch effects on the die, use only `filter` and `opacity`.
-
-### Animation/JavaScript Sync
-
-Use animation events (`animationiteration`, `animationend`) instead of `setTimeout` to sync with CSS animations. Timers drift.
-
-### Animations vs Transitions
-
-Don't transition properties that are also animated—removing an animation class triggers the transition back to rest state. The die SVG only transitions `filter`, not `transform`.
-
-### Background Colors (Dice Fidget)
-
-**In styles.css, use `body::before` pseudo-element for background, never html/body directly.** Direct backgrounds cause color banding on calibrated monitors. Also avoid `color-scheme: dark`. The homepage has its own inline styles and uses `body { background: var(--void); }` directly.
-
-```css
-body::before { content: ''; position: fixed; inset: 0; background: var(--void); z-index: -1; }
-```
-
-## Color Palette
-
-```
---void: #080607           --text: #EDE7E1
---surface: #141113        --text-dim: #C7BDB4
-                          --text-muted: #8E857D
-
---accent: #67D6C2         --secondary: #B58CFF
---accent-glow: #9FF0E2    --secondary-glow: #D7C2FF
---accent-dim: #1F3D37     --danger: #E45B5B
-```
-
-**Loot tiers (1 = best, 7 = trash):**
-1. `#F5C66A` gold  2. `#B58CFF` amethyst  3. `#5FA8FF` azure  4. `#62D49A` mint
-5. `#A7B0BA` silver  6. `#B88B5A` bronze  7. `#4E4A46` ash
-
-**Homepage:** Text uses --text (#EDE7E1) for emphasis, --text-muted (#8E857D) for body. Colored spans: rats (#ffb568), goblins (#7dcc6f), monsters (#B58CFF).
-
-## Architecture
-
-### State Machine
+## Dice Fidget Model
 
 ```javascript
 const GameState = {
-  IDLE: 'idle',                      // Waiting for input
-  RAMPING: 'ramping',                // Building energy, die rolling
-  RAMPED: 'ramped',                  // Fully charged, +1 max active
-  LOOT_RESOLUTION: 'loot_resolution' // Showing hit/miss result
+  IDLE: 'idle',
+  RAMPING: 'ramping',
+  RAMPED: 'ramped',
+  LOOT_RESOLUTION: 'loot_resolution'
 };
 ```
 
-Input blocked during LOOT_RESOLUTION on hits only—misses allow immediate retry.
+- Input is blocked during `LOOT_RESOLUTION` only for hits; misses allow immediate retry.
+- Click/hold adds energy, energy drains over time, and full energy ramps max die value by +1 for the next resolution.
 
-### Energy System
+## Implementation Notes
 
-Click/hold adds energy → die rolls while energy > 0 → drains faster on release. At max energy, die "ramps" to +1 max (d6→d7). Rolling while ramped = loot resolution.
-
-### CSS Notes
-
-- Mobile breakpoint: 480px (dice fidget)
-- Theme tokens in `:root` at top of `styles.css`
-- Energy bar sized via `--energy-level` (0-1)
-- Homepage is self-contained inline styles and a font-loading script (no external JS, no canvas)
-- Homepage uses Geist Pixel Square font with colored text spans for rats/goblins/monsters
-
-### JS Notes
-
-- ES modules with `type="module"`
-- Shared utilities in `shared.js` to avoid circular deps
-- Magic numbers as named constants at top of each file
+- Use ES modules (`type="module"`).
+- Keep shared utilities in `shared.js` to avoid circular dependencies.
+- Keep gameplay constants named at the top of each file.
+- Homepage is self-contained inline CSS and font-loading script (no module imports/canvas).
+- Font-loading hide rules must be JS-gated (`.js.fonts-loading`) so no-JS visits still render content.

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="fonts-loading">
+<html lang="en" class="fonts-loading no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,20 @@
   <title>404 | smaller games</title>
   <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/outfit-bold.woff2" as="font" type="font/woff2" crossorigin>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      root.classList.remove('no-js');
+      root.classList.add('js');
+
+      const reveal = () => root.classList.remove('fonts-loading');
+      if (!document.fonts || !document.fonts.ready) {
+        reveal();
+        return;
+      }
+      document.fonts.ready.then(reveal).catch(reveal);
+    })();
+  </script>
   <style>
     @font-face {
       font-family: 'Outfit';
@@ -26,7 +40,7 @@
       font-display: block;
       src: url('assets/fonts/outfit-bold.woff2') format('woff2');
     }
-    .fonts-loading { visibility: hidden; }
+    .js.fonts-loading { visibility: hidden; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --accent: #E45B5B;
@@ -163,9 +177,6 @@
     <h1><span class="d1">4</span><span class="d2">0</span><span class="d3">4</span></h1>
   </main>
   <script>
-    document.fonts.ready.then(() => {
-      document.documentElement.classList.remove('fonts-loading');
-    });
     const spans = document.querySelectorAll('h1 span');
     const d1Dir = Math.random() < 0.5 ? -1 : 1;
     spans.forEach((span, i) => {

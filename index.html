@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="fonts-loading">
+<html lang="en" class="fonts-loading no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,13 +15,27 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <title>smaller games</title>
   <link rel="preload" href="assets/fonts/geist-pixel-square.woff2" as="font" type="font/woff2" crossorigin>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      root.classList.remove('no-js');
+      root.classList.add('js');
+
+      const reveal = () => root.classList.remove('fonts-loading');
+      if (!document.fonts || !document.fonts.ready) {
+        reveal();
+        return;
+      }
+      document.fonts.ready.then(reveal).catch(reveal);
+    })();
+  </script>
   <style>
     @font-face {
       font-family: 'GeistPixelSquare';
       font-display: block;
       src: url('assets/fonts/geist-pixel-square.woff2') format('woff2');
     }
-    .fonts-loading p { opacity: 0; }
+    .js.fonts-loading p { opacity: 0; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -117,10 +131,5 @@
 </head>
 <body>
   <p>making a smaller game with <span class="rats">rats</span>, <span class="goblins">goblins</span>, and <span class="monsters">horrifying monsters</span>.<br><a href="/one">dice</a> are neat.</p>
-  <script>
-    document.fonts.ready.then(() => {
-      document.documentElement.classList.remove('fonts-loading');
-    });
-  </script>
 </body>
 </html>
