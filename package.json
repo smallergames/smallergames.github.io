@@ -1,0 +1,28 @@
+{
+  "name": "appendix-n-starter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bunx --bun vite",
+    "build": "bunx tsc -b && bunx vite build",
+    "preview": "bunx vite preview",
+    "lint": "bunx biome check .",
+    "format": "bunx biome format .",
+    "typecheck": "bunx tsc -b"
+  },
+  "dependencies": {
+    "framer-motion": "^11.15.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^25.3.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^5.0.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.0"
+  }
+}

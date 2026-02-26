@@ -1,135 +1,14 @@
-<!DOCTYPE html>
-<html lang="en" class="fonts-loading no-js">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="making and publishing smaller video and table top games.">
-  <meta name="theme-color" content="#080607">
-  <link rel="canonical" href="https://smallergames.com/">
-  <meta property="og:title" content="smaller games">
-  <meta property="og:description" content="making and publishing smaller video and table top games.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://smallergames.com/">
-  <meta name="twitter:card" content="summary">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>smaller games</title>
-  <link rel="preload" href="assets/fonts/geist-pixel-square.woff2" as="font" type="font/woff2" crossorigin>
-  <script>
-    (() => {
-      const root = document.documentElement;
-      root.classList.remove('no-js');
-      root.classList.add('js');
-
-      const reveal = () => root.classList.remove('fonts-loading');
-      if (!document.fonts || !document.fonts.ready) {
-        reveal();
-        return;
-      }
-      document.fonts.ready.then(reveal).catch(reveal);
-    })();
-  </script>
-  <style>
-    @font-face {
-      font-family: 'GeistPixelSquare';
-      font-display: block;
-      src: url('assets/fonts/geist-pixel-square.woff2') format('woff2');
-    }
-    .js.fonts-loading p { opacity: 0; }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --void: #080607;
-      --text: #EDE7E1;
-      --text-muted: #8E857D;
-    }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
-
-    body {
-      background: var(--void);
-      color: var(--text);
-      font-family: 'GeistPixelSquare';
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 3rem;
-    }
-
-    /* Vignette */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
-      pointer-events: none;
-    }
-
-    p {
-      font-size: 24px;
-      letter-spacing: 0.04em;
-      line-height: 2;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 0 1.5rem;
-      max-width: 600px;
-      position: relative;
-      z-index: 1;
-      animation: fadeInUp 0.8s ease-out forwards;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    a {
-      color: var(--text);
-      text-decoration: underline;
-      transition: color 0.2s ease, text-shadow 0.2s ease;
-    }
-    a:hover {
-      color: #67D6C2;
-      text-shadow: 0 0 10px rgba(103, 214, 194, 0.4);
-    }
-
-    .rats {
-      color: #ffb568;
-      transition: text-shadow 0.2s ease;
-    }
-    .rats:hover {
-      text-shadow: 0 0 8px #ffb568, 0 0 20px rgba(255, 181, 104, 0.6);
-    }
-
-    .goblins {
-      color: #7dcc6f;
-      transition: text-shadow 0.2s ease;
-    }
-    .goblins:hover {
-      text-shadow: 0 0 8px #7dcc6f, 0 0 20px rgba(125, 204, 111, 0.6);
-    }
-
-    .monsters {
-      color: #B58CFF;
-      transition: text-shadow 0.2s ease;
-    }
-    .monsters:hover {
-      text-shadow: 0 0 8px #B58CFF, 0 0 20px rgba(181, 140, 255, 0.6);
-    }
-  </style>
-</head>
-<body>
-  <p>making a smaller game with <span class="rats">rats</span>, <span class="goblins">goblins</span>, and <span class="monsters">horrifying monsters</span>.<br><a href="/one">dice</a> are neat.</p>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Appendix N</title>
+    <meta name="description" content="Starter page for Appendix N" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
