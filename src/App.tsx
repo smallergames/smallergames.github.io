@@ -678,7 +678,7 @@ function App() {
     }, stepTiming.stepMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [prefersReducedMotion, stepTiming.stepMs]);
+  }, [prefersReducedMotion, sequenceIndex, stepTiming.stepMs]);
 
   const tagStyle = opticalPadding.tag < 0.05 ? undefined : { paddingLeft: `${opticalPadding.tag}px` };
   const descriptionStyle = opticalPadding.description < 0.05 ? undefined : { paddingLeft: `${opticalPadding.description}px` };
