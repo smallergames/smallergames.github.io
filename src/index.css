@@ -101,7 +101,7 @@ body {
 .landing-content {
   position: relative;
   z-index: 2;
-  width: min(100%, 360px);
+  width: fit-content;
   max-width: 100%;
   min-width: 0;
   margin-bottom: clamp(0.32rem, 1.3vh, 0.9rem);
@@ -121,6 +121,8 @@ body {
 .landing-tag,
 .landing-title,
 .landing-description {
+  display: block;
+  width: fit-content;
   max-width: 100%;
   white-space: nowrap;
   overflow: clip;
@@ -132,7 +134,7 @@ body {
   margin: clamp(0.46rem, 1vw, 0.82rem) 0 clamp(0.5rem, 1vw, 0.86rem);
   font-size: var(--type-title);
   font-weight: 600;
-  letter-spacing: -0.008em;
+  letter-spacing: clamp(0.016em, 0.012em + 0.08vw, 0.034em);
   line-height: 1.04;
 }
 
@@ -166,7 +168,7 @@ body {
   }
 
   .landing-content {
-    width: min(100%, 340px);
+    width: fit-content;
   }
 
   .landing-tag {

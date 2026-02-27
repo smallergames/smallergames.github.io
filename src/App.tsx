@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const LOADER_LETTERS = [
   { id: "w", label: "W" },
@@ -168,15 +168,11 @@ function getRandomInt(min: number, max: number) {
 }
 
 function getGlitchPauseMs() {
-  return Math.round(
-    GLITCH.minExtraPauseMs + Math.random() * (GLITCH.maxExtraPauseMs - GLITCH.minExtraPauseMs),
-  );
+  return Math.round(GLITCH.minExtraPauseMs + Math.random() * (GLITCH.maxExtraPauseMs - GLITCH.minExtraPauseMs));
 }
 
 function getLongHoldPauseMs() {
-  return Math.round(
-    GLITCH.minLongHoldMs + Math.random() * (GLITCH.maxLongHoldMs - GLITCH.minLongHoldMs),
-  );
+  return Math.round(GLITCH.minLongHoldMs + Math.random() * (GLITCH.maxLongHoldMs - GLITCH.minLongHoldMs));
 }
 
 function getRandomBetween(min: number, max: number) {
@@ -223,12 +219,8 @@ function getPauseMs(glitchActive: boolean) {
 function getStepTiming(step: LoaderSequenceStep, pattern: GlitchPatternState): TimingRoll {
   const base = BASE_STEP_TIMING[step];
   const isSide = step === "w" || step === "p";
-  const stepJitterMs = isSide
-    ? TIMING_VARIANCE.sideStepJitterMs
-    : TIMING_VARIANCE.centerStepJitterMs;
-  const motionJitterMs = isSide
-    ? TIMING_VARIANCE.sideMotionJitterMs
-    : TIMING_VARIANCE.centerMotionJitterMs;
+  const stepJitterMs = isSide ? TIMING_VARIANCE.sideStepJitterMs : TIMING_VARIANCE.centerStepJitterMs;
+  const motionJitterMs = isSide ? TIMING_VARIANCE.sideMotionJitterMs : TIMING_VARIANCE.centerMotionJitterMs;
 
   let stepMs = getJitteredTiming(base.stepMs, stepJitterMs);
   let motionMs = getJitteredTiming(base.motionMs, motionJitterMs);
@@ -244,8 +236,7 @@ function getStepTiming(step: LoaderSequenceStep, pattern: GlitchPatternState): T
     glitchIntensity = nextPattern.runIntensity;
     nextPattern.remainingRunSteps -= 1;
   } else {
-    const startChanceMultiplier =
-      nextPattern.cooldownSteps > 0 ? GLITCH.cooldownChanceMultiplier : 1;
+    const startChanceMultiplier = nextPattern.cooldownSteps > 0 ? GLITCH.cooldownChanceMultiplier : 1;
     const startChance = GLITCH.chance * startChanceMultiplier;
 
     if (Math.random() < startChance) {
@@ -285,11 +276,7 @@ function getStepTiming(step: LoaderSequenceStep, pattern: GlitchPatternState): T
 
     glitchStutterPx = getRandomBetween(GLITCH.minStutterPx, GLITCH.maxStutterPx) * glitchIntensity;
     glitchChromaPx = getRandomBetween(GLITCH.minChromaPx, GLITCH.maxChromaPx) * glitchIntensity;
-    glitchOpacityDip = clamp(
-      getRandomBetween(GLITCH.minOpacityDip, GLITCH.maxOpacityDip) - (glitchIntensity - 1) * 0.08,
-      0.42,
-      0.86,
-    );
+    glitchOpacityDip = clamp(getRandomBetween(GLITCH.minOpacityDip, GLITCH.maxOpacityDip) - (glitchIntensity - 1) * 0.08, 0.42, 0.86);
 
     if (nextPattern.remainingRunSteps === 0 && Math.random() < GLITCH.cooldownAfterRunChance) {
       nextPattern.cooldownSteps = getRandomInt(GLITCH.minCooldownSteps, GLITCH.maxCooldownSteps);
@@ -380,15 +367,7 @@ function getLetterMotion(step: LoaderSequenceStep, letterId: LoaderLetterId, tim
     if (timing.glitchActive) {
       return {
         animate: {
-          x: [
-            0,
-            LOADER_MOTION.centerNudge,
-            -LOADER_MOTION.centerNudge * 0.34,
-            0,
-            -timing.glitchStutterPx,
-            timing.glitchStutterPx,
-            0,
-          ],
+          x: [0, LOADER_MOTION.centerNudge, -LOADER_MOTION.centerNudge * 0.34, 0, -timing.glitchStutterPx, timing.glitchStutterPx, 0],
           scale: [1, LOADER_MOTION.centerScale, 0.998, 1, 1, 1, 1],
           opacity: [1, 1, 1, 1, timing.glitchOpacityDip, 0.92, 1],
           textShadow: [
@@ -436,15 +415,7 @@ function getLetterMotion(step: LoaderSequenceStep, letterId: LoaderLetterId, tim
     if (timing.glitchActive) {
       return {
         animate: {
-          x: [
-            0,
-            -LOADER_MOTION.centerNudge,
-            LOADER_MOTION.centerNudge * 0.34,
-            0,
-            timing.glitchStutterPx,
-            -timing.glitchStutterPx,
-            0,
-          ],
+          x: [0, -LOADER_MOTION.centerNudge, LOADER_MOTION.centerNudge * 0.34, 0, timing.glitchStutterPx, -timing.glitchStutterPx, 0],
           scale: [1, LOADER_MOTION.centerScale, 0.998, 1, 1, 1, 1],
           opacity: [1, 1, 1, 1, timing.glitchOpacityDip, 0.92, 1],
           textShadow: [
@@ -470,6 +441,10 @@ function getLetterMotion(step: LoaderSequenceStep, letterId: LoaderLetterId, tim
 function App() {
   const prefersReducedMotion = useReducedMotion();
   const [sequenceIndex, setSequenceIndex] = useState(0);
+  const [titleLetterSpacingPx, setTitleLetterSpacingPx] = useState<number | null>(null);
+  const tagRef = useRef<HTMLParagraphElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [timingController, setTimingController] = useState<TimingControllerState>(() => {
     const initialRoll = getStepTiming(LOADER_SEQUENCE[0], INITIAL_GLITCH_PATTERN);
 
@@ -480,6 +455,80 @@ function App() {
   });
   const stepTiming = timingController.stepTiming;
   const currentStep = LOADER_SEQUENCE[sequenceIndex];
+
+  const syncTitleTracking = useCallback(() => {
+    const tag = tagRef.current;
+    const title = titleRef.current;
+    const description = descriptionRef.current;
+
+    if (!tag || !title || !description) {
+      return;
+    }
+
+    const titleText = title.textContent ?? "";
+    const gapCount = Math.max(Array.from(titleText).length - 1, 1);
+    const tagRect = tag.getBoundingClientRect();
+    const descriptionRect = description.getBoundingClientRect();
+    const titleRect = title.getBoundingClientRect();
+    const targetRight = (tagRect.right + descriptionRect.right) / 2;
+    const targetWidth = targetRight - titleRect.left;
+
+    if (targetWidth <= 0) {
+      return;
+    }
+
+    const computedStyle = window.getComputedStyle(title);
+    const currentLetterSpacing = Number.parseFloat(computedStyle.letterSpacing);
+    const resolvedLetterSpacing = Number.isFinite(currentLetterSpacing) ? currentLetterSpacing : 0;
+    const nextLetterSpacing = resolvedLetterSpacing + (targetWidth - titleRect.width) / gapCount;
+
+    if (!Number.isFinite(nextLetterSpacing)) {
+      return;
+    }
+
+    setTitleLetterSpacingPx((current) => {
+      if (current !== null && Math.abs(current - nextLetterSpacing) < 0.05) {
+        return current;
+      }
+
+      return nextLetterSpacing;
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    const scheduleSync = () => {
+      window.requestAnimationFrame(syncTitleTracking);
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      scheduleSync();
+    });
+
+    if (tagRef.current) {
+      resizeObserver.observe(tagRef.current);
+    }
+
+    if (titleRef.current) {
+      resizeObserver.observe(titleRef.current);
+    }
+
+    if (descriptionRef.current) {
+      resizeObserver.observe(descriptionRef.current);
+    }
+
+    window.addEventListener("resize", scheduleSync);
+    document.fonts.addEventListener("loadingdone", scheduleSync);
+    void document.fonts.ready.then(() => {
+      scheduleSync();
+    });
+    scheduleSync();
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", scheduleSync);
+      document.fonts.removeEventListener("loadingdone", scheduleSync);
+    };
+  }, [syncTitleTracking]);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -495,10 +544,7 @@ function App() {
       setSequenceIndex((index) => {
         const nextIndex = (index + 1) % LOADER_SEQUENCE.length;
         setTimingController((currentController) => {
-          const nextRoll = getStepTiming(
-            LOADER_SEQUENCE[nextIndex],
-            currentController.glitchPattern,
-          );
+          const nextRoll = getStepTiming(LOADER_SEQUENCE[nextIndex], currentController.glitchPattern);
 
           return {
             stepTiming: nextRoll.stepTiming,
@@ -519,9 +565,7 @@ function App() {
       <section className="landing-loader" aria-label="Loading indicator">
         <div className="loader-word" aria-hidden="true">
           {LOADER_LETTERS.map((letter) => {
-            const motionConfig = prefersReducedMotion
-              ? { animate: REST_ANIMATION, transition: REST_TRANSITION }
-              : getLetterMotion(currentStep, letter.id, stepTiming);
+            const motionConfig = prefersReducedMotion ? { animate: REST_ANIMATION, transition: REST_TRANSITION } : getLetterMotion(currentStep, letter.id, stepTiming);
 
             return (
               <motion.span
@@ -539,9 +583,19 @@ function App() {
       </section>
 
       <section className="landing-content">
-        <p className="landing-tag">software - games - books - video - etc</p>
-        <h1 className="landing-title">smallergames.com</h1>
-        <p className="landing-description">building a modern appendix n.</p>
+        <p ref={tagRef} className="landing-tag">
+          software - games - books - screenworks - etc
+        </p>
+        <h1
+          ref={titleRef}
+          className="landing-title"
+          style={titleLetterSpacingPx === null ? undefined : { letterSpacing: `${titleLetterSpacingPx}px` }}
+        >
+          smallergames.com
+        </h1>
+        <p ref={descriptionRef} className="landing-description">
+          a growing collection of interesting inputs.
+        </p>
       </section>
     </main>
   );
