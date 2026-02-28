@@ -11,8 +11,7 @@ function App() {
   const contentRef = useRef<HTMLElement>(null);
 
   const { currentStep, stepTiming } = useLoaderSequence(prefersReducedMotion);
-  const { tagRef, titleRef, descriptionRef, tagStyle, titleStyle, descriptionStyle } =
-    useLandingTextAlignment();
+  const { tagRef, titleRef, descriptionRef, tagStyle, titleStyle, descriptionStyle } = useLandingTextAlignment();
 
   useLandingContentReveal(contentRef, prefersReducedMotion);
 
@@ -20,12 +19,7 @@ function App() {
     <main className="landing">
       <svg width="0" height="0" aria-hidden="true" style={{ position: "absolute" }}>
         <filter id="grain">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.65"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
         </filter>
       </svg>
@@ -34,9 +28,7 @@ function App() {
       <section className="landing-loader" aria-label="Loading indicator">
         <div className="loader-word" aria-hidden="true">
           {LOADER_LETTERS.map((letter) => {
-            const motionConfig = prefersReducedMotion
-              ? { animate: REST_ANIMATION, transition: REST_TRANSITION }
-              : getLetterMotion(currentStep, letter.id, stepTiming);
+            const motionConfig = prefersReducedMotion ? { animate: REST_ANIMATION, transition: REST_TRANSITION } : getLetterMotion(currentStep, letter.id, stepTiming);
 
             return (
               <motion.span
@@ -61,7 +53,7 @@ function App() {
           smallergames.com
         </h1>
         <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
-          a growing collection of odd + ends.
+          tomorrow's collection of odd + ends.
         </p>
       </section>
     </main>
