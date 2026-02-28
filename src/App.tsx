@@ -630,10 +630,12 @@ function App() {
       return;
     }
 
-    el.style.transition = "opacity 900ms ease-out, transform 900ms ease-out";
+    if (!prefersReducedMotion) {
+      el.style.transition = "opacity 900ms ease-out, transform 900ms ease-out";
+    }
     el.style.opacity = "1";
     el.style.transform = "translate3d(0, 0, 0)";
-  }, [contentReady]);
+  }, [contentReady, prefersReducedMotion]);
 
   useLayoutEffect(() => {
     const scheduleSync = () => {
