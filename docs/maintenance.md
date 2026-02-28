@@ -4,7 +4,7 @@
 
 - Home page (`/`): `src/**`, `index.html`, `src/index.css`
 - Artifact (`/one`): `public/one/**` and `public/assets/**`
-- Shared static files: `public/favicon.svg`, `public/apple-touch-icon.png`, `public/404.html`
+- Shared static files: `public/CNAME`, `public/favicon.svg`, `public/apple-touch-icon.png`, `public/404.html`
 
 ## Preservation contract for `/one`
 

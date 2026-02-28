@@ -14,6 +14,7 @@ const REQUIRED_PUBLIC_FILES = [
   "public/assets/styles.css",
   "public/assets/fonts/outfit-regular.woff2",
   "public/assets/fonts/outfit-bold.woff2",
+  "public/CNAME",
   "public/favicon.svg",
   "public/apple-touch-icon.png",
 ];
