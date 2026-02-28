@@ -13,6 +13,19 @@
   <link rel="preload" href="assets/fonts/outfit-bold.woff2" as="font" type="font/woff2" crossorigin>
   <script>
     (() => {
+      const spaRoutes = new Set(['/software', '/games', '/fiction', '/screenworks', '/etc']);
+      const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
+      if (!spaRoutes.has(normalizedPath)) {
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('__sg_route', `${normalizedPath}${window.location.search}${window.location.hash}`);
+      window.location.replace(`/?${params.toString()}`);
+    })();
+  </script>
+  <script>
+    (() => {
       const root = document.documentElement;
       root.classList.remove('no-js');
       root.classList.add('js');
