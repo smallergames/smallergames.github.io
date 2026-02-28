@@ -84,9 +84,6 @@ body {
 .route-screen {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .route-screen-home {
@@ -110,6 +107,10 @@ body {
 }
 
 .route-screen-title {
+  position: absolute;
+  top: 53%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   margin: 0;
   font-family: "IBM Plex Mono", monospace;
   font-size: clamp(1rem, 1.1vw + 0.85rem, 1.34rem);
@@ -182,7 +183,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--landing-gap);
+  gap: clamp(0.1rem, 0.22vw, 0.2rem);
   width: fit-content;
   max-width: calc(100% - var(--landing-pad) - var(--landing-pad));
   min-width: 0;
