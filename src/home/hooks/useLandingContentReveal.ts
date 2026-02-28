@@ -8,14 +8,22 @@ export function useLandingContentReveal(
   const [contentReady, setContentReady] = useState(false);
 
   useEffect(() => {
+    let disposed = false;
+
     if (prefersReducedMotion) {
       setContentReady(true);
       return;
     }
 
     void document.fonts.ready.then(() => {
-      setContentReady(true);
+      if (!disposed) {
+        setContentReady(true);
+      }
     });
+
+    return () => {
+      disposed = true;
+    };
   }, [prefersReducedMotion]);
 
   useEffect(() => {

@@ -105,11 +105,27 @@ export function useLandingTextAlignment() {
   }, []);
 
   useLayoutEffect(() => {
+    let rafId: number | null = null;
+    let disposed = false;
+
     const scheduleSync = () => {
-      window.requestAnimationFrame(() => {
+      if (disposed) {
+        return;
+      }
+
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
         syncOpticalLeftPadding();
         syncTitleTracking();
       });
+    };
+
+    const handleFontLoadingDone = () => {
+      scheduleSync();
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -129,16 +145,20 @@ export function useLandingTextAlignment() {
     }
 
     window.addEventListener("resize", scheduleSync);
-    document.fonts.addEventListener("loadingdone", scheduleSync);
+    document.fonts.addEventListener("loadingdone", handleFontLoadingDone);
     void document.fonts.ready.then(() => {
       scheduleSync();
     });
     scheduleSync();
 
     return () => {
+      disposed = true;
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
       resizeObserver.disconnect();
       window.removeEventListener("resize", scheduleSync);
-      document.fonts.removeEventListener("loadingdone", scheduleSync);
+      document.fonts.removeEventListener("loadingdone", handleFontLoadingDone);
     };
   }, [syncOpticalLeftPadding, syncTitleTracking]);
 
