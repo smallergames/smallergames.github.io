@@ -563,11 +563,7 @@ function App() {
     };
 
     setOpticalPadding((current) => {
-      if (
-        Math.abs(current.tag - nextPadding.tag) < 0.05 &&
-        Math.abs(current.title - nextPadding.title) < 0.05 &&
-        Math.abs(current.description - nextPadding.description) < 0.05
-      ) {
+      if (Math.abs(current.tag - nextPadding.tag) < 0.05 && Math.abs(current.title - nextPadding.title) < 0.05 && Math.abs(current.description - nextPadding.description) < 0.05) {
         return current;
       }
 
@@ -722,7 +718,7 @@ function App() {
           smallergames.com
         </h1>
         <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
-          a growing collection of interesting inputs.
+          a growing collection of odd + ends.
         </p>
       </section>
     </main>
