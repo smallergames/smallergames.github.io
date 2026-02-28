@@ -53,7 +53,7 @@ function App() {
           smallergames.com
         </h1>
         <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
-          tomorrow's collection of odd + ends.
+          a growing collection of odd + ends.
         </p>
       </section>
     </main>
