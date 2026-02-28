@@ -47,7 +47,7 @@ function App() {
 
       <section ref={contentRef} className="landing-content">
         <p ref={tagRef} className="landing-tag" style={tagStyle}>
-          software - games - books - screenworks - etc
+          software - games - fiction - screenworks - etc
         </p>
         <h1 ref={titleRef} className="landing-title" style={titleStyle}>
           smallergames.com
