@@ -523,6 +523,8 @@ function getTextInkLeftInsetPx(text: string, style: CSSStyleDeclaration) {
 function App() {
   const prefersReducedMotion = useReducedMotion();
   const [sequenceIndex, setSequenceIndex] = useState(0);
+  const [contentReady, setContentReady] = useState(false);
+  const contentRef = useRef<HTMLElement>(null);
   const [titleLetterSpacingPx, setTitleLetterSpacingPx] = useState<number | null>(null);
   const [opticalPadding, setOpticalPadding] = useState<OpticalPadding>({
     tag: 0,
@@ -609,6 +611,29 @@ function App() {
       return nextLetterSpacing;
     });
   }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setContentReady(true);
+      return;
+    }
+
+    void document.fonts.ready.then(() => {
+      setContentReady(true);
+    });
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    const el = contentRef.current;
+
+    if (!el || !contentReady) {
+      return;
+    }
+
+    el.style.transition = "opacity 900ms ease-out, transform 900ms ease-out";
+    el.style.opacity = "1";
+    el.style.transform = "translate3d(0, 0, 0)";
+  }, [contentReady]);
 
   useLayoutEffect(() => {
     const scheduleSync = () => {
@@ -716,7 +741,7 @@ function App() {
         </div>
       </section>
 
-      <section className="landing-content">
+      <section ref={contentRef} className="landing-content">
         <p ref={tagRef} className="landing-tag" style={tagStyle}>
           software - games - books - screenworks - etc
         </p>
