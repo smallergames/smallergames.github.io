@@ -100,8 +100,8 @@ function App() {
   }));
 
   const { currentStep, stepTiming } = useLoaderSequence(prefersReducedMotion);
-  const { tagRef, titleRef, descriptionRef, tagStyle, titleStyle, descriptionStyle } =
-    useLandingTextAlignment();
+  const { tagRef, titleRef, descriptionRef, tagStyle, titleStyle, descriptionStyle, isAligned } =
+    useLandingTextAlignment(view === "home");
 
   useLandingContentReveal(contentRef, prefersReducedMotion);
 
@@ -187,27 +187,39 @@ function App() {
               }}
             >
               {area === "home" ? (
-                <section className="landing-loader" aria-label="Loading indicator">
-                  <div className="loader-word" aria-hidden="true">
-                    {LOADER_LETTERS.map((letter) => {
-                      const motionConfig = prefersReducedMotion
-                        ? { animate: REST_ANIMATION, transition: REST_TRANSITION }
-                        : getLetterMotion(currentStep, letter.id, stepTiming);
+                <>
+                  <section className="landing-loader" aria-label="Loading indicator">
+                    <div className="loader-word" aria-hidden="true">
+                      {LOADER_LETTERS.map((letter) => {
+                        const motionConfig = prefersReducedMotion
+                          ? { animate: REST_ANIMATION, transition: REST_TRANSITION }
+                          : getLetterMotion(currentStep, letter.id, stepTiming);
 
-                      return (
-                        <motion.span
-                          key={letter.id}
-                          className={`loader-letter ${letter.id === "i" ? "loader-letter-center" : ""}`}
-                          initial={false}
-                          animate={motionConfig.animate}
-                          transition={motionConfig.transition}
-                        >
-                          {letter.label}
-                        </motion.span>
-                      );
-                    })}
-                  </div>
-                </section>
+                        return (
+                          <motion.span
+                            key={letter.id}
+                            className={`loader-letter ${letter.id === "i" ? "loader-letter-center" : ""}`}
+                            initial={false}
+                            animate={motionConfig.animate}
+                            transition={motionConfig.transition}
+                          >
+                            {letter.label}
+                          </motion.span>
+                        );
+                      })}
+                    </div>
+                  </section>
+                  <section
+                    className={`landing-home-meta ${isAligned ? "landing-home-meta-ready" : ""}`}
+                  >
+                    <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
+                      a growing collection of odd + ends.
+                    </p>
+                    <h1 ref={titleRef} className="landing-title" style={titleStyle}>
+                      smallergames.com
+                    </h1>
+                  </section>
+                </>
               ) : (
                 <h2 className="route-screen-title">{AREAS[area].label}</h2>
               )}
@@ -216,18 +228,7 @@ function App() {
         })}
       </motion.section>
 
-      <section
-        ref={contentRef}
-        className={`landing-content ${view === "home" ? "landing-content-home" : "landing-content-browsing"}`}
-      >
-        <div className="landing-meta">
-          <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
-            a growing collection of odd + ends.
-          </p>
-          <h1 ref={titleRef} className="landing-title" style={titleStyle}>
-            smallergames.com
-          </h1>
-        </div>
+      <section ref={contentRef} className="landing-content">
         <p ref={tagRef} className="landing-tag" style={tagStyle}>
           {MENU_ITEMS.map((item, index) => (
             <Fragment key={item.key}>
