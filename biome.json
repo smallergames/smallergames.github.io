@@ -15,6 +15,6 @@
     }
   },
   "files": {
-    "ignore": ["dist", "node_modules", "bun.lockb"]
+    "ignore": ["dist", "node_modules", "bun.lockb", "public/assets/**", "public/one/**"]
   }
 }

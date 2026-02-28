@@ -26,7 +26,11 @@ jobs:
 
       - run: bun install
 
+      - run: bun run check
+
       - run: bun run build
+
+      - run: bun run verify:one
 
       - uses: actions/configure-pages@v5
 
