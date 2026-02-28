@@ -94,16 +94,28 @@ function App() {
   const prefersReducedMotion = Boolean(useReducedMotion());
   const contentRef = useRef<HTMLElement>(null);
   const [view, setView] = useState<AreaKey>(() => viewFromPath(window.location.pathname));
+  const previousViewRef = useRef<AreaKey>(view);
+  const [isCameraSettled, setIsCameraSettled] = useState(true);
   const [viewport, setViewport] = useState(() => ({
     width: window.innerWidth,
     height: window.innerHeight,
   }));
 
   const { currentStep, stepTiming } = useLoaderSequence(prefersReducedMotion);
+  const canMeasureHomeAlignment = view === "home" && isCameraSettled;
   const { tagRef, titleRef, descriptionRef, tagStyle, titleStyle, descriptionStyle, isAligned } =
-    useLandingTextAlignment(view === "home");
+    useLandingTextAlignment(canMeasureHomeAlignment);
 
   useLandingContentReveal(contentRef, prefersReducedMotion);
+
+  useEffect(() => {
+    if (previousViewRef.current === view) {
+      return;
+    }
+
+    previousViewRef.current = view;
+    setIsCameraSettled(false);
+  }, [view]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -174,6 +186,9 @@ function App() {
         initial={false}
         animate={cameraTransform}
         transition={prefersReducedMotion ? { duration: 0 } : BASE_TRANSITION}
+        onAnimationComplete={() => {
+          setIsCameraSettled(true);
+        }}
       >
         {(Object.keys(AREAS) as AreaKey[]).map((area) => {
           const position = POSITIONS[area];
