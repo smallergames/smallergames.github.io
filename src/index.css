@@ -172,7 +172,12 @@ body {
 .landing-home-meta {
   position: absolute;
   left: var(--landing-pad);
-  bottom: calc(var(--landing-pad) + var(--landing-bottom-offset) + var(--type-tag) + var(--landing-gap));
+  bottom: calc(
+    var(--landing-pad) +
+    var(--landing-bottom-offset) +
+    var(--type-tag) +
+    var(--landing-gap)
+  );
   z-index: 4;
   display: flex;
   flex-direction: column;

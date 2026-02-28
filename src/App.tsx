@@ -212,7 +212,11 @@ function App() {
                   <section
                     className={`landing-home-meta ${isAligned ? "landing-home-meta-ready" : ""}`}
                   >
-                    <p ref={descriptionRef} className="landing-description" style={descriptionStyle}>
+                    <p
+                      ref={descriptionRef}
+                      className="landing-description"
+                      style={descriptionStyle}
+                    >
                       a growing collection of odd + ends.
                     </p>
                     <h1 ref={titleRef} className="landing-title" style={titleStyle}>
