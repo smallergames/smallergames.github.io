@@ -1,206 +1,663 @@
-<!DOCTYPE html>
-<html lang="en" class="fonts-loading no-js">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="page not found | smaller weirder games.">
-  <meta name="theme-color" content="#080607">
-  <meta name="robots" content="noindex">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>404 | smaller games</title>
-  <link rel="preload" href="assets/fonts/outfit-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/outfit-bold.woff2" as="font" type="font/woff2" crossorigin>
-  <script>
-    (() => {
-      const spaRoutes = new Set(['/software', '/games', '/fiction', '/screenworks', '/etc']);
-      const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
-      if (!spaRoutes.has(normalizedPath)) {
-        return;
-      }
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="page not found | smallergames.com" />
+        <meta name="theme-color" content="#050505" />
+        <meta name="robots" content="noindex" />
+        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" />
+        <title>smallergames.com</title>
+        <script>
+            (() => {
+                const spaRoutes = new Set(["/software", "/games", "/fiction", "/screenworks", "/etc"]);
+                const normalizedPath = window.location.pathname.replace(/\/+$/, "") || "/";
+                if (!spaRoutes.has(normalizedPath)) {
+                    return;
+                }
 
-      const params = new URLSearchParams();
-      params.set('__sg_route', `${normalizedPath}${window.location.search}${window.location.hash}`);
-      window.location.replace(`/?${params.toString()}`);
-    })();
-  </script>
-  <script>
-    (() => {
-      const root = document.documentElement;
-      root.classList.remove('no-js');
-      root.classList.add('js');
+                const params = new URLSearchParams();
+                params.set("__sg_route", `${normalizedPath}${window.location.search}${window.location.hash}`);
+                window.location.replace(`/?${params.toString()}`);
+            })();
+        </script>
+        <style>
+            :root {
+                color-scheme: dark;
+                --bg: #050505;
+                --fg: #e4e1db;
+                --fg-soft: #bbbcb8;
+                --tag: #949691;
+                --title: #ece8e1;
+                --link-active: #f0ece3;
+                --landing-pad: clamp(0.95rem, 2.2vw, 1.9rem);
+                --landing-gap: clamp(0.26rem, 0.5vw, 0.44rem);
+                --landing-bottom-offset: clamp(0.32rem, 1.3vw, 0.9rem);
+                --type-tag: clamp(0.58rem, 0.54rem + 0.2vw, 0.7rem);
+                --type-title: clamp(1.3rem, 1.1rem + 0.95vw, 1.86rem);
+                --type-body: clamp(0.78rem, 0.72rem + 0.28vw, 0.9rem);
+            }
 
-      const reveal = () => root.classList.remove('fonts-loading');
-      if (!document.fonts || !document.fonts.ready) {
-        reveal();
-        return;
-      }
-      document.fonts.ready.then(reveal).catch(reveal);
-    })();
-  </script>
-  <style>
-    @font-face {
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 400;
-      font-display: block;
-      src: url('assets/fonts/outfit-regular.woff2') format('woff2');
-    }
-    @font-face {
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 700;
-      font-display: block;
-      src: url('assets/fonts/outfit-bold.woff2') format('woff2');
-    }
-    .js.fonts-loading { visibility: hidden; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --accent: #E45B5B;
-      --accent-mid: #B06A60;
-      --muted: #C7BDB4;
-      --gold: #F5C66A;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
-    body {
-      color: #EDE7E1;
-      font-family: 'Outfit', system-ui, sans-serif;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: #080607;
-      z-index: -1;
-    }
-    main {
-      background: transparent;
-      padding: min(25vh, 150px) 1.5rem 1.5rem;
-    }
-    @media (max-width: 480px) {
-      main {
-        padding: min(25vh, 100px) 1rem 1rem;
-      }
-      header { margin-left: -1rem; }
-    }
-    header {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      width: 100vw;
-      margin-left: -1.5rem;
-    }
-    header::before {
-      content: '';
-      width: 1.5rem;
-      flex-shrink: 0;
-      height: 1px;
-      background: rgba(199, 189, 180, 0.3);
-    }
-    header::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(199, 189, 180, 0.3);
-    }
-    h1 {
-      font-size: 11rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      color: var(--accent);
-      margin-top: 0.5rem;
-    }
-    h1 span {
-      display: inline-block;
-    }
-    .d2 {
-      margin-left: -0.05em;
-      margin-right: -0.05em;
-    }
-    header h2 {
-      font-size: 1.6rem;
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      text-transform: lowercase;
-      opacity: 0.7;
-      line-height: 1.2;
-      white-space: nowrap;
-      padding: 0 0.75rem;
-    }
-    header h2 em {
-      font-style: normal;
-      font-weight: 600;
-      color: var(--gold);
-      text-transform: none;
-      opacity: 1;
-    }
-    header h2 a {
-      color: var(--muted);
-      text-decoration: underline;
-      text-underline-offset: 0.15em;
-    }
-    header h2 a:hover {
-      color: #EDE7E1;
-    }
-    header h2 a:focus-visible {
-      outline: 1px solid var(--accent-mid);
-      outline-offset: 0.15em;
-    }
-    .site-nav {
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-    }
-    .site-nav a {
-      display: block;
-      color: #8E857D;
-      text-decoration: none;
-      padding: 0.5rem;
-      margin: -0.5rem;
-    }
-    .site-nav a:hover {
-      color: #C7BDB4;
-    }
-    .site-nav a:focus-visible {
-      outline: 1px solid var(--accent-mid);
-      outline-offset: 0.25rem;
-    }
-    .site-nav svg {
-      display: block;
-    }
-    @media (max-width: 480px) {
-      .site-nav svg {
-        width: 28px;
-        height: 28px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <nav class="site-nav"><a href="/" aria-label="Back to home"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a></nav>
-  <main>
-    <header>
-      <h2><em>not found.</em> sorry. sorry.</h2>
-    </header>
-    <h1><span class="d1">4</span><span class="d2">0</span><span class="d3">4</span></h1>
-  </main>
-  <script>
-    const spans = document.querySelectorAll('h1 span');
-    const d1Dir = Math.random() < 0.5 ? -1 : 1;
-    spans.forEach((span, i) => {
-      let dir;
-      if (i === 0) dir = d1Dir;
-      else if (i === 2) dir = -d1Dir;
-      else dir = Math.random() < 0.5 ? -1 : 1;
-      const rot = (5 + Math.random() * 6) * dir;
-      const y = (Math.random() - 0.5) * 0.12;
-      span.style.transform = `rotate(${rot}deg) translateY(${y}em)`;
-    });
-  </script>
-</body>
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                min-height: 100%;
+                margin: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--fg);
+                font-family: "Manrope", sans-serif;
+            }
+
+            .landing {
+                position: relative;
+                min-height: 100vh;
+                display: flex;
+                align-items: flex-end;
+                padding: var(--landing-pad);
+                overflow: hidden;
+                isolation: isolate;
+                background: radial-gradient(100vw 100vh at 90% 8%, rgba(255, 255, 255, 0.1), transparent 68%), var(--bg);
+            }
+
+            @supports (min-height: 100dvh) {
+                .landing {
+                    min-height: 100dvh;
+                }
+            }
+
+            .landing-noise {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                z-index: 0;
+                opacity: 0.14;
+                background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 6px);
+                mask-image: radial-gradient(circle at center, #000 40%, transparent 100%);
+            }
+
+            .landing-noise::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                opacity: 0.55;
+                filter: url(#grain);
+                background: transparent;
+            }
+
+            .landing-loader {
+                position: absolute;
+                top: 53%;
+                left: 50%;
+                z-index: 3;
+                width: fit-content;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+            }
+
+            .loader-word {
+                display: inline-flex;
+                align-items: flex-end;
+                gap: 0.22em;
+                margin: 0;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: clamp(1.8rem, 1.64rem + 0.92vw, 2.42rem);
+                letter-spacing: 0.045em;
+                color: rgba(239, 239, 239, 0.82);
+                font-weight: 600;
+                text-transform: uppercase;
+                white-space: nowrap;
+                text-shadow: 0 0 14px rgba(255, 255, 255, 0.08);
+            }
+
+            .loader-letter {
+                display: inline-block;
+                transform-origin: 50% 0%;
+                will-change: transform;
+            }
+
+            .loader-letter-center {
+                opacity: 0.95;
+            }
+
+            .landing-content {
+                position: relative;
+                z-index: 4;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0;
+                width: fit-content;
+                max-width: 100%;
+                min-width: 0;
+                margin-bottom: var(--landing-bottom-offset);
+                opacity: 0;
+                transform: translate3d(0, 24px, 0);
+            }
+
+            .landing-content-ready {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+
+            .landing-home-meta {
+                position: absolute;
+                left: var(--landing-pad);
+                bottom: calc(var(--landing-pad) + var(--landing-bottom-offset) + var(--type-tag) + var(--landing-gap));
+                z-index: 4;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--landing-gap);
+                width: fit-content;
+                max-width: calc(100% - var(--landing-pad) - var(--landing-pad));
+                min-width: 0;
+                opacity: 0;
+                transform: translate3d(0, 24px, 0);
+                transition: opacity 320ms ease-out, transform 320ms ease-out;
+            }
+
+            .landing-home-meta-ready {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+
+            .landing-tag {
+                margin: 0;
+                color: var(--tag);
+                font-family: "IBM Plex Mono", monospace;
+                font-size: var(--type-tag);
+                letter-spacing: 0.17em;
+                font-weight: 500;
+                text-transform: uppercase;
+                line-height: 1.12;
+            }
+
+            .landing-tag,
+            .landing-title,
+            .landing-description {
+                display: block;
+                margin: 0;
+                width: fit-content;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: clip;
+                text-overflow: ellipsis;
+                overflow-clip-margin: 0.32em;
+            }
+
+            .landing-title {
+                color: var(--title);
+                font-size: var(--type-title);
+                font-weight: 600;
+                letter-spacing: clamp(0.016em, 0.012em + 0.08vw, 0.034em);
+                line-height: 1.08;
+                overflow-clip-margin: 0.48em;
+            }
+
+            .landing-description {
+                color: var(--fg-soft);
+                font-size: var(--type-body);
+                font-weight: 500;
+                line-height: 1.12;
+            }
+
+            .menu-link {
+                appearance: none;
+                border: 0;
+                background: transparent;
+                margin: 0;
+                padding: 0;
+                color: inherit;
+                font: inherit;
+                letter-spacing: inherit;
+                text-transform: inherit;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .menu-link-inline {
+                display: inline;
+            }
+
+            .menu-link:hover,
+            .menu-link:focus-visible,
+            .menu-link-active {
+                color: var(--link-active);
+                outline: none;
+            }
+
+            @media (max-width: 760px) {
+                .landing {
+                    --landing-pad: clamp(1rem, 5.2vw, 1.8rem);
+                    padding: var(--landing-pad);
+                }
+
+                .landing-loader,
+                .landing-home-meta,
+                .landing-content {
+                    width: fit-content;
+                }
+
+                .landing-tag {
+                    letter-spacing: 0.12em;
+                }
+
+                .landing-title {
+                    font-size: clamp(1.28rem, 6.1vw, 1.72rem);
+                }
+
+                .landing-description {
+                    font-size: clamp(0.72rem, 2.8vw, 0.88rem);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .loader-letter {
+                    transform: none;
+                }
+
+                .landing-home-meta {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main class="landing">
+            <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+                <filter id="grain">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+                    <feColorMatrix type="saturate" values="0" />
+                </filter>
+            </svg>
+            <span class="landing-noise" aria-hidden="true"></span>
+
+            <section class="landing-loader" aria-label="404 loading indicator">
+                <div class="loader-word" aria-hidden="true">
+                    <span class="loader-letter" data-digit="left">4</span>
+                    <span class="loader-letter loader-letter-center" data-digit="center">0</span>
+                    <span class="loader-letter" data-digit="right">4</span>
+                </div>
+            </section>
+
+            <section class="landing-home-meta landing-home-meta-ready" aria-live="polite">
+                <p class="landing-description">missing from collection.</p>
+                <h1 class="landing-title">
+                    <a class="menu-link" href="/">smallergames.com</a>
+                </h1>
+            </section>
+
+            <section class="landing-content landing-content-ready">
+                <p class="landing-tag">
+                    <a class="menu-link menu-link-inline" href="/software">software</a> -
+                    <a class="menu-link menu-link-inline" href="/games">games</a> -
+                    <a class="menu-link menu-link-inline" href="/fiction">fiction</a> -
+                    <a class="menu-link menu-link-inline" href="/screenworks">screenworks</a> -
+                    <a class="menu-link menu-link-inline" href="/etc">etc</a>
+                </p>
+            </section>
+        </main>
+
+        <script>
+            (() => {
+                const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                if (prefersReducedMotion || typeof Element.prototype.animate !== "function") {
+                    return;
+                }
+
+                const digits = {
+                    left: document.querySelector('[data-digit="left"]'),
+                    center: document.querySelector('[data-digit="center"]'),
+                    right: document.querySelector('[data-digit="right"]'),
+                };
+
+                if (!digits.left || !digits.center || !digits.right) {
+                    return;
+                }
+
+                const LOADER_MOTION = {
+                    swingAngle: 18,
+                    swingOffset: 7,
+                    centerNudge: 2.2,
+                    centerScale: 1.07,
+                    sideScale: 1.03,
+                };
+
+                const TIMING_VARIANCE = {
+                    sideStepJitterMs: 68,
+                    sideMotionJitterMs: 52,
+                    centerStepJitterMs: 36,
+                    centerMotionJitterMs: 24,
+                };
+
+                const GLITCH = {
+                    chance: 0.52,
+                    minExtraPauseMs: 120,
+                    maxExtraPauseMs: 280,
+                    longHoldChance: 0.36,
+                    minLongHoldMs: 90,
+                    maxLongHoldMs: 380,
+                    motionStretchChance: 0.34,
+                    motionStretchRatio: 0.45,
+                    minRunSteps: 1,
+                    maxRunSteps: 4,
+                    extendChance: 0.24,
+                    maxExtendSteps: 2,
+                    minRunIntensity: 0.9,
+                    maxRunIntensity: 1.5,
+                    cooldownAfterRunChance: 0.48,
+                    minCooldownSteps: 1,
+                    maxCooldownSteps: 2,
+                    cooldownChanceMultiplier: 0.32,
+                    minStutterPx: 1.4,
+                    maxStutterPx: 2.8,
+                    minOpacityDip: 0.62,
+                    maxOpacityDip: 0.78,
+                    minChromaPx: 0.8,
+                    maxChromaPx: 1.6,
+                };
+
+                const PAUSE = {
+                    chance: 0.66,
+                    minMs: 70,
+                    maxMs: 210,
+                    longPauseChance: 0.24,
+                    minLongMs: 220,
+                    maxLongMs: 520,
+                    burstChance: 0.2,
+                    minBurstCount: 2,
+                    maxBurstCount: 4,
+                    minBurstMs: 35,
+                    maxBurstMs: 105,
+                    glitchBoostMultiplier: 1.2,
+                };
+
+                const BASE_STEP_TIMING = {
+                    left: { stepMs: 700, motionMs: 610 },
+                    "center-right": { stepMs: 350, motionMs: 275 },
+                    right: { stepMs: 700, motionMs: 610 },
+                    "center-left": { stepMs: 350, motionMs: 275 },
+                };
+
+                const SEQUENCE = ["left", "center-right", "right", "center-left"];
+                const BASE_SHADOW = "0 0 14px rgba(255, 255, 255, 0.08)";
+                const GLITCH_EASING = "cubic-bezier(0.18, 0.88, 0.22, 1)";
+                const SIDE_EASING = "cubic-bezier(0.38, 0, 0.24, 1)";
+                const CENTER_EASING = "cubic-bezier(0.2, 0.78, 0.24, 1)";
+                const REST_EASING = "ease-out";
+                const REST_DURATION = 80;
+                const activeAnimations = new Map();
+
+                let sequenceIndex = 0;
+                let timeoutHandle = 0;
+                let glitchPattern = {
+                    remainingRunSteps: 0,
+                    runIntensity: 1,
+                    cooldownSteps: 0,
+                };
+
+                const randomInt = (min, max) => Math.floor(min + Math.random() * (max - min + 1));
+                const randomBetween = (min, max) => min + Math.random() * (max - min);
+                const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+                const chromaShadow = (shiftPx) => `${shiftPx}px 0 0 rgba(255, 66, 66, 0.64), ${-shiftPx}px 0 0 rgba(66, 225, 255, 0.64), ${BASE_SHADOW}`;
+                const inverseChromaShadow = (shiftPx) => `${-shiftPx}px 0 0 rgba(255, 66, 66, 0.64), ${shiftPx}px 0 0 rgba(66, 225, 255, 0.64), ${BASE_SHADOW}`;
+
+                const withOffsets = (frames, offsets) => frames.map((frame, index) => ({ ...frame, offset: offsets[index] }));
+                const transformFrame = (x, rotate, scale) => `translateX(${x}px) rotate(${rotate}deg) scale(${scale})`;
+
+                const getPauseMs = (glitchActive) => {
+                    let pauseMs = 0;
+                    if (Math.random() < PAUSE.chance) {
+                        pauseMs += randomInt(PAUSE.minMs, PAUSE.maxMs);
+                    }
+                    if (Math.random() < PAUSE.longPauseChance) {
+                        pauseMs += randomInt(PAUSE.minLongMs, PAUSE.maxLongMs);
+                    }
+                    if (Math.random() < PAUSE.burstChance) {
+                        const burstCount = randomInt(PAUSE.minBurstCount, PAUSE.maxBurstCount);
+                        for (let index = 0; index < burstCount; index += 1) {
+                            pauseMs += randomInt(PAUSE.minBurstMs, PAUSE.maxBurstMs);
+                        }
+                    }
+                    if (glitchActive) {
+                        pauseMs = Math.round(pauseMs * PAUSE.glitchBoostMultiplier);
+                    }
+                    return pauseMs;
+                };
+
+                const getStepTiming = (step) => {
+                    const base = BASE_STEP_TIMING[step];
+                    const isSide = step === "left" || step === "right";
+                    const stepJitterMs = isSide ? TIMING_VARIANCE.sideStepJitterMs : TIMING_VARIANCE.centerStepJitterMs;
+                    const motionJitterMs = isSide ? TIMING_VARIANCE.sideMotionJitterMs : TIMING_VARIANCE.centerMotionJitterMs;
+
+                    let stepMs = Math.round(base.stepMs + (Math.random() * 2 - 1) * stepJitterMs);
+                    let motionMs = Math.round(base.motionMs + (Math.random() * 2 - 1) * motionJitterMs);
+                    let glitchActive = false;
+                    let glitchIntensity = 1;
+                    let glitchStutterPx = 0;
+                    let glitchOpacityDip = 1;
+                    let glitchChromaPx = 0;
+
+                    if (glitchPattern.remainingRunSteps > 0) {
+                        glitchActive = true;
+                        glitchIntensity = glitchPattern.runIntensity;
+                        glitchPattern.remainingRunSteps -= 1;
+                    } else {
+                        const startChanceMultiplier = glitchPattern.cooldownSteps > 0 ? GLITCH.cooldownChanceMultiplier : 1;
+                        const startChance = GLITCH.chance * startChanceMultiplier;
+
+                        if (Math.random() < startChance) {
+                            glitchActive = true;
+                            const runLength = randomInt(GLITCH.minRunSteps, GLITCH.maxRunSteps);
+                            glitchIntensity = randomBetween(GLITCH.minRunIntensity, GLITCH.maxRunIntensity);
+                            glitchPattern.remainingRunSteps = runLength - 1;
+                            glitchPattern.runIntensity = glitchIntensity;
+                            glitchPattern.cooldownSteps = 0;
+                        } else {
+                            glitchPattern.runIntensity = 1;
+                            if (glitchPattern.cooldownSteps > 0) {
+                                glitchPattern.cooldownSteps -= 1;
+                            }
+                        }
+                    }
+
+                    if (glitchActive) {
+                        if (Math.random() < GLITCH.extendChance) {
+                            glitchPattern.remainingRunSteps += randomInt(1, GLITCH.maxExtendSteps);
+                        }
+
+                        const glitchPauseMs = Math.round(randomBetween(GLITCH.minExtraPauseMs, GLITCH.maxExtraPauseMs) * glitchIntensity);
+                        stepMs += glitchPauseMs;
+
+                        if (Math.random() < GLITCH.longHoldChance) {
+                            const longHoldMs = randomInt(GLITCH.minLongHoldMs, GLITCH.maxLongHoldMs);
+                            stepMs += longHoldMs;
+                            if (Math.random() < GLITCH.motionStretchChance) {
+                                motionMs += Math.round(longHoldMs * GLITCH.motionStretchRatio * 0.42);
+                            }
+                        }
+
+                        if (Math.random() < GLITCH.motionStretchChance) {
+                            motionMs += Math.round(glitchPauseMs * GLITCH.motionStretchRatio);
+                        }
+
+                        glitchStutterPx = randomBetween(GLITCH.minStutterPx, GLITCH.maxStutterPx) * glitchIntensity;
+                        glitchChromaPx = randomBetween(GLITCH.minChromaPx, GLITCH.maxChromaPx) * glitchIntensity;
+                        glitchOpacityDip = clamp(randomBetween(GLITCH.minOpacityDip, GLITCH.maxOpacityDip) - (glitchIntensity - 1) * 0.08, 0.42, 0.86);
+
+                        if (glitchPattern.remainingRunSteps === 0 && Math.random() < GLITCH.cooldownAfterRunChance) {
+                            glitchPattern.cooldownSteps = randomInt(GLITCH.minCooldownSteps, GLITCH.maxCooldownSteps);
+                            glitchPattern.runIntensity = 1;
+                        }
+                    }
+
+                    stepMs += getPauseMs(glitchActive);
+                    motionMs = Math.max(180, motionMs);
+                    stepMs = Math.max(motionMs + 56, stepMs);
+
+                    return {
+                        stepMs,
+                        motionMs,
+                        glitchActive,
+                        glitchStutterPx,
+                        glitchOpacityDip,
+                        glitchChromaPx,
+                    };
+                };
+
+                const sideKeyframes = (direction, timing) => {
+                    if (!timing.glitchActive) {
+                        return withOffsets(
+                            [
+                                { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                                {
+                                    transform: transformFrame(direction * LOADER_MOTION.swingOffset, direction * LOADER_MOTION.swingAngle, LOADER_MOTION.sideScale),
+                                    opacity: 1,
+                                    textShadow: BASE_SHADOW,
+                                },
+                                { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            ],
+                            [0, 0.5, 1],
+                        );
+                    }
+
+                    return withOffsets(
+                        [
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            {
+                                transform: transformFrame(direction * LOADER_MOTION.swingOffset, direction * LOADER_MOTION.swingAngle, LOADER_MOTION.sideScale),
+                                opacity: 1,
+                                textShadow: BASE_SHADOW,
+                            },
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            {
+                                transform: transformFrame(-timing.glitchStutterPx, 0, 1),
+                                opacity: timing.glitchOpacityDip,
+                                textShadow: chromaShadow(timing.glitchChromaPx),
+                            },
+                            {
+                                transform: transformFrame(timing.glitchStutterPx, 0, 1),
+                                opacity: 0.92,
+                                textShadow: inverseChromaShadow(timing.glitchChromaPx),
+                            },
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                        ],
+                        [0, 0.46, 0.72, 0.82, 0.9, 1],
+                    );
+                };
+
+                const centerKeyframes = (direction, timing) => {
+                    if (!timing.glitchActive) {
+                        return withOffsets(
+                            [
+                                { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                                {
+                                    transform: transformFrame(direction * LOADER_MOTION.centerNudge, 0, LOADER_MOTION.centerScale),
+                                    opacity: 1,
+                                    textShadow: BASE_SHADOW,
+                                },
+                                {
+                                    transform: transformFrame(direction * -LOADER_MOTION.centerNudge * 0.34, 0, 0.998),
+                                    opacity: 1,
+                                    textShadow: BASE_SHADOW,
+                                },
+                                { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            ],
+                            [0, 0.36, 0.64, 1],
+                        );
+                    }
+
+                    return withOffsets(
+                        [
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            {
+                                transform: transformFrame(direction * LOADER_MOTION.centerNudge, 0, LOADER_MOTION.centerScale),
+                                opacity: 1,
+                                textShadow: BASE_SHADOW,
+                            },
+                            {
+                                transform: transformFrame(direction * -LOADER_MOTION.centerNudge * 0.34, 0, 0.998),
+                                opacity: 1,
+                                textShadow: BASE_SHADOW,
+                            },
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                            {
+                                transform: transformFrame(-timing.glitchStutterPx, 0, 1),
+                                opacity: timing.glitchOpacityDip,
+                                textShadow: chromaShadow(timing.glitchChromaPx),
+                            },
+                            {
+                                transform: transformFrame(timing.glitchStutterPx, 0, 1),
+                                opacity: 0.92,
+                                textShadow: inverseChromaShadow(timing.glitchChromaPx),
+                            },
+                            { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW },
+                        ],
+                        [0, 0.32, 0.56, 0.72, 0.82, 0.9, 1],
+                    );
+                };
+
+                const restKeyframes = [
+                    { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW, offset: 0 },
+                    { transform: transformFrame(0, 0, 1), opacity: 1, textShadow: BASE_SHADOW, offset: 1 },
+                ];
+
+                const play = (element, frames, duration, easing) => {
+                    const existing = activeAnimations.get(element);
+                    if (existing) {
+                        existing.cancel();
+                    }
+                    const animation = element.animate(frames, { duration, easing, fill: "forwards" });
+                    activeAnimations.set(element, animation);
+                };
+
+                const runStep = () => {
+                    const step = SEQUENCE[sequenceIndex];
+                    const timing = getStepTiming(step);
+
+                    if (step === "left") {
+                        play(digits.left, sideKeyframes(-1, timing), timing.motionMs, timing.glitchActive ? GLITCH_EASING : SIDE_EASING);
+                        play(digits.center, restKeyframes, REST_DURATION, REST_EASING);
+                        play(digits.right, restKeyframes, REST_DURATION, REST_EASING);
+                    } else if (step === "center-right") {
+                        play(digits.left, restKeyframes, REST_DURATION, REST_EASING);
+                        play(digits.center, centerKeyframes(1, timing), timing.motionMs, timing.glitchActive ? GLITCH_EASING : CENTER_EASING);
+                        play(digits.right, restKeyframes, REST_DURATION, REST_EASING);
+                    } else if (step === "right") {
+                        play(digits.left, restKeyframes, REST_DURATION, REST_EASING);
+                        play(digits.center, restKeyframes, REST_DURATION, REST_EASING);
+                        play(digits.right, sideKeyframes(1, timing), timing.motionMs, timing.glitchActive ? GLITCH_EASING : SIDE_EASING);
+                    } else {
+                        play(digits.left, restKeyframes, REST_DURATION, REST_EASING);
+                        play(digits.center, centerKeyframes(-1, timing), timing.motionMs, timing.glitchActive ? GLITCH_EASING : CENTER_EASING);
+                        play(digits.right, restKeyframes, REST_DURATION, REST_EASING);
+                    }
+
+                    sequenceIndex = (sequenceIndex + 1) % SEQUENCE.length;
+                    timeoutHandle = window.setTimeout(runStep, timing.stepMs);
+                };
+
+                runStep();
+                window.addEventListener(
+                    "pagehide",
+                    () => {
+                        window.clearTimeout(timeoutHandle);
+                    },
+                    { once: true },
+                );
+            })();
+        </script>
+    </body>
 </html>
