@@ -9,7 +9,7 @@
   --title: #ece8e1;
   --link-active: #f0ece3;
   --landing-pad: clamp(0.95rem, 2.2vw, 1.9rem);
-  --landing-gap: clamp(0.26rem, 0.5vw, 0.44rem);
+  --landing-gap: clamp(0.55rem, 1.1vw, 0.9rem);
   --landing-bottom-offset: clamp(0.32rem, 1.3vw, 0.9rem);
   --type-tag: clamp(0.58rem, 0.54rem + 0.2vw, 0.7rem);
   --type-title: clamp(1.3rem, 1.1rem + 0.95vw, 1.86rem);
@@ -244,7 +244,7 @@ body {
   border: 0;
   background: transparent;
   margin: 0;
-  padding: 0;
+  padding: 0.5em 0.25em;
   color: inherit;
   font: inherit;
   letter-spacing: inherit;
