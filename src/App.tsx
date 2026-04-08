@@ -55,7 +55,7 @@ function App() {
 
       <section ref={contentRef} className="landing-content">
         <h1 className="landing-title">smallergames.com</h1>
-        <p className="landing-tag">a growing collection of odd + ends.</p>
+        <p className="landing-tag">making weird stuff for the internet.</p>
       </section>
     </main>
   );
