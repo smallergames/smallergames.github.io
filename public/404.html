@@ -1,257 +1,265 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="smallergames.com" />
-        <meta name="theme-color" content="#050505" />
-        <meta name="robots" content="noindex" />
-        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" />
-        <title>smallergames.com</title>
-        <style>
-            :root {
-                color-scheme: dark;
-                --bg: #050505;
-                --fg: #e4e1db;
-                --tag: #949691;
-                --title: #ece8e1;
-                --landing-pad: clamp(0.95rem, 2.2vw, 1.9rem);
-                --landing-bottom-offset: clamp(0.32rem, 1.3vw, 0.9rem);
-                --type-tag: clamp(0.58rem, 0.54rem + 0.2vw, 0.7rem);
-                --type-title: clamp(1.3rem, 1.1rem + 0.95vw, 1.86rem);
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="smallergames.com" />
+    <meta name="theme-color" content="#050505" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap"
+    />
+    <title>smallergames.com</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050505;
+        --fg: #e4e1db;
+        --tag: #949691;
+        --title: #ece8e1;
+        --landing-pad: clamp(0.95rem, 2.2vw, 1.9rem);
+        --landing-bottom-offset: clamp(0.32rem, 1.3vw, 0.9rem);
+        --type-tag: clamp(0.58rem, 0.54rem + 0.2vw, 0.7rem);
+        --type-title: clamp(1.3rem, 1.1rem + 0.95vw, 1.86rem);
+      }
 
-            * {
-                box-sizing: border-box;
-            }
+      * {
+        box-sizing: border-box;
+      }
 
-            html,
-            body {
-                min-height: 100%;
-                margin: 0;
-            }
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
 
-            body {
-                background: var(--bg);
-                color: var(--fg);
-                font-family: "Manrope", sans-serif;
-            }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Manrope", sans-serif;
+      }
 
-            .landing {
-                position: relative;
-                min-height: 100vh;
-                display: flex;
-                align-items: flex-end;
-                padding: var(--landing-pad);
-                overflow: hidden;
-                isolation: isolate;
-                background: radial-gradient(100vw 100vh at 90% 8%, rgba(255, 255, 255, 0.1), transparent 68%), var(--bg);
-            }
+      .landing {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-end;
+        padding: var(--landing-pad);
+        overflow: hidden;
+        isolation: isolate;
+        background: radial-gradient(100vw 100vh at 90% 8%, rgba(255, 255, 255, 0.1), transparent 68%),
+          var(--bg);
+      }
 
-            @supports (min-height: 100dvh) {
-                .landing {
-                    min-height: 100dvh;
-                }
-            }
+      @supports (min-height: 100dvh) {
+        .landing {
+          min-height: 100dvh;
+        }
+      }
 
-            .landing-noise {
-                position: absolute;
-                inset: 0;
-                pointer-events: none;
-                z-index: 0;
-                opacity: 0.14;
-                background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 6px);
-                mask-image: radial-gradient(circle at center, #000 40%, transparent 100%);
-            }
+      .landing-noise {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.14;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.04) 0 1px,
+          transparent 1px 6px
+        );
+        mask-image: radial-gradient(circle at center, #000 40%, transparent 100%);
+      }
 
-            .landing-noise::before {
-                content: "";
-                position: absolute;
-                inset: 0;
-                opacity: 0.55;
-                filter: url(#grain);
-                background: transparent;
-            }
+      .landing-noise::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.55;
+        filter: url(#grain);
+        background: transparent;
+      }
 
-            .landing-loader {
-                position: absolute;
-                top: 53%;
-                left: 50%;
-                z-index: 3;
-                width: fit-content;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-            }
+      .landing-loader {
+        position: absolute;
+        top: 53%;
+        left: 50%;
+        z-index: 3;
+        width: fit-content;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
 
-            .loader-word {
-                display: inline-flex;
-                align-items: flex-end;
-                gap: 0.22em;
-                margin: 0;
-                font-family: "IBM Plex Mono", monospace;
-                font-size: clamp(1.8rem, 1.64rem + 0.92vw, 2.42rem);
-                letter-spacing: 0.045em;
-                color: rgba(239, 239, 239, 0.82);
-                font-weight: 600;
-                text-transform: uppercase;
-                white-space: nowrap;
-                text-shadow: 0 0 14px rgba(255, 255, 255, 0.08);
-            }
+      .loader-word {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 0.22em;
+        margin: 0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: clamp(1.8rem, 1.64rem + 0.92vw, 2.42rem);
+        letter-spacing: 0.045em;
+        color: rgba(239, 239, 239, 0.82);
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+        text-shadow: 0 0 14px rgba(255, 255, 255, 0.08);
+      }
 
-            .loader-letter {
-                display: inline-block;
-                transform-origin: 50% 0%;
-                will-change: transform;
-            }
+      .loader-letter {
+        display: inline-block;
+        transform-origin: 50% 0%;
+        will-change: transform;
+      }
 
-            .loader-letter-left {
-                animation: sway-left 1.9s cubic-bezier(0.38, 0, 0.24, 1) infinite;
-            }
+      .loader-letter-left {
+        animation: sway-left 1.9s cubic-bezier(0.38, 0, 0.24, 1) infinite;
+      }
 
-            .loader-letter-center {
-                opacity: 0.95;
-                animation: sway-center 1.9s cubic-bezier(0.2, 0.78, 0.24, 1) infinite;
-            }
+      .loader-letter-center {
+        opacity: 0.95;
+        animation: sway-center 1.9s cubic-bezier(0.2, 0.78, 0.24, 1) infinite;
+      }
 
-            .loader-letter-right {
-                animation: sway-right 1.9s cubic-bezier(0.38, 0, 0.24, 1) infinite;
-            }
+      .loader-letter-right {
+        animation: sway-right 1.9s cubic-bezier(0.38, 0, 0.24, 1) infinite;
+      }
 
-            .landing-content {
-                position: relative;
-                z-index: 4;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: clamp(0.2rem, 0.4vw, 0.35rem);
-                width: fit-content;
-                max-width: 100%;
-                min-width: 0;
-                margin-bottom: var(--landing-bottom-offset);
-            }
+      .landing-content {
+        position: relative;
+        z-index: 4;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: clamp(0.2rem, 0.4vw, 0.35rem);
+        width: fit-content;
+        max-width: 100%;
+        min-width: 0;
+        margin-bottom: var(--landing-bottom-offset);
+      }
 
-            .landing-tag {
-                margin: 0;
-                color: var(--tag);
-                font-family: "IBM Plex Mono", monospace;
-                font-size: var(--type-tag);
-                letter-spacing: 0.17em;
-                font-weight: 500;
-                text-transform: uppercase;
-                line-height: 1.12;
-            }
+      .landing-tag {
+        margin: 0;
+        color: var(--tag);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: var(--type-tag);
+        letter-spacing: 0.17em;
+        font-weight: 500;
+        text-transform: uppercase;
+        line-height: 1.12;
+      }
 
-            .landing-tag,
-            .landing-title {
-                display: block;
-                width: fit-content;
-                max-width: 100%;
-                white-space: nowrap;
-                overflow: clip;
-                text-overflow: ellipsis;
-                overflow-clip-margin: 0.32em;
-            }
+      .landing-tag,
+      .landing-title {
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: clip;
+        text-overflow: ellipsis;
+        overflow-clip-margin: 0.32em;
+      }
 
-            .landing-title {
-                margin: 0;
-                color: var(--title);
-                font-size: var(--type-title);
-                font-weight: 600;
-                letter-spacing: clamp(0.016em, 0.012em + 0.08vw, 0.034em);
-                line-height: 1.08;
-                overflow-clip-margin: 0.48em;
-            }
+      .landing-title {
+        margin: 0;
+        color: var(--title);
+        font-size: var(--type-title);
+        font-weight: 600;
+        letter-spacing: clamp(0.016em, 0.012em + 0.08vw, 0.034em);
+        line-height: 1.08;
+        overflow-clip-margin: 0.48em;
+      }
 
-            @keyframes sway-left {
-                0%,
-                100% {
-                    transform: translateX(0) rotate(0deg) scale(1);
-                }
-                50% {
-                    transform: translateX(-7px) rotate(-18deg) scale(1.03);
-                }
-            }
+      @keyframes sway-left {
+        0%,
+        100% {
+          transform: translateX(0) rotate(0deg) scale(1);
+        }
+        50% {
+          transform: translateX(-7px) rotate(-18deg) scale(1.03);
+        }
+      }
 
-            @keyframes sway-center {
-                0%,
-                100% {
-                    transform: translateX(0) scale(1);
-                }
-                36% {
-                    transform: translateX(2.2px) scale(1.07);
-                }
-                64% {
-                    transform: translateX(-0.74px) scale(0.998);
-                }
-            }
+      @keyframes sway-center {
+        0%,
+        100% {
+          transform: translateX(0) scale(1);
+        }
+        36% {
+          transform: translateX(2.2px) scale(1.07);
+        }
+        64% {
+          transform: translateX(-0.74px) scale(0.998);
+        }
+      }
 
-            @keyframes sway-right {
-                0%,
-                100% {
-                    transform: translateX(0) rotate(0deg) scale(1);
-                }
-                50% {
-                    transform: translateX(7px) rotate(18deg) scale(1.03);
-                }
-            }
+      @keyframes sway-right {
+        0%,
+        100% {
+          transform: translateX(0) rotate(0deg) scale(1);
+        }
+        50% {
+          transform: translateX(7px) rotate(18deg) scale(1.03);
+        }
+      }
 
-            @media (max-width: 760px) {
-                .landing {
-                    --landing-pad: clamp(1rem, 5.2vw, 1.8rem);
-                    padding: var(--landing-pad);
-                }
+      @media (max-width: 760px) {
+        .landing {
+          --landing-pad: clamp(1rem, 5.2vw, 1.8rem);
+          padding: var(--landing-pad);
+        }
 
-                .landing-loader,
-                .landing-content {
-                    width: fit-content;
-                }
+        .landing-loader,
+        .landing-content {
+          width: fit-content;
+        }
 
-                .landing-tag {
-                    letter-spacing: 0.12em;
-                }
+        .landing-tag {
+          letter-spacing: 0.12em;
+        }
 
-                .landing-title {
-                    font-size: clamp(1.28rem, 6.1vw, 1.72rem);
-                }
-            }
+        .landing-title {
+          font-size: clamp(1.28rem, 6.1vw, 1.72rem);
+        }
+      }
 
-            @media (prefers-reduced-motion: reduce) {
-                .loader-letter,
-                .loader-letter-center,
-                .loader-letter-left,
-                .loader-letter-right {
-                    animation: none;
-                    transform: none;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <main class="landing">
-            <svg width="0" height="0" aria-hidden="true" style="position: absolute">
-                <filter id="grain">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-                    <feColorMatrix type="saturate" values="0" />
-                </filter>
-            </svg>
-            <span class="landing-noise" aria-hidden="true"></span>
+      @media (prefers-reduced-motion: reduce) {
+        .loader-letter,
+        .loader-letter-center,
+        .loader-letter-left,
+        .loader-letter-right {
+          animation: none;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="landing">
+      <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+      </svg>
+      <span class="landing-noise" aria-hidden="true"></span>
 
-            <section class="landing-loader" aria-label="Loading indicator">
-                <div class="loader-word" aria-hidden="true">
-                    <span class="loader-letter loader-letter-left">w</span>
-                    <span class="loader-letter loader-letter-center">i</span>
-                    <span class="loader-letter loader-letter-right">p</span>
-                </div>
-            </section>
+      <section class="landing-loader" aria-label="Loading indicator">
+        <div class="loader-word" aria-hidden="true">
+          <span class="loader-letter loader-letter-left">w</span>
+          <span class="loader-letter loader-letter-center">i</span>
+          <span class="loader-letter loader-letter-right">p</span>
+        </div>
+      </section>
 
-            <section class="landing-content">
-                <h1 class="landing-title">smallergames.com</h1>
-                <p class="landing-tag">making weird things for the internet.</p>
-            </section>
-        </main>
-    </body>
+      <section class="landing-content">
+        <h1 class="landing-title">smallergames.com</h1>
+        <p class="landing-tag">a growing collection of odd + ends.</p>
+      </section>
+    </main>
+  </body>
 </html>
