@@ -20,12 +20,7 @@ function App() {
     <main className="landing">
       <svg width="0" height="0" aria-hidden="true" style={{ position: "absolute" }}>
         <filter id="grain">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.65"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
         </filter>
       </svg>
@@ -34,9 +29,7 @@ function App() {
       <section className="landing-loader" aria-label="Loading indicator">
         <div className="loader-word" aria-hidden="true">
           {LOADER_LETTERS.map((letter) => {
-            const motionConfig = prefersReducedMotion
-              ? { animate: REST_ANIMATION, transition: REST_TRANSITION }
-              : getLetterMotion(currentStep, letter.id, stepTiming);
+            const motionConfig = prefersReducedMotion ? { animate: REST_ANIMATION, transition: REST_TRANSITION } : getLetterMotion(currentStep, letter.id, stepTiming);
 
             return (
               <motion.span
@@ -55,7 +48,7 @@ function App() {
 
       <section ref={contentRef} className="landing-content">
         <h1 className="landing-title">smallergames.com</h1>
-        <p className="landing-tag">a growing collection of odd + ends.</p>
+        <p className="landing-tag">making weird things for the internet.</p>
       </section>
     </main>
   );
